@@ -17,3 +17,4 @@
 * **Styling:** Tailwind CSS (Mobile-First, Dark/Light Mode support)
 * **Localization:** i18n framework (English/Swedish support)
 * **Backend & Database:** Supabase (PostgreSQL, Auth, Edge Functions)
+* **Infrastructure & IaC:** Terraform & Google Cloud Platform (Cloud Run)
