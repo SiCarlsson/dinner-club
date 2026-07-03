@@ -1,0 +1,13 @@
+# ==============================================================================
+# Supabase Infrastructure Configuration Template
+# Copy this file to 'terraform.tfvars' and fill in your actual values.
+# ==============================================================================
+
+# Your personal Supabase Access Token (generated from Account Settings > Access Tokens)
+supabase_access_token = "your_supabase_access_token_here"
+
+# The Organization SLUG found in your Supabase Dashboard under Org Settings > General
+supabase_organization_id = "your_organization_slug_here"
+
+# A strong password for the production database
+supabase_database_password = "your_database_password_here"
