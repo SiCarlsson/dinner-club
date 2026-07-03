@@ -14,3 +14,8 @@ variable "supabase_database_password" {
   type        = string
   sensitive   = true
 }
+
+variable "gcp_project_id" {
+  description = "The GCP project ID"
+  type        = string
+}
