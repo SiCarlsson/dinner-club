@@ -1,41 +1,53 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ==========================================
+# 1. SECRETS & ENVIRONMENT FILES
+# ==========================================
+.env
+.env.local
+.env.*
+*.tfvars
+*.tfvars.json
 
-# dependencies
-/node_modules
-/.pnp
-.pnp.*
-.yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+# ==========================================
+# 2. NEXT.JS & NODE (Inside the web/ directory)
+# ==========================================
+web/node_modules/
+web/.next/
+web/out/
+web/build/
+web/next-env.d.ts
+web/.vercel/
 
-# testing
-/coverage
+# Yarn/PnP specific (if used inside web)
+web/.pnp
+web/.pnp.*
+web/.yarn/*
+!web/.yarn/patches
+!web/.yarn/plugins
+!web/.yarn/releases
+!web/.yarn/versions
 
-# next.js
-/.next/
-/out/
+# ==========================================
+# 3. TERRAFORM (Inside the terraform/ directory)
+# ==========================================
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
 
-# production
-/build
-
-# misc
-.DS_Store
-*.pem
-
-# debug
+# ==========================================
+# 4. DEBUG, LOGS & TESTING
+# ==========================================
+web/coverage/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
+.pnpm-store/
 
-# env files (can opt-in for committing if needed)
-.env*
-
-# vercel
-.vercel
-
-# typescript
+# ==========================================
+# 5. MISC / SYSTEM FILES
+# ==========================================
+.DS_Store
+Thumbs.db
+*.pem
 *.tsbuildinfo
-next-env.d.ts
