@@ -9,7 +9,6 @@ RUN npm i -g pnpm
 # Copy package management files
 COPY package.json pnpm-lock.yaml* ./
 
-# FIX: pnpm 11+ requires configuration via allowBuilds inside pnpm-workspace.yaml
 RUN echo "allowBuilds:" > pnpm-workspace.yaml && \
     echo "  sharp: true" >> pnpm-workspace.yaml && \
     echo "  unrs-resolver: true" >> pnpm-workspace.yaml
@@ -24,14 +23,13 @@ RUN npm i -g pnpm
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-# FIX: Inject the same permission file here so the Next.js builder can execute sharp
 RUN echo "allowBuilds:" > pnpm-workspace.yaml && \
     echo "  sharp: true" >> pnpm-workspace.yaml && \
     echo "  unrs-resolver: true" >> pnpm-workspace.yaml
 
 RUN pnpm run build
 
-# 3. Production Runner Stage (No pnpm needed here!)
+# 3. Production Runner Stage
 FROM node:22-alpine AS runner
 WORKDIR /app
 
