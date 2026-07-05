@@ -55,3 +55,4 @@ Thumbs.db
 # Supabase
 .branches
 .temp
+supabase/snippets/
