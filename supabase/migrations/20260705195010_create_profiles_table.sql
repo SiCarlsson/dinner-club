@@ -1,7 +1,7 @@
 CREATE TABLE public.profiles (
   id uuid NOT NULL,
   full_name text,
-  role text NOT NULL DEFAULT 'user'::text,
+  role text NOT NULL DEFAULT 'member'::text,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   CONSTRAINT profiles_pkey PRIMARY KEY (id),

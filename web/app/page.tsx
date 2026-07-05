@@ -4,7 +4,7 @@ export default async function Home() {
   const supabase = await getSupabaseServer();
 
   const { data, error } = await supabase
-    .from("instruments")
+    .from("profiles")
     .select("*");
 
   if (error) {
@@ -22,13 +22,6 @@ export default async function Home() {
       <p className="mt-4 text-emerald-400 font-medium">
         Database Status: Connected
       </p>
-
-      <div className="mt-6 p-4 bg-slate-800 border border-slate-700 rounded-lg shadow-md max-w-md text-center">
-        <p className="text-sm text-slate-400 uppercase tracking-wider font-semibold">Data from Supabase:</p>
-        <p className="mt-2 text-lg text-slate-200 italic">
-          "{data[0]?.name}"
-        </p>
-      </div>
     </div>
   );
 }
