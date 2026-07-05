@@ -1,14 +1,14 @@
 # ==========================================
-# 1. SECRETS & ENVIRONMENT FILES
+# SECRETS & ENVIRONMENT FILES
 # ==========================================
 .env
-.env.local
 .env.*
+!.env.example
 *.tfvars
 *.tfvars.json
 
 # ==========================================
-# 2. NEXT.JS & NODE (Inside the web/ directory)
+# NEXT.JS & NODE (Inside the web/ directory)
 # ==========================================
 web/node_modules/
 web/.next/
@@ -27,7 +27,7 @@ web/.yarn/*
 !web/.yarn/versions
 
 # ==========================================
-# 3. TERRAFORM (Inside the terraform/ directory)
+# TERRAFORM (Inside the terraform/ directory)
 # ==========================================
 .terraform/
 *.tfstate
@@ -35,7 +35,7 @@ web/.yarn/*
 .terraform.lock.hcl
 
 # ==========================================
-# 4. DEBUG, LOGS & TESTING
+# DEBUG, LOGS & TESTING
 # ==========================================
 web/coverage/
 npm-debug.log*
@@ -45,9 +45,13 @@ yarn-error.log*
 .pnpm-store/
 
 # ==========================================
-# 5. MISC / SYSTEM FILES
+# MISC / SYSTEM FILES
 # ==========================================
 .DS_Store
 Thumbs.db
 *.pem
 *.tsbuildinfo
+
+# Supabase
+.branches
+.temp
