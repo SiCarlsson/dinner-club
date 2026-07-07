@@ -1,3 +1,5 @@
+// app/page.tsx
+
 'use client'
 
 import { useRouter } from 'next/navigation'
@@ -22,6 +24,11 @@ export default function Home() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut()
+    router.refresh()
+  }
+
+  const handleLogin = () => {
+    router.push('/login')
   }
 
   return user ? (
@@ -32,7 +39,7 @@ export default function Home() {
   ) : (
     <div>
       <p>Not logged in</p>
-      <button type="button" onClick={() => router.push('/login')}>Log in</button>
+      <button type="button" onClick={handleLogin}>Log in</button>
     </div>
   )
 }
