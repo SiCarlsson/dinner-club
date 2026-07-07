@@ -1,9 +1,9 @@
-// web/app/utils/supabase.ts
+// utils/supabase/server.ts
 
-import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
+import { createServerClient } from '@supabase/ssr'
 
-export async function getSupabaseServer() {
+export async function createClient() {
   const cookieStore = await cookies()
 
   return createServerClient(
@@ -20,7 +20,7 @@ export async function getSupabaseServer() {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // The `setAll` method can be ignored if users are just reading data
+            // ignore, midddleware refreshes token if needed
           }
         },
       },

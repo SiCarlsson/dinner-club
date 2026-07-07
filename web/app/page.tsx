@@ -1,27 +1,38 @@
-import { getSupabaseServer } from "../utils/supabase";
+'use client'
 
-export default async function Home() {
-  const supabase = await getSupabaseServer();
+import { useRouter } from 'next/navigation'
+import type { User } from '@supabase/supabase-js'
+import { useEffect, useState, useMemo } from 'react'
+import { createClient } from '@/utils/supabase/client'
 
-  const { data, error } = await supabase
-    .from("profiles")
-    .select("*");
+export default function Home() {
+  const [user, setUser] = useState<User | null>(null)
+  const supabase = useMemo(() => createClient(), [])
+  const router = useRouter()
 
-  if (error) {
-    return (
-      <div className="flex min-h-screen flex-col items-center justify-center p-8 bg-slate-900 text-red-400">
-        <h1 className="text-2xl font-bold">Database Error ❌</h1>
-        <p className="mt-2 text-sm bg-slate-800 p-4 rounded font-mono">{error.message}</p>
-      </div>
-    );
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+
+    return () => subscription.unsubscribe()
+  }, [supabase])
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
   }
 
-  return (
-    <div className="flex min-h-screen flex-col items-center justify-center p-8 bg-slate-900 text-slate-100">
-      <h1 className="text-4xl font-bold tracking-tight">Dinner Club 🍽️</h1>
-      <p className="mt-4 text-emerald-400 font-medium">
-        Database Status: Connected
-      </p>
+  return user ? (
+    <div>
+      <p>Logged in as {user.email}</p>
+      <button type="button" onClick={handleLogout}>Log out</button>
     </div>
-  );
+  ) : (
+    <div>
+      <p>Not logged in</p>
+      <button type="button" onClick={() => router.push('/login')}>Log in</button>
+    </div>
+  )
 }
