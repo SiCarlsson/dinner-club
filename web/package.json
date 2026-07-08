@@ -8,6 +8,7 @@
     "start": "next start",
     "lint": "eslint",
     "format": "prettier --write .",
+    "test": "vitest run",
     "prepare": "cd .. && husky web/.husky"
   },
   "dependencies": {
