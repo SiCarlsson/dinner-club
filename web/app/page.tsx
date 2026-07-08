@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import type { User } from '@supabase/supabase-js'
 import { useEffect, useState, useMemo } from 'react'
 import { createClient } from '@/utils/supabase/client'
+import { ThemeToggle } from '@/components/theme-toggle'
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null)
@@ -31,15 +32,20 @@ export default function Home() {
     router.push('/login')
   }
 
-  return user ? (
-    <div>
-      <p>Logged in as {user.email}</p>
-      <button type="button" onClick={handleLogout}>Log out</button>
-    </div>
-  ) : (
-    <div>
-      <p>Not logged in</p>
-      <button type="button" onClick={handleLogin}>Log in</button>
-    </div>
+  return (
+    <>
+      {user ? (
+        <div>
+          <p>Logged in as {user.email}</p>
+          <button type="button" onClick={handleLogout}>Log out</button>
+        </div>
+      ) : (
+        <div>
+          <p>Not logged in</p>
+          <button type="button" onClick={handleLogin}>Log in</button>
+        </div>
+      )}
+      <ThemeToggle />
+    </>
   )
 }
