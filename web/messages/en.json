@@ -1,0 +1,10 @@
+{
+  "HomePage": {
+    "Authenticated": "Logged in as:",
+    "Unauthenticated": "You are not logged in."
+  },
+  "Auth": {
+    "Login": "Log in",
+    "Logout": "Log out"
+  }
+}

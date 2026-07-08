@@ -1,4 +1,4 @@
-// app/(protected)/profile/name-form.tsx
+// app/[locale]/(protected)/profile/name-form.tsx
 
 'use client'
 

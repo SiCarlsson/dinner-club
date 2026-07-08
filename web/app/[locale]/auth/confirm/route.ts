@@ -1,4 +1,4 @@
-// app/auth/confirm/route.ts
+// app/[locale]/auth/confirm/route.ts
 
 import { createClient } from '@/utils/supabase/server'
 import { type NextRequest, NextResponse } from 'next/server'

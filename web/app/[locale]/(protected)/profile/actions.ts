@@ -1,4 +1,4 @@
-// app/(protected)/profile/actions.ts
+// app/[locale]/(protected)/profile/actions.ts
 
 'use server'
 

@@ -1,4 +1,4 @@
-// app/(protected)/profile/page.test.tsx
+// app/[locale]/(protected)/profile/page.test.tsx
 
 import Profile from './page'
 import { createClient } from '@/utils/supabase/server'

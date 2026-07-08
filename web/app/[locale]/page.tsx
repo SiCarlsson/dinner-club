@@ -1,4 +1,4 @@
-// app/page.tsx
+// app/[locale]/page.tsx
 
 'use client'
 
@@ -7,6 +7,7 @@ import type { User } from '@supabase/supabase-js'
 import { useEffect, useState, useMemo } from 'react'
 import { createClient } from '@/utils/supabase/client'
 import { ThemeToggle } from '@/components/theme-toggle'
+import { useTranslations } from 'next-intl'
 
 export default function Home() {
   const [user, setUser] = useState<User | null>(null)
@@ -32,17 +33,20 @@ export default function Home() {
     router.push('/login')
   }
 
+  const a = useTranslations("Auth")
+  const t = useTranslations("HomePage")
+
   return (
     <>
       {user ? (
         <div>
-          <p>Logged in as {user.email}</p>
-          <button type="button" onClick={handleLogout}>Log out</button>
+          <p>{t("Authenticated")} {user.email}</p>
+          <button type="button" onClick={handleLogout}>{a("Logout")}</button>
         </div>
       ) : (
         <div>
-          <p>Not logged in</p>
-          <button type="button" onClick={handleLogin}>Log in</button>
+          <p>{t("Unauthenticated")}</p>
+          <button type="button" onClick={handleLogin}>{a("Login")}</button>
         </div>
       )}
       <ThemeToggle />

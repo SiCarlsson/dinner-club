@@ -1,4 +1,4 @@
-// app/auth/logout/route.test.ts
+// app/[locale]/auth/logout/route.test.ts
 
 import { POST } from './route'
 import { describe, it, expect, vi, beforeEach } from 'vitest'

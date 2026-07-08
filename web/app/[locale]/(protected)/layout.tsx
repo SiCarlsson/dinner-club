@@ -1,4 +1,4 @@
-// app/(protected)/layout.tsx
+// app/[locale]/(protected)/layout.tsx
 
 import { redirect } from 'next/navigation'
 import { createClient } from '@/utils/supabase/server'

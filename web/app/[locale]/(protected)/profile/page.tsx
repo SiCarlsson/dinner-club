@@ -1,4 +1,4 @@
-// app/(protected)/profile/page.tsx
+// app/[locale]/(protected)/profile/page.tsx
 
 import { NameForm } from './name-form'
 import { createClient } from '@/utils/supabase/server'

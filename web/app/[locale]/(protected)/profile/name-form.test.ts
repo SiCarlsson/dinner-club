@@ -1,4 +1,4 @@
-// app/(protected)/profile/name-form.test.ts
+// app/[locale]/(protected)/profile/name-form.test.ts
 
 import * as React from 'react'
 import { NameForm } from './name-form'

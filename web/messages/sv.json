@@ -1,0 +1,10 @@
+{
+  "HomePage": {
+    "Authenticated": "Inloggad som:",
+    "Unauthenticated": "Du är inte inloggad."
+  },
+  "Auth": {
+    "Login": "Logga in",
+    "Logout": "Logga ut"
+  }
+}

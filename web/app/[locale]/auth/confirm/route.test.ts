@@ -1,4 +1,4 @@
-// app/auth/confirm/route.test.ts
+// app/[locale]/auth/confirm/route.test.ts
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { NextRequest } from 'next/server'
 import { GET } from './route'

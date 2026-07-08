@@ -1,13 +1,18 @@
 // proxy.ts
 
+import { routing } from './i18n/routing'
 import { createServerClient } from '@supabase/ssr'
+import createIntlMiddleware from 'next-intl/middleware'
 import { NextResponse, type NextRequest } from 'next/server'
 
 const PROTECTED_PATHS = ['/profile']
 
-export async function proxy(request: NextRequest) {
-    let response = NextResponse.next({ request })
+const handleI18nRouting = createIntlMiddleware(routing)
 
+export async function proxy(request: NextRequest) {
+    const intlResponse = handleI18nRouting(request)
+
+    let response = intlResponse
     const supabase = createServerClient(
         process.env.NEXT_PUBLIC_SUPABASE_PROJECT_URL!,
         process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -27,13 +32,17 @@ export async function proxy(request: NextRequest) {
         }
     )
 
+    const pathWithoutLocale = request.nextUrl.pathname.replace(
+        new RegExp(`^/(${routing.locales.join('|')})`),
+        ''
+    )
     const isProtected = PROTECTED_PATHS.some((path) =>
-        request.nextUrl.pathname.startsWith(path)
+        pathWithoutLocale.startsWith(path)
     )
 
     const {
         data: { user },
-    } = await supabase.auth.getUser() // refreshes the session cookie if needed
+    } = await supabase.auth.getUser()
 
     if (isProtected && !user) {
         const redirectUrl = new URL('/login', request.url)
@@ -45,5 +54,5 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-    matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
+    matcher: ['/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)'],
 }

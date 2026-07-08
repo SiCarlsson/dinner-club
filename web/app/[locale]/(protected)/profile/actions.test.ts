@@ -1,4 +1,4 @@
-// app/(protected)/profile/actions.test.ts
+// app/[locale]/(protected)/profile/actions.test.ts
 
 import { updateFullName } from './actions'
 import { revalidatePath } from 'next/cache'
