@@ -3,6 +3,8 @@
 import { createServerClient } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
+const PROTECTED_PATHS = ['/profile']
+
 export async function proxy(request: NextRequest) {
     let response = NextResponse.next({ request })
 
@@ -25,7 +27,19 @@ export async function proxy(request: NextRequest) {
         }
     )
 
-    await supabase.auth.getUser() // refreshes the session cookie if needed
+    const isProtected = PROTECTED_PATHS.some((path) =>
+        request.nextUrl.pathname.startsWith(path)
+    )
+
+    const {
+        data: { user },
+    } = await supabase.auth.getUser() // refreshes the session cookie if needed
+
+    if (isProtected && !user) {
+        const redirectUrl = new URL('/login', request.url)
+        redirectUrl.searchParams.set('next', request.nextUrl.pathname)
+        return NextResponse.redirect(redirectUrl)
+    }
 
     return response
 }
