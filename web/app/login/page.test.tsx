@@ -21,7 +21,7 @@ describe('Login page', () => {
 
     render(<Login />)
     await user.type(screen.getByRole('textbox'), 'test@example.com')
-    await user.click(screen.getByText(/send magic link/i))
+    await user.click(screen.getByText(/send login link/i))
 
     await waitFor(() => {
       expect(signInWithOtpMock).toHaveBeenCalledWith({
@@ -37,7 +37,7 @@ describe('Login page', () => {
 
     render(<Login />)
     await user.type(screen.getByRole('textbox'), 'test@example.com')
-    await user.click(screen.getByText(/send magic link/i))
+    await user.click(screen.getByText(/send login link/i))
 
     expect(await screen.findByText(/check your email/i)).toBeInTheDocument()
   })
@@ -48,7 +48,7 @@ describe('Login page', () => {
 
     render(<Login />)
     await user.type(screen.getByRole('textbox'), 'test@example.com')
-    await user.click(screen.getByText(/send magic link/i))
+    await user.click(screen.getByText(/send login link/i))
 
     await waitFor(() => {
       expect(screen.queryByText(/check your email/i)).not.toBeInTheDocument()

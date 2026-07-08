@@ -1,9 +1,9 @@
 // app/(protected)/profile/actions.test.ts
 
-import { describe, it, expect, beforeEach, vi } from 'vitest'
 import { updateFullName } from './actions'
-import { createClient } from '@/utils/supabase/server'
 import { revalidatePath } from 'next/cache'
+import { createClient } from '@/utils/supabase/server'
+import { describe, it, expect, beforeEach, vi } from 'vitest'
 
 vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
