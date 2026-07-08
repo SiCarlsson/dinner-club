@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
 import { NextRequest } from 'next/server'
-import { middleware } from './middleware'
+import { proxy } from './proxy'
 
 const getUserMock = vi.fn()
 
@@ -10,12 +10,12 @@ vi.mock('@supabase/ssr', () => ({
   })),
 }))
 
-describe('middleware', () => {
+describe('proxy', () => {
   it('calls getUser() to trigger a possible token refresh', async () => {
     getUserMock.mockResolvedValue({ data: { user: null } })
     const req = new NextRequest('http://localhost:3000/')
 
-    await middleware(req)
+    await proxy(req)
 
     expect(getUserMock).toHaveBeenCalled()
   })
@@ -24,7 +24,7 @@ describe('middleware', () => {
     getUserMock.mockResolvedValue({ data: { user: null } })
     const req = new NextRequest('http://localhost:3000/')
 
-    const res = await middleware(req)
+    const res = await proxy(req)
 
     expect(res).toBeDefined()
     expect(res.status).toBe(200)
