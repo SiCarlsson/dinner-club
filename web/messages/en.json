@@ -3,6 +3,22 @@
     "Authenticated": "Logged in as:",
     "Unauthenticated": "You are not logged in."
   },
+  "ProfilePage": {
+    "Title": "Profile",
+    "Information": {
+      "Role": "Role",
+      "Email": "Email",
+      "Name": "Name",
+      "NamePlaceholder": "First and last name"
+    },
+    "SaveButton": {
+      "BeforeChange": "Update name",
+      "Loading": "Saving",
+      "CompletedChange": "Saved",
+      "NoName": "Enter name",
+      "Error": "Error"
+    }
+  },
   "Auth": {
     "Login": "Log in",
     "Logout": "Log out"

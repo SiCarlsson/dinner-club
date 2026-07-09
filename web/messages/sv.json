@@ -3,6 +3,22 @@
     "Authenticated": "Inloggad som:",
     "Unauthenticated": "Du är inte inloggad."
   },
+  "ProfilePage": {
+    "Title": "Profil",
+    "Information": {
+      "Role": "Roll",
+      "Email": "Email",
+      "Name": "Namn",
+      "NamePlaceholder": "För- och efternamn"
+    },
+    "SaveButton": {
+      "BeforeChange": "Uppdatera namn",
+      "Loading": "Sparar",
+      "CompletedChange": "Sparat",
+      "NoName": "Ange namn",
+      "Error": "Error"
+    }
+  },
   "Auth": {
     "Login": "Logga in",
     "Logout": "Logga ut"

@@ -1,14 +1,11 @@
-import { describe, it, expect } from "vitest";
-import sv from "./sv.json";
-import en from "./en.json";
+// messages/messages.test.ts
 
-function getKeys(obj: object, prefix = ""): string[] {
-  return Object.entries(obj).flatMap(([key, value]) =>
-    typeof value === "object" && value !== null
-      ? getKeys(value, `${prefix}${key}.`)
-      : [`${prefix}${key}`],
-  );
-}
+import { describe, it, expect } from "vitest";
+import en from "./en.json";
+import sv from "./sv.json";
+
+const locales = { en, sv } as const;
+const referenceLocale = "en";
 
 function getEntries(obj: object, prefix = ""): [string, unknown][] {
   return Object.entries(obj).flatMap(([key, value]) =>
@@ -18,16 +15,22 @@ function getEntries(obj: object, prefix = ""): [string, unknown][] {
   );
 }
 
+function getKeys(obj: object, prefix = ""): string[] {
+  return getEntries(obj, prefix).map(([key]) => key);
+}
+
 describe("translation files", () => {
-  it("have identical keys across all locales", () => {
-    const svKeys = getKeys(sv).sort();
-    const enKeys = getKeys(en).sort();
-    expect(enKeys).toEqual(svKeys);
-  });
+  const referenceKeys = getKeys(locales[referenceLocale]).sort();
+
+  Object.entries(locales)
+    .filter(([locale]) => locale !== referenceLocale)
+    .forEach(([locale, messages]) => {
+      it(`${locale}.json has identical keys to ${referenceLocale}.json`, () => {
+        expect(getKeys(messages).sort()).toEqual(referenceKeys);
+      });
+    });
 
   it("have no empty translation values", () => {
-    const locales = { sv, en };
-
     for (const [locale, messages] of Object.entries(locales)) {
       const emptyKeys = getEntries(messages)
         .filter(([, value]) => typeof value === "string" && value.trim() === "")

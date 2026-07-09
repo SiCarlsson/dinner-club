@@ -7,6 +7,7 @@ import { updateFullName } from "./actions";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { useTranslations } from "next-intl";
 
 export function NameForm({ initialName }: { initialName: string }) {
   const [name, setName] = useState(initialName);
@@ -27,17 +28,20 @@ export function NameForm({ initialName }: { initialName: string }) {
     }
   };
 
+  const t = useTranslations("ProfilePage");
+
   const getButtonText = () => {
-    if (status === "saving") return "Saving…";
-    if (status === "saved") return "Saved";
-    if (status === "error") return "Error";
-    if (name !== null) return "Update name";
-    return "Save name";
+    if (status === "saving") return t("SaveButton.Loading") + "...";
+    if (status === "saved") return t("SaveButton.CompletedChange");
+    if (status === "error") return t("SaveButton.Error");
+    if (name !== initialName) return t("SaveButton.BeforeChange");
+    if (name === null || name === "") return t("SaveButton.NoName");
+    return t("SaveButton.BeforeChange");
   };
 
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-2">
-      <Label htmlFor="full_name">Name</Label>
+      <Label htmlFor="full_name">{t("Information.Name")}</Label>
       <Input
         id="full_name"
         value={name}
@@ -45,10 +49,14 @@ export function NameForm({ initialName }: { initialName: string }) {
           setName(e.target.value);
           setStatus("idle");
         }}
-        placeholder="Your name"
+        placeholder={t("Information.NamePlaceholder")}
       />
 
-      <Button type="submit" disabled={status === "saving"} className="w-fit">
+      <Button
+        type="submit"
+        disabled={status === "saving" || name === initialName}
+        className="w-fit"
+      >
         {getButtonText()}
       </Button>
 
