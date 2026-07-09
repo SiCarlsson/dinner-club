@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card";
+import { useTranslations } from "next-intl";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -30,20 +31,22 @@ export default function Login() {
     if (email && status !== "loading") handleLogin();
   };
 
+  const t = useTranslations("LoginPage");
+
   return (
     <main className="flex min-h-dvh items-center justify-center px-6">
       <Card className="w-full max-w-sm">
         <CardHeader>
-          <CardTitle>{status === "sent" ? "Check your email" : "Sign in"}</CardTitle>
+          <CardTitle>{status === "sent" ? t("LinkSent.Title") : t("Title")}</CardTitle>
           <CardDescription>
             {status === "sent" ? (
               <div>
-                We sent a login link to <strong>{email}</strong>.
+                {t("LinkSent.Description1")} <strong>{email}</strong>.
                 <br />
-                Click it to sign in.
+                {t("LinkSent.Description2")}
               </div>
             ) : (
-              "Enter your email and we'll send you a login link."
+              t("Description")
             )}
           </CardDescription>
         </CardHeader>
@@ -52,7 +55,7 @@ export default function Login() {
           <CardContent>
             <form onSubmit={handleSubmit} className="flex flex-col gap-4">
               <div className="flex flex-col gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">{t("Email")}</Label>
                 <Input
                   id="email"
                   type="email"
@@ -60,16 +63,16 @@ export default function Login() {
                   autoComplete="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
+                  placeholder={t("EmailPlaceholder")}
                 />
               </div>
 
               <Button type="submit" disabled={status === "loading"} className="w-full">
-                {status === "loading" ? "Sending…" : "Send login link"}
+                {status === "loading" ? t("Button.InProcess") + "..." : t("Button.Default")}
               </Button>
 
               {status === "error" && (
-                <p className="text-destructive text-sm">Something went wrong. Try again.</p>
+                <p className="text-destructive text-sm">{t("Button.Error")}</p>
               )}
             </form>
           </CardContent>

@@ -2,8 +2,10 @@
 
 import Login from "./page";
 import "@testing-library/jest-dom/vitest";
-import { describe, it, expect, vi } from "vitest";
+import messages from "@/messages/en.json";
+import { NextIntlClientProvider } from "next-intl";
 import userEvent from "@testing-library/user-event";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 
 const signInWithOtpMock = vi.fn();
@@ -14,14 +16,26 @@ vi.mock("@/utils/supabase/client", () => ({
   }),
 }));
 
+function renderLogin() {
+  return render(
+    <NextIntlClientProvider locale="en" messages={messages}>
+      <Login />
+    </NextIntlClientProvider>,
+  );
+}
+
 describe("Login page", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+  });
+
   it("calls signInWithOtp with the correct email and redirect url", async () => {
     signInWithOtpMock.mockResolvedValue({ error: null });
     const user = userEvent.setup();
 
-    render(<Login />);
+    renderLogin();
     await user.type(screen.getByRole("textbox"), "test@example.com");
-    await user.click(screen.getByText(/send login link/i));
+    await user.click(screen.getByRole("button", { name: /send login link/i }));
 
     await waitFor(() => {
       expect(signInWithOtpMock).toHaveBeenCalledWith({
@@ -35,9 +49,9 @@ describe("Login page", () => {
     signInWithOtpMock.mockResolvedValue({ error: null });
     const user = userEvent.setup();
 
-    render(<Login />);
+    renderLogin();
     await user.type(screen.getByRole("textbox"), "test@example.com");
-    await user.click(screen.getByText(/send login link/i));
+    await user.click(screen.getByRole("button", { name: /send login link/i }));
 
     expect(await screen.findByText(/check your email/i)).toBeInTheDocument();
   });
@@ -46,9 +60,9 @@ describe("Login page", () => {
     signInWithOtpMock.mockResolvedValue({ error: new Error("rate limited") });
     const user = userEvent.setup();
 
-    render(<Login />);
+    renderLogin();
     await user.type(screen.getByRole("textbox"), "test@example.com");
-    await user.click(screen.getByText(/send login link/i));
+    await user.click(screen.getByRole("button", { name: /send login link/i }));
 
     await waitFor(() => {
       expect(screen.queryByText(/check your email/i)).not.toBeInTheDocument();

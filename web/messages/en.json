@@ -19,6 +19,22 @@
       "Error": "Error"
     }
   },
+  "LoginPage": {
+    "Title": "Log in",
+    "Description": "Enter your email and we'll send you a login link.",
+    "Email": "Email",
+    "EmailPlaceholder": "your.email@example.com",
+    "Button": {
+      "Default": "Send login link",
+      "InProcess": "Sending",
+      "Error": "Something went wrong. Try again."
+    },
+    "LinkSent": {
+      "Title": "Check your email",
+      "Description1": "We sent a login link to",
+      "Description2": "Click it to sign in."
+    }
+  },
   "Auth": {
     "Login": "Log in",
     "Logout": "Log out"

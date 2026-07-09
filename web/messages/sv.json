@@ -7,7 +7,7 @@
     "Title": "Profil",
     "Information": {
       "Role": "Roll",
-      "Email": "Email",
+      "Email": "Epost",
       "Name": "Namn",
       "NamePlaceholder": "För- och efternamn"
     },
@@ -17,6 +17,22 @@
       "CompletedChange": "Sparat",
       "NoName": "Ange namn",
       "Error": "Error"
+    }
+  },
+  "LoginPage": {
+    "Title": "Logga in",
+    "Description": "Ange din e-postadress så skickar vi en inloggningslänk till dig.",
+    "Email": "Epost",
+    "EmailPlaceholder": "din.epost@exempel.se",
+    "Button": {
+      "Default": "Skicka inloggnings länk",
+      "InProcess": "Skickar...",
+      "Error": "Något gick fel. Testa igen."
+    },
+    "LinkSent": {
+      "Title": "Kolla din epost",
+      "Description1": "Epost har skickats till",
+      "Description2": "Använd länken i det för att logga in."
     }
   },
   "Auth": {
