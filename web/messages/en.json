@@ -67,7 +67,28 @@
         "CancelButton": "Cancel",
         "SaveButton": "Save",
         "SavingButton": "Saving",
-        "Error": "Something went wrong. Try again."
+        "Error": "Something went wrong. Try again.",
+        "NewVenue": {
+          "TriggerButton": "New venue",
+          "Title": "New venue",
+          "Description": "Add a new venue for future dinners.",
+          "NameLabel": "Name",
+          "NamePlaceholder": "Café Norr",
+          "AddressLabel": "Address",
+          "AddressPlaceholder": "Optional address",
+          "CityLabel": "City",
+          "CityPlaceholder": "Stockholm",
+          "DistrictLabel": "District",
+          "DistrictPlaceholder": "Södermalm",
+          "LatitudeLabel": "Latitude",
+          "LatitudePlaceholder": "59.3293",
+          "LongitudeLabel": "Longitude",
+          "LongitudePlaceholder": "18.0686",
+          "CancelButton": "Cancel",
+          "SaveButton": "Save",
+          "SavingButton": "Saving",
+          "Error": "Something went wrong. Try again."
+        }
       }
     },
     "Whitelist": {

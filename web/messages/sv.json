@@ -67,7 +67,28 @@
         "CancelButton": "Avbryt",
         "SaveButton": "Spara",
         "SavingButton": "Sparar",
-        "Error": "Något gick fel. Testa igen."
+        "Error": "Något gick fel. Testa igen.",
+        "NewVenue": {
+          "TriggerButton": "Skapa plats",
+          "Title": "Ny plats",
+          "Description": "Lägg till en ny plats för framtida middagar.",
+          "NameLabel": "Namn",
+          "NamePlaceholder": "Café Norr",
+          "AddressLabel": "Adress",
+          "AddressPlaceholder": "Valfri adress",
+          "CityLabel": "Stad",
+          "CityPlaceholder": "Stockholm",
+          "DistrictLabel": "Distrikt",
+          "DistrictPlaceholder": "Södermalm",
+          "LatitudeLabel": "Latitud",
+          "LatitudePlaceholder": "59.3293",
+          "LongitudeLabel": "Longitud",
+          "LongitudePlaceholder": "18.0686",
+          "CancelButton": "Avbryt",
+          "SaveButton": "Spara",
+          "SavingButton": "Sparar",
+          "Error": "Något gick fel. Testa igen."
+        }
       }
     },
     "Whitelist": {

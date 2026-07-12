@@ -2,18 +2,21 @@
 
 "use client";
 
+import { cn } from "@/lib/utils";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
 import { format } from "date-fns";
 import { enUS, sv } from "date-fns/locale";
+import { useRouter } from "next/navigation";
 import { CalendarIcon } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
+import { NewVenueDialog } from "./new-venue-dialog";
+import { useLocale, useTranslations } from "next-intl";
+import { createEvent, type VenueRecord } from "./actions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Dialog,
@@ -31,8 +34,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createEvent, type VenueRecord } from "./actions";
-import { cn } from "@/lib/utils";
 
 const DATE_FNS_LOCALES = { en: enUS, sv } as const;
 
@@ -51,9 +52,10 @@ const EMPTY_FORM = {
   published: false,
 };
 
-export function NewEventDialog({ venues }: { venues: VenueRecord[] }) {
+export function NewEventDialog({ venues: initialVenues }: { venues: VenueRecord[] }) {
   const [open, setOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [venues, setVenues] = useState(initialVenues);
   const [form, setForm] = useState(EMPTY_FORM);
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
@@ -97,14 +99,17 @@ export function NewEventDialog({ venues }: { venues: VenueRecord[] }) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={(nextOpen) => (nextOpen ? setOpen(true) : resetAndClose())}>
+    <Dialog
+      open={open}
+      onOpenChange={(nextOpen: boolean) => (nextOpen ? setOpen(true) : resetAndClose())}
+    >
       <DialogTrigger render={<Button size="sm">{tEvents("AddButton")}</Button>} />
-      <DialogContent>
+      <DialogContent className="flex h-[36rem] flex-col sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("Title")}</DialogTitle>
           <DialogDescription>{t("Description")}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+        <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-4 overflow-y-auto">
           <div className="flex flex-col gap-2">
             <Label htmlFor="event-name">{t("NameLabel")}</Label>
             <Input
@@ -160,10 +165,10 @@ export function NewEventDialog({ venues }: { venues: VenueRecord[] }) {
                 <SelectTrigger id="event-time" className="w-24">
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="min-w-0">
                   {TIME_OPTIONS.map((time) => (
                     <SelectItem key={time} value={time}>
-                      {time}
+                      <span className="w-full text-center">{time}</span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -173,21 +178,33 @@ export function NewEventDialog({ venues }: { venues: VenueRecord[] }) {
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="event-venue">{t("VenueLabel")}</Label>
-            <Select
-              value={form.venueId}
-              onValueChange={(value) => setForm((prev) => ({ ...prev, venueId: value as string }))}
-            >
-              <SelectTrigger id="event-venue" className="w-full">
-                <SelectValue placeholder={t("VenuePlaceholder")} />
-              </SelectTrigger>
-              <SelectContent>
-                {venues.map((venue) => (
-                  <SelectItem key={venue.id} value={venue.id}>
-                    {venue.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              <Select
+                items={Object.fromEntries(venues.map((venue) => [venue.id, venue.name]))}
+                value={form.venueId}
+                onValueChange={(value) =>
+                  setForm((prev) => ({ ...prev, venueId: value as string }))
+                }
+              >
+                <SelectTrigger id="event-venue" className="flex-1">
+                  <SelectValue placeholder={t("VenuePlaceholder")} />
+                </SelectTrigger>
+                <SelectContent>
+                  {venues.map((venue) => (
+                    <SelectItem key={venue.id} value={venue.id}>
+                      {venue.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <NewVenueDialog
+                onCreated={(venue) => {
+                  setVenues((prev) => [...prev, venue]);
+                  setForm((prev) => ({ ...prev, venueId: venue.id }));
+                  router.refresh();
+                }}
+              />
+            </div>
           </div>
 
           <div className="flex flex-col gap-2">
@@ -217,7 +234,7 @@ export function NewEventDialog({ venues }: { venues: VenueRecord[] }) {
             <p className="text-destructive text-sm">{errorMessage || t("Error")}</p>
           )}
 
-          <DialogFooter>
+          <DialogFooter className="mt-auto pt-4">
             <Button type="button" variant="outline" onClick={resetAndClose}>
               {t("CancelButton")}
             </Button>

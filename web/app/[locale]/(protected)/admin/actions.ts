@@ -62,6 +62,43 @@ export async function getVenues() {
   return { success: true as const, venues: data as VenueRecord[] };
 }
 
+type VenueInput = {
+  name: string;
+  address?: string | null;
+  city?: string | null;
+  district?: string | null;
+  latitude?: number | null;
+  longitude?: number | null;
+};
+
+export async function createVenue(input: VenueInput) {
+  const { supabase, user, role } = await getUserWithRole();
+
+  if (!user || role !== "admin") {
+    return { success: false as const, message: "Not authorized" };
+  }
+
+  const { data, error } = await supabase
+    .from("venues")
+    .insert({
+      name: input.name,
+      address: input.address ?? null,
+      city: input.city ?? null,
+      district: input.district ?? null,
+      latitude: input.latitude ?? null,
+      longitude: input.longitude ?? null,
+    })
+    .select("id, name")
+    .single();
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  revalidatePath("/admin");
+  return { success: true as const, venue: data as VenueRecord };
+}
+
 export async function createEvent(input: EventInput) {
   const { supabase, user, role } = await getUserWithRole();
 
