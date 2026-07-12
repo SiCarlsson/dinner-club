@@ -16,7 +16,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { NewVenueDialog } from "./new-venue-dialog";
 import { useLocale, useTranslations } from "next-intl";
-import { createEvent, type VenueRecord } from "./actions";
+import { createEvent, updateEvent, type EventRecord, type VenueRecord } from "./actions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Dialog,
@@ -43,30 +43,59 @@ const TIME_OPTIONS = Array.from({ length: 48 }, (_, i) => {
   return `${hours}:${minutes}`;
 });
 
-const EMPTY_FORM = {
+type FormState = {
+  name: string;
+  date: Date | undefined;
+  time: string;
+  venueId: string;
+  description: string;
+  published: boolean;
+};
+
+const EMPTY_FORM: FormState = {
   name: "",
-  date: undefined as Date | undefined,
+  date: undefined,
   time: "18:00",
   venueId: "",
   description: "",
   published: false,
 };
 
-export function NewEventDialog({ venues: initialVenues }: { venues: VenueRecord[] }) {
+function formFromEvent(event: EventRecord): FormState {
+  const eventDate = new Date(event.event_date);
+  return {
+    name: event.name,
+    date: eventDate,
+    time: format(eventDate, "HH:mm"),
+    venueId: event.venue?.id ?? "",
+    description: event.description ?? "",
+    published: event.visibility === "published",
+  };
+}
+
+function EventDialog({
+  venues: initialVenues,
+  event,
+  trigger,
+}: {
+  venues: VenueRecord[];
+  event?: EventRecord;
+  trigger: React.ReactElement;
+}) {
+  const initialForm = event ? formFromEvent(event) : EMPTY_FORM;
   const [open, setOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [venues, setVenues] = useState(initialVenues);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(initialForm);
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const router = useRouter();
   const locale = useLocale();
   const dateFnsLocale = DATE_FNS_LOCALES[locale as keyof typeof DATE_FNS_LOCALES] ?? enUS;
   const t = useTranslations("AdminPage.Events.Dialog");
-  const tEvents = useTranslations("AdminPage.Events");
 
   const resetAndClose = () => {
-    setForm(EMPTY_FORM);
+    setForm(initialForm);
     setStatus("idle");
     setErrorMessage("");
     setOpen(false);
@@ -81,13 +110,15 @@ export function NewEventDialog({ venues: initialVenues }: { venues: VenueRecord[
     const eventDate = new Date(form.date);
     eventDate.setHours(hours, minutes, 0, 0);
 
-    const result = await createEvent({
+    const input = {
       name: form.name,
       eventDate: eventDate.toISOString(),
       venueId: form.venueId || null,
       description: form.description || null,
-      visibility: form.published ? "published" : "unpublished",
-    });
+      visibility: form.published ? ("published" as const) : ("unpublished" as const),
+    };
+
+    const result = event ? await updateEvent(event.id, input) : await createEvent(input);
 
     if (result.success) {
       router.refresh();
@@ -103,11 +134,11 @@ export function NewEventDialog({ venues: initialVenues }: { venues: VenueRecord[
       open={open}
       onOpenChange={(nextOpen: boolean) => (nextOpen ? setOpen(true) : resetAndClose())}
     >
-      <DialogTrigger render={<Button size="sm">{tEvents("AddButton")}</Button>} />
+      <DialogTrigger render={trigger} />
       <DialogContent className="flex h-[36rem] flex-col sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t("Title")}</DialogTitle>
-          <DialogDescription>{t("Description")}</DialogDescription>
+          <DialogTitle>{event ? t("EditTitle") : t("Title")}</DialogTitle>
+          <DialogDescription>{event ? t("EditDescription") : t("Description")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-4 overflow-y-auto">
           <div className="flex flex-col gap-2">
@@ -235,15 +266,39 @@ export function NewEventDialog({ venues: initialVenues }: { venues: VenueRecord[
           )}
 
           <DialogFooter className="mt-auto pt-4">
-            <Button type="button" variant="outline" onClick={resetAndClose}>
+            <Button type="button" variant="outline" className="min-w-20" onClick={resetAndClose}>
               {t("CancelButton")}
             </Button>
-            <Button type="submit" disabled={status === "saving"}>
+            <Button type="submit" className="min-w-20" disabled={status === "saving"}>
               {status === "saving" ? t("SavingButton") : t("SaveButton")}
             </Button>
           </DialogFooter>
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export function NewEventDialog({ venues }: { venues: VenueRecord[] }) {
+  const tEvents = useTranslations("AdminPage.Events");
+
+  return (
+    <EventDialog venues={venues} trigger={<Button size="sm">{tEvents("AddButton")}</Button>} />
+  );
+}
+
+export function EditEventDialog({ venues, event }: { venues: VenueRecord[]; event: EventRecord }) {
+  const tEvents = useTranslations("AdminPage.Events");
+
+  return (
+    <EventDialog
+      venues={venues}
+      event={event}
+      trigger={
+        <Button size="sm" variant="outline">
+          {tEvents("EditButton")}
+        </Button>
+      }
+    />
   );
 }

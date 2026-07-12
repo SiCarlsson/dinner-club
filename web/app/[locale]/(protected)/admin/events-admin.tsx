@@ -3,7 +3,6 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -13,7 +12,8 @@ import {
   CardAction,
 } from "@/components/ui/card";
 import type { EventRecord, VenueRecord } from "./actions";
-import { NewEventDialog } from "./new-event-dialog";
+import { NewEventDialog, EditEventDialog } from "./new-event-dialog";
+import { DeleteEventButton } from "./delete-event-button";
 
 export function EventsAdmin({ events, venues }: { events: EventRecord[]; venues: VenueRecord[] }) {
   const t = useTranslations("AdminPage.Events");
@@ -43,9 +43,10 @@ export function EventsAdmin({ events, venues }: { events: EventRecord[]; venues:
                     {new Date(event.event_date).toLocaleDateString()}
                   </p>
                 </div>
-                <Button size="sm" variant="outline">
-                  {t("EditButton")}
-                </Button>
+                <div className="flex items-center gap-2">
+                  <EditEventDialog event={event} venues={venues} />
+                  <DeleteEventButton event={event} />
+                </div>
               </div>
             ))}
           </div>
