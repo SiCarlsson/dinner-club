@@ -50,7 +50,25 @@
       "Description": "See and manage upcoming dinners.",
       "AddButton": "New event",
       "Empty": "No upcoming events yet.",
-      "EditButton": "Edit"
+      "EditButton": "Edit",
+      "Dialog": {
+        "Title": "New event",
+        "Description": "Fill in the details for the upcoming dinner.",
+        "NameLabel": "Name",
+        "NamePlaceholder": "Summer dinner",
+        "DateLabel": "Date",
+        "DatePlaceholder": "Pick a date",
+        "TimeLabel": "Time",
+        "VenueLabel": "Venue",
+        "VenuePlaceholder": "Select a venue",
+        "DescriptionLabel": "Description",
+        "DescriptionPlaceholder": "Details for this event",
+        "VisibilityLabel": "Published",
+        "CancelButton": "Cancel",
+        "SaveButton": "Save",
+        "SavingButton": "Saving",
+        "Error": "Something went wrong. Try again."
+      }
     },
     "Whitelist": {
       "Title": "Invitations",

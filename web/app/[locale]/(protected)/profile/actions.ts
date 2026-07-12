@@ -3,14 +3,10 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/utils/supabase/server";
+import { getCurrentUser } from "@/utils/supabase/auth";
 
 export async function updateFullName(fullName: string) {
-  const supabase = await createClient();
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { supabase, user } = await getCurrentUser();
 
   if (!user) {
     return { success: false, message: "Not authenticated" };

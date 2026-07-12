@@ -3,9 +3,13 @@ import { getTranslations } from "next-intl/server";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EventsAdmin } from "./events-admin";
 import { WhitelistAdmin } from "./whitelist-admin";
+import { getEvents, getVenues } from "./actions";
 
 export default async function Admin() {
   const t = await getTranslations("AdminPage");
+  const [eventsResult, venuesResult] = await Promise.all([getEvents(), getVenues()]);
+  const events = eventsResult.success ? eventsResult.events : [];
+  const venues = venuesResult.success ? venuesResult.venues : [];
 
   return (
     <main className="mx-auto max-w-3xl min-w-sm px-6 py-12">
@@ -16,7 +20,7 @@ export default async function Admin() {
           <TabsTrigger value="whitelist">{t("Tabs.Whitelist")}</TabsTrigger>
         </TabsList>
         <TabsContent value="events" className="mt-6">
-          <EventsAdmin />
+          <EventsAdmin events={events} venues={venues} />
         </TabsContent>
         <TabsContent value="whitelist" className="mt-6">
           <WhitelistAdmin />

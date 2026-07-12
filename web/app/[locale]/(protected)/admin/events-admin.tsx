@@ -2,7 +2,6 @@
 
 "use client";
 
-import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import {
@@ -13,20 +12,10 @@ import {
   CardDescription,
   CardAction,
 } from "@/components/ui/card";
+import type { EventRecord, VenueRecord } from "./actions";
+import { NewEventDialog } from "./new-event-dialog";
 
-type Event = {
-  id: string;
-  date: string;
-  venue: string;
-};
-
-const MOCK_EVENTS: Event[] = [
-  { id: "1", date: "2026-07-20", venue: "Café Norr" },
-  { id: "2", date: "2026-09-12", venue: "Villa Söder" },
-];
-
-export function EventsAdmin() {
-  const [events] = useState<Event[]>(MOCK_EVENTS);
+export function EventsAdmin({ events, venues }: { events: EventRecord[]; venues: VenueRecord[] }) {
   const t = useTranslations("AdminPage.Events");
 
   return (
@@ -35,7 +24,7 @@ export function EventsAdmin() {
         <CardTitle>{t("Title")}</CardTitle>
         <CardDescription>{t("Description")}</CardDescription>
         <CardAction>
-          <Button size="sm">{t("AddButton")}</Button>
+          <NewEventDialog venues={venues} />
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -49,8 +38,10 @@ export function EventsAdmin() {
                 className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3"
               >
                 <div>
-                  <p className="text-sm font-medium">{event.venue}</p>
-                  <p className="text-muted-foreground text-xs">{event.date}</p>
+                  <p className="text-sm font-medium">{event.venue?.name ?? event.name}</p>
+                  <p className="text-muted-foreground text-xs">
+                    {new Date(event.event_date).toLocaleDateString()}
+                  </p>
                 </div>
                 <Button size="sm" variant="outline">
                   {t("EditButton")}

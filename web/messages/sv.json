@@ -50,7 +50,25 @@
       "Description": "Se och administrera kommande middagar.",
       "AddButton": "Ny middag",
       "Empty": "Inga kommande middagar än.",
-      "EditButton": "Redigera"
+      "EditButton": "Redigera",
+      "Dialog": {
+        "Title": "Ny middag",
+        "Description": "Fyll i detaljerna för den kommande middagen.",
+        "NameLabel": "Namn",
+        "NamePlaceholder": "Sommarmiddag",
+        "DateLabel": "Datum",
+        "DatePlaceholder": "Välj ett datum",
+        "TimeLabel": "Tid",
+        "VenueLabel": "Plats",
+        "VenuePlaceholder": "Välj en plats",
+        "DescriptionLabel": "Beskrivning",
+        "DescriptionPlaceholder": "Information om middagen",
+        "VisibilityLabel": "Publicerad",
+        "CancelButton": "Avbryt",
+        "SaveButton": "Spara",
+        "SavingButton": "Sparar",
+        "Error": "Något gick fel. Testa igen."
+      }
     },
     "Whitelist": {
       "Title": "Inbjudningar",
