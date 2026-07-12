@@ -38,5 +38,28 @@
   "Auth": {
     "Login": "Logga in",
     "Logout": "Logga ut"
+  },
+  "AdminPage": {
+    "Title": "Admin",
+    "Tabs": {
+      "Events": "Middagar",
+      "Whitelist": "Inbjudningar"
+    },
+    "Events": {
+      "Title": "Kommande middagar",
+      "Description": "Se och administrera kommande middagar.",
+      "AddButton": "Ny middag",
+      "Empty": "Inga kommande middagar än.",
+      "EditButton": "Redigera"
+    },
+    "Whitelist": {
+      "Title": "Inbjudningar",
+      "Description": "Hantera vilka e-postadresser som får åtkomst till hemsidan.",
+      "InputPlaceholder": "epost@exempel.se",
+      "AddButton": "Lägg till",
+      "Empty": "Inga e-postadresser tillagda än.",
+      "AddedAtLabel": "Tillagd:",
+      "DeleteButton": "Ta bort"
+    }
   }
 }

@@ -38,5 +38,28 @@
   "Auth": {
     "Login": "Log in",
     "Logout": "Log out"
+  },
+  "AdminPage": {
+    "Title": "Admin",
+    "Tabs": {
+      "Events": "Events",
+      "Whitelist": "Invitations"
+    },
+    "Events": {
+      "Title": "Upcoming dinners",
+      "Description": "See and manage upcoming dinners.",
+      "AddButton": "New event",
+      "Empty": "No upcoming events yet.",
+      "EditButton": "Edit"
+    },
+    "Whitelist": {
+      "Title": "Invitations",
+      "Description": "Manage which email addresses may access the site.",
+      "InputPlaceholder": "email@example.com",
+      "AddButton": "Add",
+      "Empty": "No email addresses whitelisted yet.",
+      "AddedAtLabel": "Added:",
+      "DeleteButton": "Remove"
+    }
   }
 }
