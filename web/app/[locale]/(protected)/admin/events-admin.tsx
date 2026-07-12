@@ -11,11 +11,19 @@ import {
   CardDescription,
   CardAction,
 } from "@/components/ui/card";
-import type { EventRecord, VenueRecord } from "./actions";
+import type { EventRecord, ProfileRecord, VenueRecord } from "./actions";
 import { NewEventDialog, EditEventDialog } from "./new-event-dialog";
 import { DeleteEventButton } from "./delete-event-button";
 
-export function EventsAdmin({ events, venues }: { events: EventRecord[]; venues: VenueRecord[] }) {
+export function EventsAdmin({
+  events,
+  venues,
+  profiles,
+}: {
+  events: EventRecord[];
+  venues: VenueRecord[];
+  profiles: ProfileRecord[];
+}) {
   const t = useTranslations("AdminPage.Events");
 
   return (
@@ -24,7 +32,7 @@ export function EventsAdmin({ events, venues }: { events: EventRecord[]; venues:
         <CardTitle>{t("Title")}</CardTitle>
         <CardDescription>{t("Description")}</CardDescription>
         <CardAction>
-          <NewEventDialog venues={venues} />
+          <NewEventDialog venues={venues} profiles={profiles} />
         </CardAction>
       </CardHeader>
       <CardContent>
@@ -44,7 +52,7 @@ export function EventsAdmin({ events, venues }: { events: EventRecord[]; venues:
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <EditEventDialog event={event} venues={venues} />
+                  <EditEventDialog event={event} venues={venues} profiles={profiles} />
                   <DeleteEventButton event={event} />
                 </div>
               </div>

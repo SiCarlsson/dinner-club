@@ -16,7 +16,13 @@ import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { NewVenueDialog } from "./new-venue-dialog";
 import { useLocale, useTranslations } from "next-intl";
-import { createEvent, updateEvent, type EventRecord, type VenueRecord } from "./actions";
+import {
+  createEvent,
+  updateEvent,
+  type EventRecord,
+  type ProfileRecord,
+  type VenueRecord,
+} from "./actions";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import {
   Dialog,
@@ -48,6 +54,7 @@ type FormState = {
   date: Date | undefined;
   time: string;
   venueId: string;
+  coHostId: string;
   description: string;
   published: boolean;
 };
@@ -57,6 +64,7 @@ const EMPTY_FORM: FormState = {
   date: undefined,
   time: "18:00",
   venueId: "",
+  coHostId: "",
   description: "",
   published: false,
 };
@@ -68,6 +76,7 @@ function formFromEvent(event: EventRecord): FormState {
     date: eventDate,
     time: format(eventDate, "HH:mm"),
     venueId: event.venue?.id ?? "",
+    coHostId: event.co_host_id ?? "",
     description: event.description ?? "",
     published: event.visibility === "published",
   };
@@ -75,10 +84,12 @@ function formFromEvent(event: EventRecord): FormState {
 
 function EventDialog({
   venues: initialVenues,
+  profiles,
   event,
   trigger,
 }: {
   venues: VenueRecord[];
+  profiles: ProfileRecord[];
   event?: EventRecord;
   trigger: React.ReactElement;
 }) {
@@ -114,6 +125,7 @@ function EventDialog({
       name: form.name,
       eventDate: eventDate.toISOString(),
       venueId: form.venueId || null,
+      coHostId: form.coHostId || null,
       description: form.description || null,
       visibility: form.published ? ("published" as const) : ("unpublished" as const),
     };
@@ -135,7 +147,7 @@ function EventDialog({
       onOpenChange={(nextOpen: boolean) => (nextOpen ? setOpen(true) : resetAndClose())}
     >
       <DialogTrigger render={trigger} />
-      <DialogContent className="flex h-[36rem] flex-col sm:max-w-md">
+      <DialogContent className="flex h-[44rem] flex-col sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{event ? t("EditTitle") : t("Title")}</DialogTitle>
           <DialogDescription>{event ? t("EditDescription") : t("Description")}</DialogDescription>
@@ -239,6 +251,28 @@ function EventDialog({
           </div>
 
           <div className="flex flex-col gap-2">
+            <Label htmlFor="event-co-host">{t("CoHostLabel")}</Label>
+            <Select
+              items={Object.fromEntries(
+                profiles.map((profile) => [profile.id, profile.full_name ?? profile.id]),
+              )}
+              value={form.coHostId}
+              onValueChange={(value) => setForm((prev) => ({ ...prev, coHostId: value as string }))}
+            >
+              <SelectTrigger id="event-co-host" className="w-full">
+                <SelectValue placeholder={t("CoHostPlaceholder")} />
+              </SelectTrigger>
+              <SelectContent>
+                {profiles.map((profile) => (
+                  <SelectItem key={profile.id} value={profile.id}>
+                    {profile.full_name ?? profile.id}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-2">
             <Label htmlFor="event-description">{t("DescriptionLabel")}</Label>
             <Textarea
               id="event-description"
@@ -279,20 +313,39 @@ function EventDialog({
   );
 }
 
-export function NewEventDialog({ venues }: { venues: VenueRecord[] }) {
-  const tEvents = useTranslations("AdminPage.Events");
-
-  return (
-    <EventDialog venues={venues} trigger={<Button size="sm">{tEvents("AddButton")}</Button>} />
-  );
-}
-
-export function EditEventDialog({ venues, event }: { venues: VenueRecord[]; event: EventRecord }) {
+export function NewEventDialog({
+  venues,
+  profiles,
+}: {
+  venues: VenueRecord[];
+  profiles: ProfileRecord[];
+}) {
   const tEvents = useTranslations("AdminPage.Events");
 
   return (
     <EventDialog
       venues={venues}
+      profiles={profiles}
+      trigger={<Button size="sm">{tEvents("AddButton")}</Button>}
+    />
+  );
+}
+
+export function EditEventDialog({
+  venues,
+  profiles,
+  event,
+}: {
+  venues: VenueRecord[];
+  profiles: ProfileRecord[];
+  event: EventRecord;
+}) {
+  const tEvents = useTranslations("AdminPage.Events");
+
+  return (
+    <EventDialog
+      venues={venues}
+      profiles={profiles}
       event={event}
       trigger={
         <Button size="sm" variant="outline">

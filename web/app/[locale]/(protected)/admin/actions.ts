@@ -11,6 +11,7 @@ export type EventRecord = {
   event_date: string;
   description: string | null;
   visibility: "published" | "unpublished";
+  co_host_id: string | null;
   venue: { id: string; name: string } | null;
 };
 
@@ -20,6 +21,7 @@ type EventInput = {
   venueId: string | null;
   description?: string | null;
   visibility?: "published" | "unpublished";
+  coHostId?: string | null;
 };
 
 export async function getEvents() {
@@ -31,7 +33,7 @@ export async function getEvents() {
 
   const { data, error } = await supabase
     .from("events")
-    .select("id, name, event_date, description, visibility, venue:venues(id, name)")
+    .select("id, name, event_date, description, visibility, co_host_id, venue:venues(id, name)")
     .order("event_date", { ascending: true });
 
   if (error) {
@@ -39,6 +41,30 @@ export async function getEvents() {
   }
 
   return { success: true as const, events: data as unknown as EventRecord[] };
+}
+
+export type ProfileRecord = {
+  id: string;
+  full_name: string | null;
+};
+
+export async function getProfiles() {
+  const { supabase, user } = await getCurrentUser();
+
+  if (!user) {
+    return { success: false as const, message: "Not authenticated" };
+  }
+
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("id, full_name")
+    .order("full_name");
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  return { success: true as const, profiles: data as ProfileRecord[] };
 }
 
 export type VenueRecord = {
@@ -112,6 +138,7 @@ export async function createEvent(input: EventInput) {
     venue_id: input.venueId,
     description: input.description ?? null,
     visibility: input.visibility ?? "unpublished",
+    co_host_id: input.coHostId ?? null,
     created_by: user.id,
   });
 
@@ -124,9 +151,9 @@ export async function createEvent(input: EventInput) {
 }
 
 export async function updateEvent(id: string, input: Partial<EventInput>) {
-  const { supabase, user, role } = await getUserWithRole();
+  const { supabase, user } = await getCurrentUser();
 
-  if (!user || role !== "admin") {
+  if (!user) {
     return { success: false, message: "Not authorized" };
   }
 
@@ -138,6 +165,7 @@ export async function updateEvent(id: string, input: Partial<EventInput>) {
       ...(input.venueId !== undefined && { venue_id: input.venueId }),
       ...(input.description !== undefined && { description: input.description }),
       ...(input.visibility !== undefined && { visibility: input.visibility }),
+      ...(input.coHostId !== undefined && { co_host_id: input.coHostId }),
       updated_at: new Date().toISOString(),
     })
     .eq("id", id);

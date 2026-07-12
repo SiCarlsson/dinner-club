@@ -67,6 +67,8 @@
         "TimeLabel": "Tid",
         "VenueLabel": "Plats",
         "VenuePlaceholder": "Välj en plats",
+        "CoHostLabel": "Medvärd",
+        "CoHostPlaceholder": "Välj en medvärd",
         "DescriptionLabel": "Beskrivning",
         "DescriptionPlaceholder": "Information om middagen",
         "VisibilityLabel": "Publicerad",

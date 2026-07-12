@@ -67,6 +67,8 @@
         "TimeLabel": "Time",
         "VenueLabel": "Venue",
         "VenuePlaceholder": "Select a venue",
+        "CoHostLabel": "Co-host",
+        "CoHostPlaceholder": "Select a co-host",
         "DescriptionLabel": "Description",
         "DescriptionPlaceholder": "Details for this event",
         "VisibilityLabel": "Published",

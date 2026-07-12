@@ -70,7 +70,7 @@ export function NewVenueDialog({ onCreated }: { onCreated: (venue: VenueRecord) 
           </Button>
         }
       />
-      <DialogContent className="flex h-[36rem] flex-col sm:max-w-md">
+      <DialogContent className="flex h-[44rem] flex-col sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{t("Title")}</DialogTitle>
           <DialogDescription>{t("Description")}</DialogDescription>
