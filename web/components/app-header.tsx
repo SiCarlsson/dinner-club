@@ -4,19 +4,7 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { AppHeaderMenu } from "@/components/app-header-menu";
-
-function getInitials(name: string | null | undefined, email: string | null | undefined) {
-  if (name) {
-    return name
-      .trim()
-      .split(/\s+/)
-      .slice(0, 2)
-      .map((part) => part[0])
-      .join("")
-      .toUpperCase();
-  }
-  return email ? email[0]!.toUpperCase() : "";
-}
+import { AppHeaderLogout } from "@/components/app-header-logout";
 
 export async function AppHeader() {
   const t = await getTranslations("Nav");
@@ -25,11 +13,10 @@ export async function AppHeader() {
     data: { user },
   } = await supabase.auth.getUser();
   const { data: profile } = user
-    ? await supabase.from("profiles").select("full_name, role").eq("id", user.id).single()
+    ? await supabase.from("profiles").select("role").eq("id", user.id).single()
     : { data: null };
 
   const isAdmin = profile?.role === "admin";
-  const initials = getInitials(profile?.full_name, user?.email);
 
   return (
     <header className="font-ui px-6 md:px-10">
@@ -59,10 +46,11 @@ export async function AppHeader() {
             </Link>
             <Link
               href="/profile"
-              className="border-input bg-foreground text-background dark:text-foreground flex size-[30px] shrink-0 items-center justify-center rounded-full border font-serif text-[11px] dark:bg-transparent"
+              className="text-muted-foreground hover:text-foreground hidden text-[12px] tracking-[.06em] uppercase transition-colors sm:inline-flex"
             >
-              {initials}
+              {t("Profile")}
             </Link>
+            <AppHeaderLogout />
             <AppHeaderMenu isAdmin={isAdmin} />
           </div>
         ) : (

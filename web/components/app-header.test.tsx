@@ -79,43 +79,35 @@ describe("AppHeader", () => {
     expect(screen.getByRole("link", { name: /CaLí/ })).toHaveAttribute("href", "/");
   });
 
-  it("shows the initials linking to the profile, a dinners link, and a home logo for a member", async () => {
+  it("shows a dinners link, a profile link, a logout button, and a home logo for a member", async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: "u1", email: "member@example.com" } },
     });
-    mockSingle.mockResolvedValue({ data: { full_name: "Alex Smith", role: "member" } });
+    mockSingle.mockResolvedValue({ data: { role: "member" } });
 
     render(await AppHeader());
 
-    expect(screen.getByRole("link", { name: "AS" })).toHaveAttribute("href", "/profile");
     expect(screen.getByRole("link", { name: /CaLí/ })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: mockSv.Nav.Dinners })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: mockSv.Nav.Profile })).toHaveAttribute(
+      "href",
+      "/profile",
+    );
+    expect(screen.getByRole("button", { name: mockSv.Nav.Logout })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: mockSv.Nav.Login })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: mockSv.Nav.Admin })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: mockSv.Nav.Menu })).toBeInTheDocument();
   });
 
-  it("shows an admin link alongside the avatar for an admin", async () => {
+  it("shows an admin link for an admin", async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: "a1", email: "admin@example.com" } },
     });
-    mockSingle.mockResolvedValue({ data: { full_name: "Alex Smith", role: "admin" } });
+    mockSingle.mockResolvedValue({ data: { role: "admin" } });
 
     render(await AppHeader());
 
     const adminLink = screen.getByRole("link", { name: mockSv.Nav.Admin });
     expect(adminLink).toHaveAttribute("href", "/admin");
-    expect(screen.getByText("AS")).toBeInTheDocument();
-  });
-
-  it("falls back to the email's first letter when there is no full name", async () => {
-    mockGetUser.mockResolvedValue({
-      data: { user: { id: "u1", email: "alex@example.com" } },
-    });
-    mockSingle.mockResolvedValue({ data: { full_name: null, role: "member" } });
-
-    render(await AppHeader());
-
-    expect(screen.getByText("A")).toBeInTheDocument();
   });
 });
