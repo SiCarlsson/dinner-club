@@ -1,43 +1,49 @@
+# web/Dockerfile
+# syntax=docker/dockerfile:1
+
+ARG NODE_VERSION=22-alpine
+ARG PNPM_VERSION=11.10.0
+
 # 1. Dependencies Stage
-FROM node:22-alpine AS deps
+FROM node:${NODE_VERSION} AS deps
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
+ARG PNPM_VERSION
+RUN npm i -g pnpm@${PNPM_VERSION}
 
-# Install pnpm globally inside the container (installs v11+)
-RUN npm i -g pnpm
-
-# Copy package management files
-COPY package.json pnpm-lock.yaml* ./
-
-RUN echo "allowBuilds:" > pnpm-workspace.yaml && \
-    echo "  sharp: true" >> pnpm-workspace.yaml && \
-    echo "  unrs-resolver: true" >> pnpm-workspace.yaml
-
-RUN pnpm install --frozen-lockfile
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN --mount=type=cache,id=pnpm,target=/root/.local/share/pnpm/store \
+    pnpm install --frozen-lockfile
 
 # 2. Builder Stage
-FROM node:22-alpine AS builder
+FROM node:${NODE_VERSION} AS builder
 WORKDIR /app
-RUN npm i -g pnpm
+ARG PNPM_VERSION
+RUN npm i -g pnpm@${PNPM_VERSION}
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# NEXT_PUBLIC_* vars are inlined into the client bundle at build time
+ARG NEXT_PUBLIC_SUPABASE_PROJECT_URL
+ARG NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+ENV NEXT_PUBLIC_SUPABASE_PROJECT_URL=${NEXT_PUBLIC_SUPABASE_PROJECT_URL}
+ENV NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}
 
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
-RUN echo "allowBuilds:" > pnpm-workspace.yaml && \
-    echo "  sharp: true" >> pnpm-workspace.yaml && \
-    echo "  unrs-resolver: true" >> pnpm-workspace.yaml
-
 RUN pnpm run build
 
 # 3. Production Runner Stage
-FROM node:22-alpine AS runner
+FROM node:${NODE_VERSION} AS runner
 WORKDIR /app
 
-RUN apk update && apk upgrade --no-cache
-ENV NODE_ENV=production
+ENV NODE_ENV=production \
+    NEXT_TELEMETRY_DISABLED=1 \
+    PORT=3000 \
+    HOSTNAME="0.0.0.0"
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
@@ -46,7 +52,5 @@ COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 USER nextjs
 
 EXPOSE 3000
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
 
 CMD ["node", "server.js"]

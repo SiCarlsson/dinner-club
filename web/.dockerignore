@@ -1,6 +1,32 @@
+# Dependencies & build output (reinstalled/rebuilt in-image)
 node_modules
 .next
 out
 build
+
+# Env & secrets
+.env
 .env*.local
+
+# VCS & tooling
 .git
+.gitignore
+.husky
+.claude
+.prettierrc
+.prettierignore
+eslint.config.mjs
+
+# Tests (not needed for production build)
+**/*.test.ts
+**/*.test.tsx
+vitest.config.ts
+vitest.setup.ts
+
+# Docs & incremental TS cache
+*.md
+tsconfig.tsbuildinfo
+
+# Docker
+Dockerfile
+.dockerignore
