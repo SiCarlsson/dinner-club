@@ -1,6 +1,6 @@
 // app/[locale]/(protected)/profile/actions.test.ts
 
-import { updateFullName } from "./actions";
+import { updateProfile } from "./actions";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 import { describe, it, expect, beforeEach, vi } from "vitest";
@@ -13,7 +13,7 @@ vi.mock("@/utils/supabase/server", () => ({
   createClient: vi.fn(),
 }));
 
-describe("updateFullName Server Action", () => {
+describe("updateProfile Server Action", () => {
   const mockGetUser = vi.fn();
   const mockUpdate = vi.fn().mockReturnThis(); // Allows method chaining (.update().eq())
   const mockEq = vi.fn();
@@ -21,6 +21,11 @@ describe("updateFullName Server Action", () => {
     update: mockUpdate,
     eq: mockEq,
   });
+
+  const validUpdate = {
+    fullName: "John Doe",
+    dietaryRestrictions: ["gluten", "nötter"],
+  };
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -35,7 +40,7 @@ describe("updateFullName Server Action", () => {
   it("should return an error if the user is not authenticated", async () => {
     mockGetUser.mockResolvedValue({ data: { user: null } });
 
-    const result = await updateFullName("John Doe");
+    const result = await updateProfile(validUpdate);
 
     expect(result).toEqual({ success: false, message: "Not authenticated" });
     expect(mockFrom).not.toHaveBeenCalled();
@@ -46,13 +51,14 @@ describe("updateFullName Server Action", () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "user-123" } } });
     mockEq.mockResolvedValue({ error: { message: "Database connection timeout" } });
 
-    const result = await updateFullName("John Doe");
+    const result = await updateProfile(validUpdate);
 
     expect(result).toEqual({ success: false, message: "Database connection timeout" });
     expect(mockFrom).toHaveBeenCalledWith("profiles");
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         full_name: "John Doe",
+        dietary_restrictions: ["gluten", "nötter"],
         updated_at: expect.any(String), // Asserts that an ISO timestamp string was generated
       }),
     );
@@ -60,13 +66,13 @@ describe("updateFullName Server Action", () => {
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 
-  it("should successfully update the name and call revalidatePath", async () => {
+  it("should successfully update the profile and call revalidatePath", async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "user-123" } } });
     mockEq.mockResolvedValue({ error: null });
 
-    const result = await updateFullName("John Doe");
+    const result = await updateProfile(validUpdate);
 
-    expect(result).toEqual({ success: true, message: "Name updated" });
+    expect(result).toEqual({ success: true, message: "Profile updated" });
 
     expect(revalidatePath).toHaveBeenCalledWith("/profile");
   });

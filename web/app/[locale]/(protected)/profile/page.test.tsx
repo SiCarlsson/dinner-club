@@ -3,35 +3,48 @@
 import { createClient } from "@/utils/supabase/server";
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-// Används för dina expect-satser i testfallen
 import mockSv from "@/messages/sv.json";
 
 vi.mock("@/utils/supabase/server", () => ({
   createClient: vi.fn(),
 }));
 
-vi.mock("./name-form", () => ({
-  NameForm: vi.fn(({ initialName }: { initialName: string }) => (
-    <div data-testid="mock-name-form" data-initial-name={initialName}>
-      Mock Name Form
-    </div>
-  )),
+vi.mock("./profile-form", () => ({
+  ProfileForm: vi.fn(
+    ({
+      initialName,
+      initialDietaryRestrictions,
+      email,
+      role,
+    }: {
+      initialName: string;
+      initialDietaryRestrictions: string[];
+      email: string;
+      role: string;
+    }) => (
+      <div
+        data-testid="mock-profile-form"
+        data-initial-name={initialName}
+        data-initial-diet={initialDietaryRestrictions.join(",")}
+        data-email={email}
+        data-role={role}
+      >
+        Mock Profile Form
+      </div>
+    ),
+  ),
 }));
 
 vi.mock("next-intl/server", () => ({
   getTranslations: vi.fn(async (config) => {
-    // 1. Dynamisk import inuti den asynkrona funktionen löser hoisting-problem helt utan linter-fel!
     const imported = await import("@/messages/sv.json");
     const messages = (imported as { default?: Record<string, unknown> }).default ?? imported;
 
-    // 2. Hantera både getTranslations("Namespace") och getTranslations({ namespace: "Namespace" })
     const namespace = typeof config === "string" ? config : config?.namespace;
 
-    return (key: string) => {
-      // Bygg en fullständig sökväg (t.ex. "ProfilePage.Information.Role")
+    return (key: string, values?: Record<string, unknown>) => {
       const fullPath = namespace ? `${namespace}.${key}` : key;
 
-      // Slå upp värdet säkert i JSON-trädet
       const value = fullPath.split(".").reduce<unknown>((obj, k) => {
         if (typeof obj === "object" && obj !== null && k in obj) {
           return (obj as Record<string, unknown>)[k];
@@ -39,8 +52,14 @@ vi.mock("next-intl/server", () => ({
         return undefined;
       }, messages);
 
-      // Returnera översättningen om den finns, annars fall tillbaka på nyckeln
-      return typeof value === "string" ? value : key;
+      if (typeof value !== "string") return key;
+
+      return values
+        ? Object.entries(values).reduce(
+            (result, [name, val]) => result.replaceAll(`{${name}}`, String(val)),
+            value,
+          )
+        : value;
     };
   }),
 }));
@@ -66,40 +85,56 @@ describe("Profile Server Page", () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: "user-123", email: "member@example.com" } },
     });
-    mockSingle.mockResolvedValue({ data: { full_name: "Alex Smith", role: "member" } });
+    mockSingle.mockResolvedValue({
+      data: {
+        full_name: "Alex Smith",
+        role: "member",
+        dietary_restrictions: ["gluten"],
+        created_at: "2024-03-01T00:00:00.000Z",
+      },
+    });
 
     const PageComponent = await Profile();
     render(PageComponent);
 
-    expect(screen.getByRole("heading", { name: mockSv.ProfilePage.Title })).toBeInTheDocument();
-    expect(screen.getByText("member@example.com")).toBeInTheDocument();
+    expect(
+      screen.getByRole("heading", { name: mockSv.ProfilePage.Title, hidden: true }),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Alex Smith")).toBeInTheDocument();
+    expect(screen.getByText("AS")).toBeInTheDocument();
+    expect(screen.getByText("Medlem sedan 2024")).toBeInTheDocument();
 
-    const nameForm = screen.getByTestId("mock-name-form");
-    expect(nameForm).toHaveAttribute("data-initial-name", "Alex Smith");
-
-    const roleHeading = screen.getByText(mockSv.ProfilePage.Information.Role);
-    const roleContainer = roleHeading.parentElement;
-    expect(roleContainer).toHaveClass("hidden");
-    expect(roleContainer).not.toHaveClass("block");
+    const profileForm = screen.getByTestId("mock-profile-form");
+    expect(profileForm).toHaveAttribute("data-initial-name", "Alex Smith");
+    expect(profileForm).toHaveAttribute("data-initial-diet", "gluten");
+    expect(profileForm).toHaveAttribute("data-email", "member@example.com");
+    expect(profileForm).toHaveAttribute("data-role", "member");
   });
 
-  it("should visually reveal the Role container when the user is an admin", async () => {
+  it("should fall back to empty diet and name when the profile has none set", async () => {
     const { default: Profile } = await import("./page");
 
     mockGetUser.mockResolvedValue({
       data: { user: { id: "admin-999", email: "admin@example.com" } },
     });
-    mockSingle.mockResolvedValue({ data: { full_name: "Boss Mode", role: "admin" } });
+    mockSingle.mockResolvedValue({
+      data: {
+        full_name: null,
+        role: "admin",
+        dietary_restrictions: null,
+        created_at: "2026-01-01T00:00:00.000Z",
+      },
+    });
 
     const PageComponent = await Profile();
     render(PageComponent);
 
     expect(screen.getByText("admin@example.com")).toBeInTheDocument();
+    expect(screen.getByText("Medlem sedan 2026")).toBeInTheDocument();
 
-    const roleHeading = screen.getByText(mockSv.ProfilePage.Information.Role);
-    const roleContainer = roleHeading.parentElement;
-    expect(roleContainer).toHaveClass("block");
-    expect(roleContainer).not.toHaveClass("hidden");
-    expect(screen.getByText("admin")).toBeInTheDocument();
+    const profileForm = screen.getByTestId("mock-profile-form");
+    expect(profileForm).toHaveAttribute("data-initial-name", "");
+    expect(profileForm).toHaveAttribute("data-initial-diet", "");
+    expect(profileForm).toHaveAttribute("data-role", "admin");
   });
 });

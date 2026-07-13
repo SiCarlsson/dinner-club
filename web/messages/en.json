@@ -13,19 +13,33 @@
   },
   "ProfilePage": {
     "Title": "Profile",
+    "MemberSince": "Member since {year}",
+    "Stats": {
+      "Dinners": "Dinners"
+    },
+    "Sections": {
+      "Account": "Account",
+      "Diet": "Allergies & diet"
+    },
     "Information": {
       "Role": "Role",
       "Email": "Email",
       "Name": "Name",
       "NamePlaceholder": "First and last name"
     },
+    "Diet": {
+      "Remove": "Remove {item}",
+      "Add": "Add",
+      "AddLabel": "Add an allergy or dietary preference",
+      "AddPlaceholder": "E.g. gluten"
+    },
     "SaveButton": {
-      "BeforeChange": "Update name",
+      "Default": "Save",
       "Loading": "Saving",
-      "CompletedChange": "Saved",
-      "NoName": "Enter name",
-      "Error": "Error"
-    }
+      "Saved": "Saved",
+      "Error": "Something went wrong"
+    },
+    "Logout": "Log out"
   },
   "LoginPage": {
     "Title": "Log in",

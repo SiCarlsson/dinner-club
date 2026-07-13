@@ -5,7 +5,12 @@
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/utils/supabase/auth";
 
-export async function updateFullName(fullName: string) {
+export type ProfileUpdate = {
+  fullName: string;
+  dietaryRestrictions: string[];
+};
+
+export async function updateProfile(update: ProfileUpdate) {
   const { supabase, user } = await getCurrentUser();
 
   if (!user) {
@@ -14,7 +19,11 @@ export async function updateFullName(fullName: string) {
 
   const { error } = await supabase
     .from("profiles")
-    .update({ full_name: fullName, updated_at: new Date().toISOString() })
+    .update({
+      full_name: update.fullName,
+      dietary_restrictions: update.dietaryRestrictions,
+      updated_at: new Date().toISOString(),
+    })
     .eq("id", user.id);
 
   if (error) {
@@ -22,5 +31,5 @@ export async function updateFullName(fullName: string) {
   }
 
   revalidatePath("/profile");
-  return { success: true, message: "Name updated" };
+  return { success: true, message: "Profile updated" };
 }

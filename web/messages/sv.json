@@ -13,19 +13,33 @@
   },
   "ProfilePage": {
     "Title": "Profil",
+    "MemberSince": "Medlem sedan {year}",
+    "Stats": {
+      "Dinners": "Middagar"
+    },
+    "Sections": {
+      "Account": "Konto",
+      "Diet": "Allergier & kost"
+    },
     "Information": {
       "Role": "Roll",
       "Email": "Epost",
       "Name": "Namn",
       "NamePlaceholder": "För- och efternamn"
     },
+    "Diet": {
+      "Remove": "Ta bort {item}",
+      "Add": "Lägg till",
+      "AddLabel": "Lägg till allergi eller kostpreferens",
+      "AddPlaceholder": "T.ex. gluten"
+    },
     "SaveButton": {
-      "BeforeChange": "Uppdatera namn",
+      "Default": "Spara",
       "Loading": "Sparar",
-      "CompletedChange": "Sparat",
-      "NoName": "Ange namn",
-      "Error": "Error"
-    }
+      "Saved": "Sparat",
+      "Error": "Något gick fel"
+    },
+    "Logout": "Logga ut"
   },
   "LoginPage": {
     "Title": "Logga in",
