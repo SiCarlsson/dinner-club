@@ -70,7 +70,7 @@ describe("AppHeader", () => {
     expect(screen.getByRole("link", { name: /CaLí/ })).toHaveAttribute("href", "/");
   });
 
-  it("shows the initials, a dinners link, and the logo pointing at the profile for a member", async () => {
+  it("shows the initials linking to the profile, a dinners link, and a home logo for a member", async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: "u1", email: "member@example.com" } },
     });
@@ -78,8 +78,8 @@ describe("AppHeader", () => {
 
     render(await AppHeader());
 
-    expect(screen.getByText("AS")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: /CaLí/ })).toHaveAttribute("href", "/profile");
+    expect(screen.getByRole("link", { name: "AS" })).toHaveAttribute("href", "/profile");
+    expect(screen.getByRole("link", { name: /CaLí/ })).toHaveAttribute("href", "/");
     expect(screen.getByRole("link", { name: mockSv.Nav.Dinners })).toHaveAttribute("href", "/");
     expect(screen.queryByRole("link", { name: mockSv.Nav.Login })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: mockSv.Nav.Admin })).not.toBeInTheDocument();

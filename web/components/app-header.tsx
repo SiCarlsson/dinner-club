@@ -33,7 +33,7 @@ export async function AppHeader() {
   return (
     <header className="font-ui px-6 md:px-10">
       <div className="mx-auto flex w-full max-w-[760px] items-center justify-between gap-4 py-6">
-        <Link href={user ? "/profile" : "/"} className="flex min-w-0 items-baseline gap-[11px]">
+        <Link href="/" className="flex min-w-0 items-baseline gap-[11px]">
           <span className="shrink-0 font-serif text-[22px] font-medium sm:text-[28px]">CaLí</span>
           <span className="text-muted-foreground min-w-0 truncate text-[9px] tracking-[.36em] uppercase sm:text-[10px] sm:tracking-[.42em]">
             Dinner Club
@@ -56,9 +56,12 @@ export async function AppHeader() {
                 {t("Admin")}
               </Link>
             )}
-            <div className="border-input bg-foreground text-background dark:text-foreground flex size-[30px] shrink-0 items-center justify-center rounded-full border font-serif text-[11px] dark:bg-transparent">
+            <Link
+              href="/profile"
+              className="border-input bg-foreground text-background dark:text-foreground flex size-[30px] shrink-0 items-center justify-center rounded-full border font-serif text-[11px] dark:bg-transparent"
+            >
               {initials}
-            </div>
+            </Link>
           </div>
         ) : (
           <Link
