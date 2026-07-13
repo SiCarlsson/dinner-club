@@ -5,7 +5,8 @@ import { createServerClient } from "@supabase/ssr";
 import createIntlMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PATHS = ["/profile"];
+const PROTECTED_PATHS = ["/profile", "/admin"];
+const GUEST_ONLY_PATHS = ["/login"];
 
 const handleI18nRouting = createIntlMiddleware(routing);
 
@@ -37,6 +38,7 @@ export async function proxy(request: NextRequest) {
     "",
   );
   const isProtected = PROTECTED_PATHS.some((path) => pathWithoutLocale.startsWith(path));
+  const isGuestOnly = GUEST_ONLY_PATHS.some((path) => pathWithoutLocale.startsWith(path));
 
   const {
     data: { user },
@@ -46,6 +48,10 @@ export async function proxy(request: NextRequest) {
     const redirectUrl = new URL("/login", request.url);
     redirectUrl.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);
+  }
+
+  if (isGuestOnly && user) {
+    return NextResponse.redirect(new URL("/", request.url));
   }
 
   return response;

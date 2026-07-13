@@ -79,5 +79,33 @@ describe("proxy", () => {
 
       expect(res.status).toBe(200);
     });
+
+    it("redirects to /login when accessing /admin without a session", async () => {
+      getUserMock.mockResolvedValue({ data: { user: null } });
+      const req = new NextRequest("http://localhost:3000/en/admin");
+      const res = await proxy(req);
+
+      expect(res.status).toBe(307);
+      expect(res.headers.get("location")).toContain("/login");
+    });
+  });
+
+  describe("guest-only paths with locale prefix", () => {
+    it("redirects to / when accessing /login with a session", async () => {
+      getUserMock.mockResolvedValue({ data: { user: { id: "user-123" } } });
+      const req = new NextRequest("http://localhost:3000/en/login");
+      const res = await proxy(req);
+
+      expect(res.status).toBe(307);
+      expect(res.headers.get("location")).toBe("http://localhost:3000/");
+    });
+
+    it("allows access to /login when no session exists", async () => {
+      getUserMock.mockResolvedValue({ data: { user: null } });
+      const req = new NextRequest("http://localhost:3000/sv/login");
+      const res = await proxy(req);
+
+      expect(res.status).toBe(200);
+    });
   });
 });
