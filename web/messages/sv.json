@@ -32,7 +32,8 @@
     "LinkSent": {
       "Title": "Kolla din epost",
       "Description1": "Epost har skickats till",
-      "Description2": "Använd länken i det för att logga in."
+      "Description2": "Använd länken i det för att logga in.",
+      "Resend": "Fick du inget? Skicka igen"
     }
   },
   "Auth": {
