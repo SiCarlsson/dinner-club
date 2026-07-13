@@ -2,12 +2,12 @@
 
 "use client";
 
-import { useState, useMemo } from "react";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Button } from "@/components/ui/button";
 import { createClient } from "@/utils/supabase/client";
 import { useTranslations } from "next-intl";
+import { useMemo, useState } from "react";
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -47,9 +47,6 @@ export default function Login() {
       <div className="flex flex-1 flex-col items-center justify-center gap-8 text-center">
         {status === "sent" ? (
           <>
-            <div className="border-accent text-accent flex size-14 items-center justify-center rounded-full border text-2xl">
-              ✦
-            </div>
             <div className="flex flex-col gap-3">
               <h1 className={"font-serif text-[34px] font-light"}>{t("LinkSent.Title")}</h1>
               <p className="text-foreground/80 max-w-[38ch] text-[13px] leading-[1.6]">
@@ -57,13 +54,6 @@ export default function Login() {
                 {t("LinkSent.Description2")}
               </p>
             </div>
-            <button
-              type="button"
-              onClick={handleLogin}
-              className="text-muted-foreground text-[10px] tracking-[.16em] uppercase underline-offset-4 hover:underline focus-visible:underline focus-visible:outline-none"
-            >
-              {t("LinkSent.Resend")}
-            </button>
           </>
         ) : (
           <>

@@ -32,8 +32,7 @@
     "LinkSent": {
       "Title": "Check your email",
       "Description1": "We sent a login link to",
-      "Description2": "Click it to sign in.",
-      "Resend": "Didn't get one? Send again"
+      "Description2": "Click it to sign in."
     }
   },
   "Auth": {
