@@ -55,6 +55,17 @@
       "DeleteConfirmTitle": "Ta bort middag?",
       "DeleteConfirm": "Är du säker på att du vill ta bort detta event? Detta går inte att ångra.",
       "CancelButton": "Avbryt",
+      "Columns": {
+        "Name": "Middag",
+        "Date": "Datum",
+        "Venue": "Plats",
+        "Status": "Status"
+      },
+      "Status": {
+        "Published": "Publicerad",
+        "Draft": "Utkast"
+      },
+      "NoVenue": "—",
       "Dialog": {
         "Title": "Ny middag",
         "Description": "Fyll i detaljerna för den kommande middagen.",

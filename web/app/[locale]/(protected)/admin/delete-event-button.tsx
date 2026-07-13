@@ -18,6 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { deleteEvent, type EventRecord } from "./actions";
+import { BUTTON_TEXT } from "./form-styles";
 
 export function DeleteEventButton({ event }: { event: EventRecord }) {
   const [deleting, setDeleting] = useState(false);
@@ -39,21 +40,28 @@ export function DeleteEventButton({ event }: { event: EventRecord }) {
     <AlertDialog>
       <AlertDialogTrigger
         render={
-          <Button type="button" variant="destructive" size="sm" disabled={deleting}>
+          <Button
+            type="button"
+            variant="link"
+            className="text-muted-foreground hover:text-foreground h-auto p-0 text-[11px] tracking-[.02em] uppercase hover:no-underline"
+            disabled={deleting}
+          >
             {t("DeleteButton")}
           </Button>
         }
       />
-      <AlertDialogContent size="sm">
+      <AlertDialogContent size="sm" className="font-ui">
         <AlertDialogHeader>
-          <AlertDialogTitle>{t("DeleteConfirmTitle")}</AlertDialogTitle>
+          <AlertDialogTitle className="font-serif text-[20px] font-normal">
+            {t("DeleteConfirmTitle")}
+          </AlertDialogTitle>
           <AlertDialogDescription>{t("DeleteConfirm")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel variant="outline" size="default">
+          <AlertDialogCancel variant="outline" size="default" className={BUTTON_TEXT}>
             {t("CancelButton")}
           </AlertDialogCancel>
-          <AlertDialogAction variant="destructive" onClick={handleDelete}>
+          <AlertDialogAction variant="destructive" className={BUTTON_TEXT} onClick={handleDelete}>
             {t("DeleteButton")}
           </AlertDialogAction>
         </AlertDialogFooter>

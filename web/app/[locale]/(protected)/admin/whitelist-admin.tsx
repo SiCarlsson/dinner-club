@@ -6,7 +6,8 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { FIELD_INPUT } from "./form-styles";
 
 type WhitelistEntry = {
   id: string;
@@ -25,48 +26,61 @@ export function WhitelistAdmin() {
   const t = useTranslations("AdminPage.Whitelist");
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>{t("Title")}</CardTitle>
-        <CardDescription>{t("Description")}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-col gap-4">
-        <form onSubmit={() => ""} className="flex items-center gap-2">
+    <section>
+      <div className="mb-8">
+        <h2 className="font-serif text-[26px]">{t("Title")}</h2>
+        <p className="text-body mt-1 text-[13px]">{t("Description")}</p>
+      </div>
+
+      <form onSubmit={(e) => e.preventDefault()} className="mb-8 flex items-end gap-4">
+        <div className="flex flex-1 flex-col gap-2">
+          <Label htmlFor="whitelist-email" className="sr-only">
+            {t("InputPlaceholder")}
+          </Label>
           <Input
+            id="whitelist-email"
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder={t("InputPlaceholder")}
-            className="flex-1"
+            className={FIELD_INPUT}
           />
-          <Button type="submit" size="sm">
-            {t("AddButton")}
-          </Button>
-        </form>
+        </div>
+        <Button
+          type="submit"
+          className="bg-accent text-accent-foreground hover:bg-accent/85 h-auto px-[22px] py-[11px] text-[12px] tracking-[.08em] uppercase"
+        >
+          {t("AddButton")}
+        </Button>
+      </form>
 
-        {MOCK_ENTRIES.length === 0 ? (
-          <p className="text-muted-foreground text-sm">{t("Empty")}</p>
-        ) : (
-          <div className="flex flex-col divide-y">
-            {MOCK_ENTRIES.map((entry) => (
-              <div
-                key={entry.id}
-                className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 py-3"
-              >
-                <div>
-                  <p className="text-sm font-medium">{entry.email}</p>
-                  <p className="text-muted-foreground text-xs">
-                    {t("AddedAtLabel")} {entry.addedAt}
-                  </p>
-                </div>
-                <Button size="sm" variant="outline" onClick={() => ""}>
-                  {t("DeleteButton")}
-                </Button>
+      {MOCK_ENTRIES.length === 0 ? (
+        <p className="text-muted-foreground text-[13px]">{t("Empty")}</p>
+      ) : (
+        <div className="flex flex-col">
+          {MOCK_ENTRIES.map((entry) => (
+            <div
+              key={entry.id}
+              className="border-line-soft flex items-center justify-between gap-4 border-b py-3"
+            >
+              <div>
+                <p className="text-[13px]">{entry.email}</p>
+                <p className="text-muted-foreground mt-0.5 text-[9.5px] tracking-[.06em] uppercase">
+                  {t("AddedAtLabel")} {entry.addedAt}
+                </p>
               </div>
-            ))}
-          </div>
-        )}
-      </CardContent>
-    </Card>
+              <button
+                type="button"
+                aria-label={t("DeleteButton")}
+                onClick={() => ""}
+                className="text-muted-foreground hover:text-foreground text-[13px] transition-colors"
+              >
+                ✕
+              </button>
+            </div>
+          ))}
+        </div>
+      )}
+    </section>
   );
 }

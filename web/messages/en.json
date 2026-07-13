@@ -55,6 +55,17 @@
       "DeleteConfirmTitle": "Delete event?",
       "DeleteConfirm": "Are you sure you want to delete this event? This cannot be undone.",
       "CancelButton": "Cancel",
+      "Columns": {
+        "Name": "Dinner",
+        "Date": "Date",
+        "Venue": "Venue",
+        "Status": "Status"
+      },
+      "Status": {
+        "Published": "Published",
+        "Draft": "Draft"
+      },
+      "NoVenue": "—",
       "Dialog": {
         "Title": "New event",
         "Description": "Fill in the details for the upcoming dinner.",

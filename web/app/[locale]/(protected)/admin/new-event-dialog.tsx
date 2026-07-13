@@ -15,6 +15,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { NewVenueDialog } from "./new-venue-dialog";
+import { FIELD_INPUT, FIELD_LABEL, BUTTON_TEXT } from "./form-styles";
 import { useLocale, useTranslations } from "next-intl";
 import {
   createEvent,
@@ -147,26 +148,33 @@ function EventDialog({
       onOpenChange={(nextOpen: boolean) => (nextOpen ? setOpen(true) : resetAndClose())}
     >
       <DialogTrigger render={trigger} />
-      <DialogContent className="flex h-[44rem] flex-col sm:max-w-md">
+      <DialogContent className="font-ui flex h-[44rem] flex-col sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{event ? t("EditTitle") : t("Title")}</DialogTitle>
+          <DialogTitle className="font-serif text-[20px] font-normal">
+            {event ? t("EditTitle") : t("Title")}
+          </DialogTitle>
           <DialogDescription>{event ? t("EditDescription") : t("Description")}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-4 overflow-y-auto">
+        <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5 overflow-y-auto">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="event-name">{t("NameLabel")}</Label>
+            <Label htmlFor="event-name" className={FIELD_LABEL}>
+              {t("NameLabel")}
+            </Label>
             <Input
               id="event-name"
               value={form.name}
               onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
               placeholder={t("NamePlaceholder")}
+              className={FIELD_INPUT}
               required
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-4">
             <div className="flex flex-1 flex-col gap-2">
-              <Label htmlFor="event-date">{t("DateLabel")}</Label>
+              <Label htmlFor="event-date" className={FIELD_LABEL}>
+                {t("DateLabel")}
+              </Label>
               <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                 <PopoverTrigger
                   render={
@@ -175,7 +183,8 @@ function EventDialog({
                       type="button"
                       variant="outline"
                       className={cn(
-                        "w-full justify-start font-normal",
+                        FIELD_INPUT,
+                        "w-full justify-start gap-1.5 font-normal",
                         !form.date && "text-muted-foreground",
                       )}
                     >
@@ -200,12 +209,14 @@ function EventDialog({
               </Popover>
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="event-time">{t("TimeLabel")}</Label>
+              <Label htmlFor="event-time" className={FIELD_LABEL}>
+                {t("TimeLabel")}
+              </Label>
               <Select
                 value={form.time}
                 onValueChange={(value) => setForm((prev) => ({ ...prev, time: value as string }))}
               >
-                <SelectTrigger id="event-time" className="w-24">
+                <SelectTrigger id="event-time" className={cn(FIELD_INPUT, "w-24")}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent className="min-w-0">
@@ -220,8 +231,10 @@ function EventDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="event-venue">{t("VenueLabel")}</Label>
-            <div className="flex gap-2">
+            <Label htmlFor="event-venue" className={FIELD_LABEL}>
+              {t("VenueLabel")}
+            </Label>
+            <div className="flex items-end gap-2">
               <Select
                 items={Object.fromEntries(venues.map((venue) => [venue.id, venue.name]))}
                 value={form.venueId}
@@ -229,7 +242,7 @@ function EventDialog({
                   setForm((prev) => ({ ...prev, venueId: value as string }))
                 }
               >
-                <SelectTrigger id="event-venue" className="flex-1">
+                <SelectTrigger id="event-venue" className={cn(FIELD_INPUT, "flex-1")}>
                   <SelectValue placeholder={t("VenuePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent>
@@ -251,7 +264,9 @@ function EventDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="event-co-host">{t("CoHostLabel")}</Label>
+            <Label htmlFor="event-co-host" className={FIELD_LABEL}>
+              {t("CoHostLabel")}
+            </Label>
             <Select
               items={Object.fromEntries(
                 profiles.map((profile) => [profile.id, profile.full_name ?? profile.id]),
@@ -259,7 +274,7 @@ function EventDialog({
               value={form.coHostId}
               onValueChange={(value) => setForm((prev) => ({ ...prev, coHostId: value as string }))}
             >
-              <SelectTrigger id="event-co-host" className="w-full">
+              <SelectTrigger id="event-co-host" className={cn(FIELD_INPUT, "w-full")}>
                 <SelectValue placeholder={t("CoHostPlaceholder")} />
               </SelectTrigger>
               <SelectContent>
@@ -273,12 +288,15 @@ function EventDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="event-description">{t("DescriptionLabel")}</Label>
+            <Label htmlFor="event-description" className={FIELD_LABEL}>
+              {t("DescriptionLabel")}
+            </Label>
             <Textarea
               id="event-description"
               value={form.description}
               onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
               placeholder={t("DescriptionPlaceholder")}
+              className={cn(FIELD_INPUT, "min-h-[64px] resize-none leading-[1.6]")}
             />
           </div>
 
@@ -300,10 +318,19 @@ function EventDialog({
           )}
 
           <DialogFooter className="mt-auto pt-4">
-            <Button type="button" variant="outline" className="min-w-20" onClick={resetAndClose}>
+            <Button
+              type="button"
+              variant="outline"
+              className={cn(BUTTON_TEXT, "min-w-20")}
+              onClick={resetAndClose}
+            >
               {t("CancelButton")}
             </Button>
-            <Button type="submit" className="min-w-20" disabled={status === "saving"}>
+            <Button
+              type="submit"
+              className={cn(BUTTON_TEXT, "min-w-20")}
+              disabled={status === "saving"}
+            >
               {status === "saving" ? t("SavingButton") : t("SaveButton")}
             </Button>
           </DialogFooter>
@@ -326,7 +353,12 @@ export function NewEventDialog({
     <EventDialog
       venues={venues}
       profiles={profiles}
-      trigger={<Button size="sm">{tEvents("AddButton")}</Button>}
+      trigger={
+        <Button className="h-auto px-[22px] py-[11px] text-[12px] tracking-[.08em] uppercase">
+          <span aria-hidden="true">+ </span>
+          {tEvents("AddButton")}
+        </Button>
+      }
     />
   );
 }
@@ -348,7 +380,10 @@ export function EditEventDialog({
       profiles={profiles}
       event={event}
       trigger={
-        <Button size="sm" variant="outline">
+        <Button
+          variant="link"
+          className="text-muted-foreground hover:text-foreground h-auto p-0 text-[11px] tracking-[.02em] uppercase hover:no-underline"
+        >
           {tEvents("EditButton")}
         </Button>
       }

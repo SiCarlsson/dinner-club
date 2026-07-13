@@ -41,6 +41,8 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-body: var(--text-body);
+  --color-line-soft: var(--line-soft);
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -68,6 +70,8 @@
   --destructive: oklch(0.577 0.245 27.325);
   --border: rgba(27, 26, 23, 0.12);
   --input: rgba(27, 26, 23, 0.35);
+  --text-body: #5c594f;
+  --line-soft: rgba(27, 26, 23, 0.09);
   --ring: oklch(0.723 0.014 214.4);
   --chart-1: oklch(0.872 0.007 219.6);
   --chart-2: oklch(0.56 0.021 213.5);
@@ -103,6 +107,8 @@
   --destructive: oklch(0.704 0.191 22.216);
   --border: rgba(241, 236, 226, 0.12);
   --input: rgba(241, 236, 226, 0.28);
+  --text-body: #b7b1a3;
+  --line-soft: rgba(241, 236, 226, 0.1);
   --ring: oklch(0.56 0.021 213.5);
   --chart-1: oklch(0.872 0.007 219.6);
   --chart-2: oklch(0.56 0.021 213.5);

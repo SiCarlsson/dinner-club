@@ -46,11 +46,11 @@ describe("EventsAdmin Component", () => {
     expect(screen.getByText(messages.AdminPage.Events.Empty)).toBeInTheDocument();
   });
 
-  it("renders each event with its venue name, date, and edit/delete controls", () => {
+  it("renders each event with its own name, venue, date, and edit/delete controls", () => {
     const events: EventRecord[] = [
       {
         id: "1",
-        name: "Fallback Name",
+        name: "Summer Dinner",
         event_date: "2026-08-01T18:00:00.000Z",
         description: null,
         visibility: "published",
@@ -72,9 +72,10 @@ describe("EventsAdmin Component", () => {
 
     expect(screen.queryByText(messages.AdminPage.Events.Empty)).not.toBeInTheDocument();
 
+    expect(screen.getByText("Summer Dinner")).toBeInTheDocument();
     expect(screen.getByText("Café Norr")).toBeInTheDocument();
     expect(screen.getByText("No Venue Dinner")).toBeInTheDocument();
-    expect(screen.queryByText("Fallback Name")).not.toBeInTheDocument();
+    expect(screen.getByText(messages.AdminPage.Events.NoVenue)).toBeInTheDocument();
 
     expect(screen.getByText("Mock Edit 1")).toBeInTheDocument();
     expect(screen.getByText("Mock Delete 1")).toBeInTheDocument();

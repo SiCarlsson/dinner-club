@@ -4,7 +4,12 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import mockSv from "@/messages/sv.json";
+import { createClient } from "@/utils/supabase/server";
 import { getEvents, getVenues, getProfiles } from "./actions";
+
+vi.mock("@/utils/supabase/server", () => ({
+  createClient: vi.fn(),
+}));
 
 vi.mock("./actions", () => ({
   getEvents: vi.fn(),
@@ -48,8 +53,22 @@ vi.mock("next-intl/server", () => ({
 }));
 
 describe("Admin Server Page", () => {
+  const mockGetUser = vi.fn();
+  const mockSingle = vi.fn();
+  const mockEq = vi.fn().mockReturnValue({ single: mockSingle });
+  const mockSelect = vi.fn().mockReturnValue({ eq: mockEq });
+  const mockFrom = vi.fn().mockReturnValue({ select: mockSelect });
+
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(createClient).mockResolvedValue({
+      auth: { getUser: mockGetUser },
+      from: mockFrom,
+    } as unknown as Awaited<ReturnType<typeof createClient>>);
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "admin-1", email: "admin@example.com" } },
+    });
+    mockSingle.mockResolvedValue({ data: { full_name: "Alex Smith" } });
   });
 
   it("renders the title and tabs, passing loaded events and venues down", async () => {

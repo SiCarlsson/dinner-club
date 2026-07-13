@@ -18,6 +18,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { createVenue, type VenueRecord } from "./actions";
+import { FIELD_INPUT, FIELD_LABEL, BUTTON_TEXT } from "./form-styles";
+import { cn } from "@/lib/utils";
 
 const EMPTY_FORM = { name: "", address: "", city: "", district: "", latitude: "", longitude: "" };
 
@@ -64,63 +66,77 @@ export function NewVenueDialog({ onCreated }: { onCreated: (venue: VenueRecord) 
     >
       <DialogTrigger
         render={
-          <Button type="button" variant="outline">
+          <Button type="button" variant="outline" className={cn(BUTTON_TEXT)}>
             <PlusIcon />
             {t("TriggerButton")}
           </Button>
         }
       />
-      <DialogContent className="flex h-[44rem] flex-col sm:max-w-md">
+      <DialogContent className="font-ui flex h-[44rem] flex-col sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{t("Title")}</DialogTitle>
+          <DialogTitle className="font-serif text-[20px] font-normal">{t("Title")}</DialogTitle>
           <DialogDescription>{t("Description")}</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-4 overflow-y-auto">
+        <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5 overflow-y-auto">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="venue-name">{t("NameLabel")}</Label>
+            <Label htmlFor="venue-name" className={FIELD_LABEL}>
+              {t("NameLabel")}
+            </Label>
             <Input
               id="venue-name"
               value={form.name}
               onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
               placeholder={t("NamePlaceholder")}
+              className={FIELD_INPUT}
               required
             />
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="venue-address">{t("AddressLabel")}</Label>
+            <Label htmlFor="venue-address" className={FIELD_LABEL}>
+              {t("AddressLabel")}
+            </Label>
             <Input
               id="venue-address"
               value={form.address}
               onChange={(e) => setForm((prev) => ({ ...prev, address: e.target.value }))}
               placeholder={t("AddressPlaceholder")}
+              className={FIELD_INPUT}
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-4">
             <div className="flex flex-1 flex-col gap-2">
-              <Label htmlFor="venue-city">{t("CityLabel")}</Label>
+              <Label htmlFor="venue-city" className={FIELD_LABEL}>
+                {t("CityLabel")}
+              </Label>
               <Input
                 id="venue-city"
                 value={form.city}
                 onChange={(e) => setForm((prev) => ({ ...prev, city: e.target.value }))}
                 placeholder={t("CityPlaceholder")}
+                className={FIELD_INPUT}
               />
             </div>
             <div className="flex flex-1 flex-col gap-2">
-              <Label htmlFor="venue-district">{t("DistrictLabel")}</Label>
+              <Label htmlFor="venue-district" className={FIELD_LABEL}>
+                {t("DistrictLabel")}
+              </Label>
               <Input
                 id="venue-district"
                 value={form.district}
                 onChange={(e) => setForm((prev) => ({ ...prev, district: e.target.value }))}
                 placeholder={t("DistrictPlaceholder")}
+                className={FIELD_INPUT}
               />
             </div>
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-4">
             <div className="flex flex-1 flex-col gap-2">
-              <Label htmlFor="venue-latitude">{t("LatitudeLabel")}</Label>
+              <Label htmlFor="venue-latitude" className={FIELD_LABEL}>
+                {t("LatitudeLabel")}
+              </Label>
               <Input
                 id="venue-latitude"
                 type="number"
@@ -128,10 +144,13 @@ export function NewVenueDialog({ onCreated }: { onCreated: (venue: VenueRecord) 
                 value={form.latitude}
                 onChange={(e) => setForm((prev) => ({ ...prev, latitude: e.target.value }))}
                 placeholder={t("LatitudePlaceholder")}
+                className={FIELD_INPUT}
               />
             </div>
             <div className="flex flex-1 flex-col gap-2">
-              <Label htmlFor="venue-longitude">{t("LongitudeLabel")}</Label>
+              <Label htmlFor="venue-longitude" className={FIELD_LABEL}>
+                {t("LongitudeLabel")}
+              </Label>
               <Input
                 id="venue-longitude"
                 type="number"
@@ -139,6 +158,7 @@ export function NewVenueDialog({ onCreated }: { onCreated: (venue: VenueRecord) 
                 value={form.longitude}
                 onChange={(e) => setForm((prev) => ({ ...prev, longitude: e.target.value }))}
                 placeholder={t("LongitudePlaceholder")}
+                className={FIELD_INPUT}
               />
             </div>
           </div>
@@ -148,10 +168,10 @@ export function NewVenueDialog({ onCreated }: { onCreated: (venue: VenueRecord) 
           )}
 
           <DialogFooter className="mt-auto pt-4">
-            <Button type="button" variant="outline" onClick={resetAndClose}>
+            <Button type="button" variant="outline" className={BUTTON_TEXT} onClick={resetAndClose}>
               {t("CancelButton")}
             </Button>
-            <Button type="submit" disabled={status === "saving"}>
+            <Button type="submit" className={BUTTON_TEXT} disabled={status === "saving"}>
               {status === "saving" ? t("SavingButton") : t("SaveButton")}
             </Button>
           </DialogFooter>
