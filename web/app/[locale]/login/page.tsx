@@ -35,7 +35,7 @@ export default function Login() {
   return (
     <main
       className={
-        "font-ui bg-background text-foreground flex min-h-dvh flex-col px-6 py-8 md:px-10 md:py-10"
+        "font-ui bg-background text-foreground flex flex-1 flex-col px-6 py-8 md:px-10 md:py-10"
       }
     >
       <div className="flex flex-1 flex-col items-center justify-center gap-8 text-center">

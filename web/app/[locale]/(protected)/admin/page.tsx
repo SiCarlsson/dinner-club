@@ -16,7 +16,7 @@ export default async function Admin() {
   const profiles = profilesResult.success ? profilesResult.profiles : [];
 
   return (
-    <main className="font-ui bg-background text-foreground min-h-dvh px-6 py-10 md:px-10">
+    <main className="font-ui bg-background text-foreground flex-1 px-6 py-10 md:px-10">
       <h1 className="sr-only">{t("Title")}</h1>
       <div className="mx-auto max-w-[760px]">
         <AdminTabs
