@@ -3,6 +3,7 @@
 import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/utils/supabase/server";
+import { AppHeaderMenu } from "@/components/app-header-menu";
 
 function getInitials(name: string | null | undefined, email: string | null | undefined) {
   if (name) {
@@ -41,27 +42,28 @@ export async function AppHeader() {
         </Link>
 
         {user ? (
-          <div className="flex shrink-0 items-center gap-[30px]">
-            <Link
-              href="/"
-              className="text-muted-foreground hover:text-foreground text-[12px] tracking-[.06em] uppercase transition-colors"
-            >
-              {t("Dinners")}
-            </Link>
+          <div className="flex shrink-0 items-center gap-4 sm:gap-[30px]">
             {isAdmin && (
               <Link
                 href="/admin"
-                className="text-muted-foreground hover:text-foreground text-[12px] tracking-[.06em] uppercase transition-colors"
+                className="text-muted-foreground hover:text-foreground hidden text-[12px] tracking-[.06em] uppercase transition-colors sm:inline-flex"
               >
                 {t("Admin")}
               </Link>
             )}
+            <Link
+              href="/"
+              className="text-muted-foreground hover:text-foreground hidden text-[12px] tracking-[.06em] uppercase transition-colors sm:inline-flex"
+            >
+              {t("Dinners")}
+            </Link>
             <Link
               href="/profile"
               className="border-input bg-foreground text-background dark:text-foreground flex size-[30px] shrink-0 items-center justify-center rounded-full border font-serif text-[11px] dark:bg-transparent"
             >
               {initials}
             </Link>
+            <AppHeaderMenu isAdmin={isAdmin} />
           </div>
         ) : (
           <Link

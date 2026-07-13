@@ -2,7 +2,10 @@
   "Nav": {
     "Dinners": "Events",
     "Admin": "Admin",
-    "Login": "Log in"
+    "Login": "Log in",
+    "Profile": "Profile",
+    "Logout": "Log out",
+    "Menu": "Menu"
   },
   "HomePage": {
     "Authenticated": "Logged in as:",

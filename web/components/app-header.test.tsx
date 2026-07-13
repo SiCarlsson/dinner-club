@@ -14,26 +14,34 @@ vi.mock("@/i18n/navigation", () => ({
   Link: ({ href, children }: { href: string; children: React.ReactNode }) => (
     <a href={href}>{children}</a>
   ),
+  useRouter: () => ({ push: vi.fn(), refresh: vi.fn() }),
 }));
+
+vi.mock("@/utils/supabase/client", () => ({
+  createClient: vi.fn(() => ({ auth: { signOut: vi.fn().mockResolvedValue({ error: null }) } })),
+}));
+
+function translate(namespace: string | undefined, key: string) {
+  const messages = mockSv as Record<string, unknown>;
+  const fullPath = namespace ? `${namespace}.${key}` : key;
+  const value = fullPath.split(".").reduce<unknown>((obj, k) => {
+    if (typeof obj === "object" && obj !== null && k in obj) {
+      return (obj as Record<string, unknown>)[k];
+    }
+    return undefined;
+  }, messages);
+  return typeof value === "string" ? value : key;
+}
 
 vi.mock("next-intl/server", () => ({
   getTranslations: vi.fn(async (config) => {
-    const imported = await import("@/messages/sv.json");
-    const messages = (imported as { default?: Record<string, unknown> }).default ?? imported;
     const namespace = typeof config === "string" ? config : config?.namespace;
-
-    return (key: string) => {
-      const fullPath = namespace ? `${namespace}.${key}` : key;
-      const value = fullPath.split(".").reduce<unknown>((obj, k) => {
-        if (typeof obj === "object" && obj !== null && k in obj) {
-          return (obj as Record<string, unknown>)[k];
-        }
-        return undefined;
-      }, messages);
-
-      return typeof value === "string" ? value : key;
-    };
+    return (key: string) => translate(namespace, key);
   }),
+}));
+
+vi.mock("next-intl", () => ({
+  useTranslations: (namespace?: string) => (key: string) => translate(namespace, key),
 }));
 
 describe("AppHeader", () => {
@@ -60,6 +68,7 @@ describe("AppHeader", () => {
     expect(loginLink).toHaveAttribute("href", "/login");
     expect(screen.queryByText(mockSv.Nav.Admin)).not.toBeInTheDocument();
     expect(screen.queryByText(mockSv.Nav.Dinners)).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: mockSv.Nav.Menu })).not.toBeInTheDocument();
   });
 
   it("points the logo at the home page when unauthenticated", async () => {
@@ -83,6 +92,7 @@ describe("AppHeader", () => {
     expect(screen.getByRole("link", { name: mockSv.Nav.Dinners })).toHaveAttribute("href", "/");
     expect(screen.queryByRole("link", { name: mockSv.Nav.Login })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: mockSv.Nav.Admin })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: mockSv.Nav.Menu })).toBeInTheDocument();
   });
 
   it("shows an admin link alongside the avatar for an admin", async () => {
