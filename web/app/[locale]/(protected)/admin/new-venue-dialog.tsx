@@ -18,7 +18,13 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { createVenue, type VenueRecord } from "./actions";
-import { FIELD_INPUT, FIELD_LABEL, BUTTON_TEXT } from "./form-styles";
+import {
+  FIELD_INPUT,
+  FIELD_LABEL,
+  BUTTON_TEXT,
+  DIALOG_SURFACE,
+  DIALOG_DESCRIPTION,
+} from "./form-styles";
 import { cn } from "@/lib/utils";
 
 const EMPTY_FORM = { name: "", address: "", city: "", district: "", latitude: "", longitude: "" };
@@ -72,10 +78,12 @@ export function NewVenueDialog({ onCreated }: { onCreated: (venue: VenueRecord) 
           </Button>
         }
       />
-      <DialogContent className="font-ui flex h-[44rem] flex-col sm:max-w-md">
+      <DialogContent
+        className={cn(DIALOG_SURFACE, "font-ui flex h-[44rem] flex-col gap-6 p-7 sm:max-w-md")}
+      >
         <DialogHeader>
           <DialogTitle className="font-serif text-[20px] font-normal">{t("Title")}</DialogTitle>
-          <DialogDescription>{t("Description")}</DialogDescription>
+          <DialogDescription className={DIALOG_DESCRIPTION}>{t("Description")}</DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5 overflow-y-auto">
           <div className="flex flex-col gap-2">

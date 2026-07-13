@@ -15,7 +15,13 @@ import { Textarea } from "@/components/ui/textarea";
 import { Calendar } from "@/components/ui/calendar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { NewVenueDialog } from "./new-venue-dialog";
-import { FIELD_INPUT, FIELD_LABEL, BUTTON_TEXT } from "./form-styles";
+import {
+  FIELD_INPUT,
+  FIELD_LABEL,
+  BUTTON_TEXT,
+  DIALOG_SURFACE,
+  DIALOG_DESCRIPTION,
+} from "./form-styles";
 import { useLocale, useTranslations } from "next-intl";
 import {
   createEvent,
@@ -148,12 +154,16 @@ function EventDialog({
       onOpenChange={(nextOpen: boolean) => (nextOpen ? setOpen(true) : resetAndClose())}
     >
       <DialogTrigger render={trigger} />
-      <DialogContent className="font-ui flex h-[44rem] flex-col sm:max-w-md">
+      <DialogContent
+        className={cn(DIALOG_SURFACE, "font-ui flex h-[44rem] flex-col gap-6 p-7 sm:max-w-md")}
+      >
         <DialogHeader>
           <DialogTitle className="font-serif text-[20px] font-normal">
             {event ? t("EditTitle") : t("Title")}
           </DialogTitle>
-          <DialogDescription>{event ? t("EditDescription") : t("Description")}</DialogDescription>
+          <DialogDescription className={DIALOG_DESCRIPTION}>
+            {event ? t("EditDescription") : t("Description")}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5 overflow-y-auto">
           <div className="flex flex-col gap-2">

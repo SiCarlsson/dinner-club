@@ -18,7 +18,8 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { deleteEvent, type EventRecord } from "./actions";
-import { BUTTON_TEXT } from "./form-styles";
+import { BUTTON_TEXT, DIALOG_SURFACE, DIALOG_DESCRIPTION } from "./form-styles";
+import { cn } from "@/lib/utils";
 
 export function DeleteEventButton({ event }: { event: EventRecord }) {
   const [deleting, setDeleting] = useState(false);
@@ -50,12 +51,14 @@ export function DeleteEventButton({ event }: { event: EventRecord }) {
           </Button>
         }
       />
-      <AlertDialogContent size="sm" className="font-ui">
+      <AlertDialogContent size="sm" className={cn(DIALOG_SURFACE, "font-ui gap-6 p-7")}>
         <AlertDialogHeader>
           <AlertDialogTitle className="font-serif text-[20px] font-normal">
             {t("DeleteConfirmTitle")}
           </AlertDialogTitle>
-          <AlertDialogDescription>{t("DeleteConfirm")}</AlertDialogDescription>
+          <AlertDialogDescription className={DIALOG_DESCRIPTION}>
+            {t("DeleteConfirm")}
+          </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel variant="outline" size="default" className={BUTTON_TEXT}>
