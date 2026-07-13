@@ -19,8 +19,9 @@ import {
   FIELD_INPUT,
   FIELD_LABEL,
   BUTTON_TEXT,
-  DIALOG_SURFACE,
+  FLOATING_SURFACE,
   DIALOG_DESCRIPTION,
+  SCROLL_10_ITEMS,
 } from "./form-styles";
 import { useLocale, useTranslations } from "next-intl";
 import {
@@ -155,7 +156,7 @@ function EventDialog({
     >
       <DialogTrigger render={trigger} />
       <DialogContent
-        className={cn(DIALOG_SURFACE, "font-ui flex h-[44rem] flex-col gap-6 p-7 sm:max-w-md")}
+        className={cn(FLOATING_SURFACE, "font-ui flex h-[44rem] flex-col gap-6 p-7 sm:max-w-md")}
       >
         <DialogHeader>
           <DialogTitle className="font-serif text-[20px] font-normal">
@@ -205,7 +206,10 @@ function EventDialog({
                     </Button>
                   }
                 />
-                <PopoverContent align="start" className="w-auto p-0">
+                <PopoverContent
+                  align="start"
+                  className={cn(FLOATING_SURFACE, "font-ui w-auto p-0")}
+                >
                   <Calendar
                     mode="single"
                     selected={form.date}
@@ -229,7 +233,10 @@ function EventDialog({
                 <SelectTrigger id="event-time" className={cn(FIELD_INPUT, "w-24")}>
                   <SelectValue />
                 </SelectTrigger>
-                <SelectContent className="min-w-0">
+                <SelectContent
+                  alignItemWithTrigger={false}
+                  className={cn(FLOATING_SURFACE, "font-ui min-w-0", SCROLL_10_ITEMS)}
+                >
                   {TIME_OPTIONS.map((time) => (
                     <SelectItem key={time} value={time}>
                       <span className="w-full text-center">{time}</span>
@@ -255,7 +262,10 @@ function EventDialog({
                 <SelectTrigger id="event-venue" className={cn(FIELD_INPUT, "flex-1")}>
                   <SelectValue placeholder={t("VenuePlaceholder")} />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent
+                  alignItemWithTrigger={false}
+                  className={cn(FLOATING_SURFACE, "font-ui", SCROLL_10_ITEMS)}
+                >
                   {venues.map((venue) => (
                     <SelectItem key={venue.id} value={venue.id}>
                       {venue.name}
@@ -287,7 +297,10 @@ function EventDialog({
               <SelectTrigger id="event-co-host" className={cn(FIELD_INPUT, "w-full")}>
                 <SelectValue placeholder={t("CoHostPlaceholder")} />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent
+                alignItemWithTrigger={false}
+                className={cn(FLOATING_SURFACE, "font-ui", SCROLL_10_ITEMS)}
+              >
                 {profiles.map((profile) => (
                   <SelectItem key={profile.id} value={profile.id}>
                     {profile.full_name ?? profile.id}

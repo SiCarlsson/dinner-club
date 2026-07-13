@@ -22,7 +22,7 @@ import {
   FIELD_INPUT,
   FIELD_LABEL,
   BUTTON_TEXT,
-  DIALOG_SURFACE,
+  FLOATING_SURFACE,
   DIALOG_DESCRIPTION,
 } from "./form-styles";
 import { cn } from "@/lib/utils";
@@ -79,7 +79,7 @@ export function NewVenueDialog({ onCreated }: { onCreated: (venue: VenueRecord) 
         }
       />
       <DialogContent
-        className={cn(DIALOG_SURFACE, "font-ui flex h-[44rem] flex-col gap-6 p-7 sm:max-w-md")}
+        className={cn(FLOATING_SURFACE, "font-ui flex h-[44rem] flex-col gap-6 p-7 sm:max-w-md")}
       >
         <DialogHeader>
           <DialogTitle className="font-serif text-[20px] font-normal">{t("Title")}</DialogTitle>

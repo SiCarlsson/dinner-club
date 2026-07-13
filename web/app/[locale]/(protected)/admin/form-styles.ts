@@ -7,11 +7,12 @@ export const FIELD_INPUT =
 
 export const BUTTON_TEXT = "text-[12px] tracking-[.08em] uppercase";
 
-// Matches the page's own surface instead of the shadcn popover token (which
-// uses a cool gray, clashing with the warm cream/near-black palette) and
-// swaps the ring/shadow for a plain hairline border per the "no shadows, no
-// surface fills" design rule.
-export const DIALOG_SURFACE =
+// Matches the page's own surface instead of the shadcn popover token
+export const FLOATING_SURFACE =
   "border-border bg-background text-foreground border shadow-none ring-0";
 
 export const DIALOG_DESCRIPTION = "text-[13px] leading-[1.6]";
+
+// Caps a select/menu list to roughly 10 rows (each ~32px) before it scrolls,
+// instead of growing to fit every option.
+export const SCROLL_10_ITEMS = "max-h-50";
