@@ -6,7 +6,7 @@ import { getTranslations } from "next-intl/server";
 function getInitials(name: string) {
   const parts = name.trim().split(/\s+/).filter(Boolean);
   if (parts.length === 0) return "";
-  if (parts.length === 1) return parts[0]!.slice(0, 2).toUpperCase();
+  if (parts.length === 1) return parts[0]![0]!.toUpperCase();
   return (parts[0]![0] + parts[parts.length - 1]![0]).toUpperCase();
 }
 
@@ -35,7 +35,7 @@ export default async function Profile() {
 
       <div className="flex flex-col items-center gap-10 md:flex-row md:items-start md:gap-14">
         <div className="flex w-full flex-col items-center gap-3 md:w-[224px] md:shrink-0">
-          <div className="bg-primary text-primary-foreground dark:border-foreground/30 flex size-[78px] items-center justify-center rounded-full font-serif text-[30px] md:size-[96px] md:text-[38px] dark:border dark:bg-transparent">
+          <div className="border-foreground/30 text-foreground flex size-[78px] items-center justify-center rounded-full border text-center font-serif text-[30px] leading-none md:size-[96px] md:text-[38px]">
             {getInitials(fullName)}
           </div>
           <p className="font-serif text-[28px]">{fullName || user?.email}</p>

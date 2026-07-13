@@ -137,4 +137,26 @@ describe("Profile Server Page", () => {
     expect(profileForm).toHaveAttribute("data-initial-diet", "");
     expect(profileForm).toHaveAttribute("data-role", "admin");
   });
+
+  it("should show a single initial when the profile only has a first name", async () => {
+    const { default: Profile } = await import("./page");
+
+    mockGetUser.mockResolvedValue({
+      data: { user: { id: "user-456", email: "alex@example.com" } },
+    });
+    mockSingle.mockResolvedValue({
+      data: {
+        full_name: "Alex",
+        role: "member",
+        dietary_restrictions: [],
+        created_at: "2025-06-01T00:00:00.000Z",
+      },
+    });
+
+    const PageComponent = await Profile();
+    render(PageComponent);
+
+    expect(screen.getByText("A")).toBeInTheDocument();
+    expect(screen.queryByText("AL")).not.toBeInTheDocument();
+  });
 });
