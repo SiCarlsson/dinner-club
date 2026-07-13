@@ -166,6 +166,27 @@ describe("EditEventDialog Component", () => {
     });
   });
 
+  it("allows clearing the co-host and sends null in the update payload", async () => {
+    vi.mocked(updateEvent).mockResolvedValue({ success: true, message: "Event updated" });
+    const user = userEvent.setup();
+    renderEditEventDialog();
+
+    await user.click(screen.getByRole("button", { name: tEvents.EditButton }));
+    await screen.findByText("Alex Smith");
+
+    await user.click(screen.getByRole("button", { name: t.ClearCoHost }));
+    expect(screen.getByText(t.CoHostPlaceholder)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: t.SaveButton }));
+
+    await vi.waitFor(() => {
+      expect(updateEvent).toHaveBeenCalledWith(
+        "event-1",
+        expect.objectContaining({ coHostId: null }),
+      );
+    });
+  });
+
   it("calls updateEvent with the event id when the form is submitted", async () => {
     vi.mocked(updateEvent).mockResolvedValue({ success: true, message: "Event updated" });
     const user = userEvent.setup();

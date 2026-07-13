@@ -86,4 +86,34 @@ describe("EventsAdmin Component", () => {
     expect(table.getByText("Mock Edit 2")).toBeInTheDocument();
     expect(table.getByText("Mock Delete 2")).toBeInTheDocument();
   });
+
+  it("shows a Published badge for published events and a Draft badge otherwise", () => {
+    const events: EventRecord[] = [
+      {
+        id: "1",
+        name: "Published Dinner",
+        event_date: "2026-08-01T18:00:00.000Z",
+        description: null,
+        visibility: "published",
+        co_host_id: null,
+        venue: null,
+      },
+      {
+        id: "2",
+        name: "Draft Dinner",
+        event_date: "2026-09-12T18:00:00.000Z",
+        description: null,
+        visibility: "unpublished",
+        co_host_id: null,
+        venue: null,
+      },
+    ];
+
+    renderEventsAdmin(events);
+
+    const table = within(screen.getByRole("table"));
+
+    expect(table.getByText(messages.AdminPage.Events.Status.Published)).toBeInTheDocument();
+    expect(table.getByText(messages.AdminPage.Events.Status.Draft)).toBeInTheDocument();
+  });
 });

@@ -80,6 +80,7 @@
         "VenuePlaceholder": "Välj en plats",
         "CoHostLabel": "Medvärd",
         "CoHostPlaceholder": "Välj en medvärd",
+        "ClearCoHost": "Ta bort medvärd",
         "DescriptionLabel": "Beskrivning",
         "DescriptionPlaceholder": "Information om middagen",
         "VisibilityLabel": "Publicerad",

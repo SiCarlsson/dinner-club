@@ -287,27 +287,41 @@ function EventDialog({
             <Label htmlFor="event-co-host" className={FIELD_LABEL}>
               {t("CoHostLabel")}
             </Label>
-            <Select
-              items={Object.fromEntries(
-                profiles.map((profile) => [profile.id, profile.full_name ?? profile.id]),
-              )}
-              value={form.coHostId}
-              onValueChange={(value) => setForm((prev) => ({ ...prev, coHostId: value as string }))}
-            >
-              <SelectTrigger id="event-co-host" className={cn(FIELD_INPUT, "w-full")}>
-                <SelectValue placeholder={t("CoHostPlaceholder")} />
-              </SelectTrigger>
-              <SelectContent
-                alignItemWithTrigger={false}
-                className={cn(FLOATING_SURFACE, "font-ui", SCROLL_10_ITEMS)}
+            <div className="flex items-end gap-2">
+              <Select
+                items={Object.fromEntries(
+                  profiles.map((profile) => [profile.id, profile.full_name ?? profile.id]),
+                )}
+                value={form.coHostId}
+                onValueChange={(value) =>
+                  setForm((prev) => ({ ...prev, coHostId: value as string }))
+                }
               >
-                {profiles.map((profile) => (
-                  <SelectItem key={profile.id} value={profile.id}>
-                    {profile.full_name ?? profile.id}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                <SelectTrigger id="event-co-host" className={cn(FIELD_INPUT, "flex-1")}>
+                  <SelectValue placeholder={t("CoHostPlaceholder")} />
+                </SelectTrigger>
+                <SelectContent
+                  alignItemWithTrigger={false}
+                  className={cn(FLOATING_SURFACE, "font-ui", SCROLL_10_ITEMS)}
+                >
+                  {profiles.map((profile) => (
+                    <SelectItem key={profile.id} value={profile.id}>
+                      {profile.full_name ?? profile.id}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              {form.coHostId && (
+                <button
+                  type="button"
+                  aria-label={t("ClearCoHost")}
+                  onClick={() => setForm((prev) => ({ ...prev, coHostId: "" }))}
+                  className="text-muted-foreground hover:text-foreground pb-[9px] text-[13px] transition-colors"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
           </div>
 
           <div className="flex flex-col gap-2">

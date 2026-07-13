@@ -113,6 +113,29 @@ describe("Admin Server Page", () => {
     expect(await screen.findByTestId("mock-whitelist-admin")).toBeInTheDocument();
   });
 
+  it("shows initials from the current user's full name in the avatar", async () => {
+    vi.mocked(getEvents).mockResolvedValue({ success: true, events: [] });
+    vi.mocked(getVenues).mockResolvedValue({ success: true, venues: [] });
+    vi.mocked(getProfiles).mockResolvedValue({ success: true, profiles: [] });
+
+    const { default: Admin } = await import("./page");
+    render(await Admin());
+
+    expect(screen.getByText("AS")).toBeInTheDocument();
+  });
+
+  it("falls back to the email's first letter when there is no full name", async () => {
+    vi.mocked(getEvents).mockResolvedValue({ success: true, events: [] });
+    vi.mocked(getVenues).mockResolvedValue({ success: true, venues: [] });
+    vi.mocked(getProfiles).mockResolvedValue({ success: true, profiles: [] });
+    mockSingle.mockResolvedValue({ data: { full_name: null } });
+
+    const { default: Admin } = await import("./page");
+    render(await Admin());
+
+    expect(screen.getByText("A")).toBeInTheDocument();
+  });
+
   it("falls back to empty lists when fetching events or venues fails", async () => {
     vi.mocked(getEvents).mockResolvedValue({ success: false, message: "boom" });
     vi.mocked(getVenues).mockResolvedValue({ success: false, message: "boom" });

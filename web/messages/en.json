@@ -80,6 +80,7 @@
         "VenuePlaceholder": "Select a venue",
         "CoHostLabel": "Co-host",
         "CoHostPlaceholder": "Select a co-host",
+        "ClearCoHost": "Remove co-host",
         "DescriptionLabel": "Description",
         "DescriptionPlaceholder": "Details for this event",
         "VisibilityLabel": "Published",
