@@ -8,6 +8,7 @@ import { NextIntlClientProvider } from "next-intl";
 import { getMessages } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { routing } from "@/i18n/routing";
+import { AppHeader } from "@/components/app-header";
 import { Geist, Geist_Mono, Inter, Cormorant_Garamond, Archivo } from "next/font/google";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -72,7 +73,10 @@ export default async function RootLayout({
     >
       <body className="flex min-h-full flex-col">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <NextIntlClientProvider messages={messages}>{children}</NextIntlClientProvider>
+          <NextIntlClientProvider messages={messages}>
+            <AppHeader />
+            {children}
+          </NextIntlClientProvider>
         </ThemeProvider>
       </body>
     </html>

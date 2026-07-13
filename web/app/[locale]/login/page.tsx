@@ -38,12 +38,6 @@ export default function Login() {
         "font-ui bg-background text-foreground flex min-h-dvh flex-col px-6 py-8 md:px-10 md:py-10"
       }
     >
-      <div className="flex items-start">
-        <span className="text-muted-foreground text-[9px] tracking-[.4em] uppercase">
-          CaLí · Dinner Club
-        </span>
-      </div>
-
       <div className="flex flex-1 flex-col items-center justify-center gap-8 text-center">
         {status === "sent" ? (
           <>

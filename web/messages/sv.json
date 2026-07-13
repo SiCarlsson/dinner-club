@@ -1,4 +1,9 @@
 {
+  "Nav": {
+    "Dinners": "Events",
+    "Admin": "Admin",
+    "Login": "Logga in"
+  },
   "HomePage": {
     "Authenticated": "Inloggad som:",
     "Unauthenticated": "Du är inte inloggad."
