@@ -32,7 +32,10 @@ export function WhitelistAdmin() {
         <p className="text-body mt-1 text-[13px]">{t("Description")}</p>
       </div>
 
-      <form onSubmit={(e) => e.preventDefault()} className="mb-8 flex items-end gap-4">
+      <form
+        onSubmit={(e) => e.preventDefault()}
+        className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end"
+      >
         <div className="flex flex-1 flex-col gap-2">
           <Label htmlFor="whitelist-email" className="sr-only">
             {t("InputPlaceholder")}
@@ -48,7 +51,7 @@ export function WhitelistAdmin() {
         </div>
         <Button
           type="submit"
-          className="bg-accent text-accent-foreground hover:bg-accent/85 h-auto px-[22px] py-[11px] text-[12px] tracking-[.08em] uppercase"
+          className="bg-accent text-accent-foreground hover:bg-accent/85 h-auto w-full px-[22px] py-[11px] text-[12px] tracking-[.08em] uppercase sm:w-auto"
         >
           {t("AddButton")}
         </Button>

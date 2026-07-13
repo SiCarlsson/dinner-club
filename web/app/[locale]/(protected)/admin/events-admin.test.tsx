@@ -3,7 +3,7 @@
 import messages from "@/messages/en.json";
 import { NextIntlClientProvider } from "next-intl";
 import { describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import { EventsAdmin } from "./events-admin";
 import type { EventRecord, ProfileRecord, VenueRecord } from "./actions";
 
@@ -72,14 +72,18 @@ describe("EventsAdmin Component", () => {
 
     expect(screen.queryByText(messages.AdminPage.Events.Empty)).not.toBeInTheDocument();
 
-    expect(screen.getByText("Summer Dinner")).toBeInTheDocument();
-    expect(screen.getByText("Café Norr")).toBeInTheDocument();
-    expect(screen.getByText("No Venue Dinner")).toBeInTheDocument();
-    expect(screen.getByText(messages.AdminPage.Events.NoVenue)).toBeInTheDocument();
+    // The desktop table is the semantic source of truth; a duplicate stacked
+    // list (hidden on desktop via CSS) renders the same data for mobile.
+    const table = within(screen.getByRole("table"));
 
-    expect(screen.getByText("Mock Edit 1")).toBeInTheDocument();
-    expect(screen.getByText("Mock Delete 1")).toBeInTheDocument();
-    expect(screen.getByText("Mock Edit 2")).toBeInTheDocument();
-    expect(screen.getByText("Mock Delete 2")).toBeInTheDocument();
+    expect(table.getByText("Summer Dinner")).toBeInTheDocument();
+    expect(table.getByText("Café Norr")).toBeInTheDocument();
+    expect(table.getByText("No Venue Dinner")).toBeInTheDocument();
+    expect(table.getByText(messages.AdminPage.Events.NoVenue)).toBeInTheDocument();
+
+    expect(table.getByText("Mock Edit 1")).toBeInTheDocument();
+    expect(table.getByText("Mock Delete 1")).toBeInTheDocument();
+    expect(table.getByText("Mock Edit 2")).toBeInTheDocument();
+    expect(table.getByText("Mock Delete 2")).toBeInTheDocument();
   });
 });

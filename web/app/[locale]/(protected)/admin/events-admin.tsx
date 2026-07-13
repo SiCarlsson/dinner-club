@@ -56,7 +56,7 @@ export function EventsAdmin({
 
   return (
     <section>
-      <div className="mb-8 flex flex-wrap items-end justify-between gap-4">
+      <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <h2 className="font-serif text-[26px]">{t("Title")}</h2>
           <p className="text-body mt-1 text-[13px]">{t("Description")}</p>
@@ -67,71 +67,93 @@ export function EventsAdmin({
       {events.length === 0 ? (
         <p className="text-muted-foreground text-[13px]">{t("Empty")}</p>
       ) : (
-        <div role="table">
-          <div role="row" className="border-border flex items-center gap-4 border-b pb-3">
-            <div className={cn("grid flex-1 items-center gap-4", GRID_COLUMNS)}>
-              <span
-                role="columnheader"
-                className="text-muted-foreground text-[9.5px] tracking-[.16em] uppercase"
-              >
-                {t("Columns.Name")}
-              </span>
-              <span
-                role="columnheader"
-                className="text-muted-foreground text-[9.5px] tracking-[.16em] uppercase"
-              >
-                {t("Columns.Date")}
-              </span>
-              <span
-                role="columnheader"
-                className="text-muted-foreground text-[9.5px] tracking-[.16em] uppercase"
-              >
-                {t("Columns.Venue")}
-              </span>
-              <span
-                role="columnheader"
-                className="text-muted-foreground text-[9.5px] tracking-[.16em] uppercase"
-              >
-                {t("Columns.Status")}
-              </span>
-            </div>
-            <span role="columnheader" aria-hidden="true" className={ACTIONS_WIDTH} />
-          </div>
-
-          {events.map((event) => (
-            <div
-              key={event.id}
-              role="row"
-              className="border-line-soft flex items-center gap-4 border-b py-4"
-            >
+        <>
+          <div role="table" className="hidden sm:block">
+            <div role="row" className="border-border flex items-center gap-4 border-b pb-3">
               <div className={cn("grid flex-1 items-center gap-4", GRID_COLUMNS)}>
-                <span role="cell" className="font-serif text-[18px]">
-                  {event.name}
+                <span
+                  role="columnheader"
+                  className="text-muted-foreground text-[9.5px] tracking-[.16em] uppercase"
+                >
+                  {t("Columns.Name")}
                 </span>
-                <span role="cell" className="text-body text-[13px]">
-                  {formatEventDate(event.event_date, dateFnsLocale)}
+                <span
+                  role="columnheader"
+                  className="text-muted-foreground text-[9.5px] tracking-[.16em] uppercase"
+                >
+                  {t("Columns.Date")}
                 </span>
-                <span role="cell" className="text-body truncate text-[13px]">
-                  {event.venue?.name ?? t("NoVenue")}
+                <span
+                  role="columnheader"
+                  className="text-muted-foreground text-[9.5px] tracking-[.16em] uppercase"
+                >
+                  {t("Columns.Venue")}
                 </span>
-                <span role="cell">
-                  <StatusBadge visibility={event.visibility} />
+                <span
+                  role="columnheader"
+                  className="text-muted-foreground text-[9.5px] tracking-[.16em] uppercase"
+                >
+                  {t("Columns.Status")}
                 </span>
               </div>
-              <span
-                role="cell"
-                className={cn(
-                  ACTIONS_WIDTH,
-                  "text-muted-foreground flex items-center gap-2 text-[11px] whitespace-nowrap",
-                )}
-              >
-                <EditEventDialog event={event} venues={venues} profiles={profiles} />
-                <span aria-hidden="true">·</span>
-                <DeleteEventButton event={event} />
-              </span>
+              <span role="columnheader" aria-hidden="true" className={ACTIONS_WIDTH} />
             </div>
-          ))}
-        </div>
+
+            {events.map((event) => (
+              <div
+                key={event.id}
+                role="row"
+                className="border-line-soft flex items-center gap-4 border-b py-4"
+              >
+                <div className={cn("grid flex-1 items-center gap-4", GRID_COLUMNS)}>
+                  <span role="cell" className="font-serif text-[18px]">
+                    {event.name}
+                  </span>
+                  <span role="cell" className="text-body text-[13px]">
+                    {formatEventDate(event.event_date, dateFnsLocale)}
+                  </span>
+                  <span role="cell" className="text-body truncate text-[13px]">
+                    {event.venue?.name ?? t("NoVenue")}
+                  </span>
+                  <span role="cell">
+                    <StatusBadge visibility={event.visibility} />
+                  </span>
+                </div>
+                <span
+                  role="cell"
+                  className={cn(
+                    ACTIONS_WIDTH,
+                    "text-muted-foreground flex items-center gap-2 text-[11px] whitespace-nowrap",
+                  )}
+                >
+                  <EditEventDialog event={event} venues={venues} profiles={profiles} />
+                  <span aria-hidden="true">·</span>
+                  <DeleteEventButton event={event} />
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div className="flex flex-col sm:hidden">
+            {events.map((event) => (
+              <div key={event.id} className="border-line-soft flex flex-col gap-1.5 border-b py-4">
+                <div className="flex items-baseline justify-between gap-3">
+                  <span className="font-serif text-[18px]">{event.name}</span>
+                  <StatusBadge visibility={event.visibility} />
+                </div>
+                <p className="text-body text-[13px]">
+                  {formatEventDate(event.event_date, dateFnsLocale)} ·{" "}
+                  {event.venue?.name ?? t("NoVenue")}
+                </p>
+                <div className="text-muted-foreground mt-1 flex items-center gap-2 text-[11px]">
+                  <EditEventDialog event={event} venues={venues} profiles={profiles} />
+                  <span aria-hidden="true">·</span>
+                  <DeleteEventButton event={event} />
+                </div>
+              </div>
+            ))}
+          </div>
+        </>
       )}
     </section>
   );

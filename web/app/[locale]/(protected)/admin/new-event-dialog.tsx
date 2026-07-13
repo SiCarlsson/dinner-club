@@ -354,7 +354,7 @@ export function NewEventDialog({
       venues={venues}
       profiles={profiles}
       trigger={
-        <Button className="h-auto px-[22px] py-[11px] text-[12px] tracking-[.08em] uppercase">
+        <Button className="h-auto w-full px-[22px] py-[11px] text-[12px] tracking-[.08em] uppercase sm:w-auto">
           <span aria-hidden="true">+ </span>
           {tEvents("AddButton")}
         </Button>

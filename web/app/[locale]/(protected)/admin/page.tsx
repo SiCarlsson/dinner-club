@@ -41,10 +41,10 @@ export default async function Admin() {
     <main className="font-ui bg-background text-foreground min-h-dvh px-6 py-10 md:px-10">
       <h1 className="sr-only">{t("Title")}</h1>
       <div className="mx-auto max-w-[760px]">
-        <header className="mb-10 flex items-center justify-between">
-          <div className="flex items-baseline gap-[11px]">
-            <span className="font-serif text-[28px] font-medium">CaLí</span>
-            <span className="text-muted-foreground text-[10px] tracking-[.42em] uppercase">
+        <header className="mb-10 flex items-center justify-between gap-4">
+          <div className="flex min-w-0 items-baseline gap-[11px]">
+            <span className="shrink-0 font-serif text-[28px] font-medium">CaLí</span>
+            <span className="text-muted-foreground min-w-0 truncate text-[9px] tracking-[.28em] uppercase sm:text-[10px] sm:tracking-[.42em]">
               Dinner Club · Admin
             </span>
           </div>
