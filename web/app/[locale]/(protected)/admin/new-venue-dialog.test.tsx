@@ -110,6 +110,30 @@ describe("NewVenueDialog Component", () => {
     expect(onCreated).not.toHaveBeenCalled();
   });
 
+  it("does not submit an enclosing form when the venue is saved", async () => {
+    vi.mocked(createVenue).mockResolvedValue({
+      success: true,
+      venue: { id: "venue-1", name: "Café Norr" },
+    });
+    const parentSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
+    const user = userEvent.setup();
+
+    render(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <form onSubmit={parentSubmit}>
+          <NewVenueDialog onCreated={vi.fn()} />
+        </form>
+      </NextIntlClientProvider>,
+    );
+
+    await user.click(screen.getByRole("button", { name: t.TriggerButton }));
+    await user.type(await screen.findByLabelText(t.NameLabel), "Café Norr");
+    await user.click(screen.getByRole("button", { name: t.SaveButton }));
+
+    await waitFor(() => expect(createVenue).toHaveBeenCalled());
+    expect(parentSubmit).not.toHaveBeenCalled();
+  });
+
   it("resets the form when cancelled", async () => {
     const user = userEvent.setup();
     renderDialog();
