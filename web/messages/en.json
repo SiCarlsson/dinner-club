@@ -11,6 +11,14 @@
     "Authenticated": "Logged in as:",
     "Unauthenticated": "You are not logged in."
   },
+  "EventsPage": {
+    "Title": "Dinners",
+    "Eyebrow": "Next dinner",
+    "SecretLocation": "Secret location",
+    "Attend": "I'm coming",
+    "Decline": "Can't make it",
+    "Empty": "No upcoming dinners yet."
+  },
   "ProfilePage": {
     "Title": "Profile",
     "MemberSince": "Member since {year}",

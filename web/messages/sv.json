@@ -11,6 +11,14 @@
     "Authenticated": "Inloggad som:",
     "Unauthenticated": "Du är inte inloggad."
   },
+  "EventsPage": {
+    "Title": "Middagar",
+    "Eyebrow": "Nästa middag",
+    "SecretLocation": "Hemlig plats",
+    "Attend": "Jag kommer",
+    "Decline": "Kan inte",
+    "Empty": "Inga kommande middagar än."
+  },
   "ProfilePage": {
     "Title": "Profil",
     "MemberSince": "Medlem sedan {year}",

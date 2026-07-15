@@ -80,6 +80,15 @@ describe("proxy", () => {
       expect(res.status).toBe(200);
     });
 
+    it("redirects to /login when accessing /events without a session", async () => {
+      getUserMock.mockResolvedValue({ data: { user: null } });
+      const req = new NextRequest("http://localhost:3000/sv/events");
+      const res = await proxy(req);
+
+      expect(res.status).toBe(307);
+      expect(res.headers.get("location")).toContain("/login");
+    });
+
     it("redirects to /login when accessing /admin without a session", async () => {
       getUserMock.mockResolvedValue({ data: { user: null } });
       const req = new NextRequest("http://localhost:3000/en/admin");

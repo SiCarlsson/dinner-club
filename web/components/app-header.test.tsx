@@ -88,7 +88,10 @@ describe("AppHeader", () => {
     render(await AppHeader());
 
     expect(screen.getByRole("link", { name: /CaLí/ })).toHaveAttribute("href", "/");
-    expect(screen.getByRole("link", { name: mockSv.Nav.Dinners })).toHaveAttribute("href", "/");
+    expect(screen.getByRole("link", { name: mockSv.Nav.Dinners })).toHaveAttribute(
+      "href",
+      "/events",
+    );
     expect(screen.getByRole("link", { name: mockSv.Nav.Profile })).toHaveAttribute(
       "href",
       "/profile",

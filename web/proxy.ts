@@ -5,7 +5,7 @@ import { createServerClient } from "@supabase/ssr";
 import createIntlMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PROTECTED_PATHS = ["/profile", "/admin"];
+const PROTECTED_PATHS = ["/events", "/profile", "/admin"];
 const GUEST_ONLY_PATHS = ["/login"];
 
 const handleI18nRouting = createIntlMiddleware(routing);
