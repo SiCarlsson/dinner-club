@@ -12,8 +12,10 @@ import { DeleteEventButton } from "./delete-event-button";
 
 const DATE_FNS_LOCALES = { en: enUS, sv } as const;
 
-const GRID_COLUMNS = "grid-cols-[1.6fr_1fr_1.2fr_.8fr]";
-const ACTIONS_WIDTH = "w-[112px] shrink-0";
+// A fixed last track (not `auto`) so the action buttons fit in every locale and
+// the header/rows — each its own grid — share identical column widths.
+const GRID_COLUMNS = "grid-cols-[1.6fr_1fr_1.2fr_.8fr_9.5rem]";
+const COLUMN_HEADER = "text-muted-foreground text-[9.5px] tracking-[.16em] uppercase";
 
 function formatEventDate(
   dateString: string,
@@ -69,62 +71,49 @@ export function EventsAdmin({
       ) : (
         <>
           <div role="table" className="hidden sm:block">
-            <div role="row" className="border-border flex items-center gap-4 border-b pb-3">
-              <div className={cn("grid flex-1 items-center gap-4", GRID_COLUMNS)}>
-                <span
-                  role="columnheader"
-                  className="text-muted-foreground text-[9.5px] tracking-[.16em] uppercase"
-                >
-                  {t("Columns.Name")}
-                </span>
-                <span
-                  role="columnheader"
-                  className="text-muted-foreground text-[9.5px] tracking-[.16em] uppercase"
-                >
-                  {t("Columns.Date")}
-                </span>
-                <span
-                  role="columnheader"
-                  className="text-muted-foreground text-[9.5px] tracking-[.16em] uppercase"
-                >
-                  {t("Columns.Venue")}
-                </span>
-                <span
-                  role="columnheader"
-                  className="text-muted-foreground text-[9.5px] tracking-[.16em] uppercase"
-                >
-                  {t("Columns.Status")}
-                </span>
-              </div>
-              <span role="columnheader" aria-hidden="true" className={ACTIONS_WIDTH} />
+            <div
+              role="row"
+              className={cn("border-border grid items-center gap-4 border-b pb-3", GRID_COLUMNS)}
+            >
+              <span role="columnheader" className={COLUMN_HEADER}>
+                {t("Columns.Name")}
+              </span>
+              <span role="columnheader" className={COLUMN_HEADER}>
+                {t("Columns.Date")}
+              </span>
+              <span role="columnheader" className={COLUMN_HEADER}>
+                {t("Columns.Venue")}
+              </span>
+              <span role="columnheader" className={cn(COLUMN_HEADER, "text-center")}>
+                {t("Columns.Status")}
+              </span>
+              <span role="columnheader" aria-hidden="true" />
             </div>
 
             {events.map((event) => (
               <div
                 key={event.id}
                 role="row"
-                className="border-line-soft flex items-center gap-4 border-b py-4"
+                className={cn(
+                  "border-line-soft grid items-center gap-4 border-b py-4",
+                  GRID_COLUMNS,
+                )}
               >
-                <div className={cn("grid flex-1 items-center gap-4", GRID_COLUMNS)}>
-                  <span role="cell" className="font-serif text-[18px]">
-                    {event.name}
-                  </span>
-                  <span role="cell" className="text-body text-[13px]">
-                    {formatEventDate(event.event_date, dateFnsLocale)}
-                  </span>
-                  <span role="cell" className="text-body truncate text-[13px]">
-                    {event.venue?.name ?? t("NoVenue")}
-                  </span>
-                  <span role="cell">
-                    <StatusBadge visibility={event.visibility} />
-                  </span>
-                </div>
+                <span role="cell" className="min-w-0 truncate font-serif text-[18px]">
+                  {event.name}
+                </span>
+                <span role="cell" className="text-body text-[13px] whitespace-nowrap">
+                  {formatEventDate(event.event_date, dateFnsLocale)}
+                </span>
+                <span role="cell" className="text-body min-w-0 truncate text-[13px]">
+                  {event.venue?.name ?? t("NoVenue")}
+                </span>
+                <span role="cell" className="text-center">
+                  <StatusBadge visibility={event.visibility} />
+                </span>
                 <span
                   role="cell"
-                  className={cn(
-                    ACTIONS_WIDTH,
-                    "text-muted-foreground flex items-center gap-2 text-[11px] whitespace-nowrap",
-                  )}
+                  className="text-muted-foreground flex items-center gap-2 text-[11px] whitespace-nowrap"
                 >
                   <EditEventDialog event={event} venues={venues} profiles={profiles} />
                   <span aria-hidden="true">·</span>

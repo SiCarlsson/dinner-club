@@ -113,7 +113,7 @@ describe("NewVenueDialog Component", () => {
   it("does not submit an enclosing form when the venue is saved", async () => {
     vi.mocked(createVenue).mockResolvedValue({
       success: true,
-      venue: { id: "venue-1", name: "Café Norr" },
+      venue: { id: "venue-1", name: "Café North" },
     });
     const parentSubmit = vi.fn((e: React.FormEvent) => e.preventDefault());
     const user = userEvent.setup();
@@ -127,7 +127,7 @@ describe("NewVenueDialog Component", () => {
     );
 
     await user.click(screen.getByRole("button", { name: t.TriggerButton }));
-    await user.type(await screen.findByLabelText(t.NameLabel), "Café Norr");
+    await user.type(await screen.findByLabelText(t.NameLabel), "Café North");
     await user.click(screen.getByRole("button", { name: t.SaveButton }));
 
     await waitFor(() => expect(createVenue).toHaveBeenCalled());
