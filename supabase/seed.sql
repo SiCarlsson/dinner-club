@@ -61,3 +61,138 @@ values
     'unpublished'
   )
 on conflict (id) do nothing;
+
+-- Members. Inserting into auth.users fires the on_auth_user_created trigger, which
+-- creates a bare profiles row (id only); we fill in name/role/diet just below.
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+  created_at, updated_at, raw_app_meta_data, raw_user_meta_data,
+  confirmation_token, recovery_token, email_change, email_change_token_new
+)
+values
+  ('00000000-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000001', 'authenticated', 'authenticated', 'astrid@dinnerclub.test',  '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Astrid Lindqvist"}',  '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000002', 'authenticated', 'authenticated', 'bjorn@dinnerclub.test',   '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Björn Sandberg"}',    '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000003', 'authenticated', 'authenticated', 'cecilia@dinnerclub.test', '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Cecilia Holm"}',      '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000004', 'authenticated', 'authenticated', 'david@dinnerclub.test',   '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"David Ek"}',          '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000005', 'authenticated', 'authenticated', 'elin@dinnerclub.test',    '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Elin Norberg"}',      '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000006', 'authenticated', 'authenticated', 'fredrik@dinnerclub.test', '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Fredrik Ahl"}',       '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000007', 'authenticated', 'authenticated', 'greta@dinnerclub.test',   '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Greta Sundström"}',   '', '', '', ''),
+  ('00000000-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000008', 'authenticated', 'authenticated', 'henrik@dinnerclub.test',  '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Henrik Palme"}',      '', '', '', '')
+on conflict (id) do nothing;
+
+-- Names, roles, and dietary restrictions for the seeded members.
+update public.profiles as p set
+  full_name = v.full_name,
+  role = v.role,
+  dietary_restrictions = v.dietary_restrictions
+from (
+  values
+    ('c0000000-0000-0000-0000-000000000001'::uuid, 'Astrid Lindqvist', 'admin',  array['vegetarian']),
+    ('c0000000-0000-0000-0000-000000000002'::uuid, 'Björn Sandberg',   'member', array[]::text[]),
+    ('c0000000-0000-0000-0000-000000000003'::uuid, 'Cecilia Holm',     'member', array['gluten','lactose']),
+    ('c0000000-0000-0000-0000-000000000004'::uuid, 'David Ek',         'member', array['pescatarian']),
+    ('c0000000-0000-0000-0000-000000000005'::uuid, 'Elin Norberg',     'member', array['vegan']),
+    ('c0000000-0000-0000-0000-000000000006'::uuid, 'Fredrik Ahl',      'member', array['shellfish']),
+    ('c0000000-0000-0000-0000-000000000007'::uuid, 'Greta Sundström',  'member', array['lactose']),
+    ('c0000000-0000-0000-0000-000000000008'::uuid, 'Henrik Palme',     'member', array[]::text[])
+) as v(id, full_name, role, dietary_restrictions)
+where p.id = v.id;
+
+-- RSVPs: every event has several attendees, with a mix of members bringing a named
+-- +1 and members coming solo (plus a few declined / maybe to exercise the status
+-- filter). has_plus_one = (plus_one_name is not null) per the DB constraint.
+insert into public.rsvps (event_id, user_id, status, has_plus_one, plus_one_name)
+values
+  -- First Dinner of Autumn
+  ('b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001', 'attending', true,  'Oskar Lundgren'),
+  ('b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000002', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000003', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000005', 'attending', true,  'Maja Berg'),
+  ('b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000007', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000004', 'declined',  false, null),
+
+  -- Seafood Evening
+  ('b0000000-0000-0000-0000-000000000002', 'c0000000-0000-0000-0000-000000000002', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000002', 'c0000000-0000-0000-0000-000000000004', 'attending', true,  'Nils Ekström'),
+  ('b0000000-0000-0000-0000-000000000002', 'c0000000-0000-0000-0000-000000000006', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000002', 'c0000000-0000-0000-0000-000000000008', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000002', 'c0000000-0000-0000-0000-000000000001', 'attending', true,  'Petra Holmqvist'),
+  ('b0000000-0000-0000-0000-000000000002', 'c0000000-0000-0000-0000-000000000003', 'declined',  false, null),
+
+  -- Wine Tasting on the Roof
+  ('b0000000-0000-0000-0000-000000000003', 'c0000000-0000-0000-0000-000000000001', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000003', 'c0000000-0000-0000-0000-000000000003', 'attending', true,  'Klara Vik'),
+  ('b0000000-0000-0000-0000-000000000003', 'c0000000-0000-0000-0000-000000000005', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000003', 'c0000000-0000-0000-0000-000000000006', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000003', 'c0000000-0000-0000-0000-000000000007', 'attending', true,  'Sven Ohlsson'),
+
+  -- Autumn Market
+  ('b0000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000002', 'attending', true,  'Lova Falk'),
+  ('b0000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000004', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000005', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000008', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000004', 'c0000000-0000-0000-0000-000000000003', 'attending', false, null),
+
+  -- Cocktail Night
+  ('b0000000-0000-0000-0000-000000000005', 'c0000000-0000-0000-0000-000000000001', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000005', 'c0000000-0000-0000-0000-000000000006', 'attending', true,  'Ida Lund'),
+  ('b0000000-0000-0000-0000-000000000005', 'c0000000-0000-0000-0000-000000000007', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000005', 'c0000000-0000-0000-0000-000000000008', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000005', 'c0000000-0000-0000-0000-000000000002', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000005', 'c0000000-0000-0000-0000-000000000005', 'maybe',     false, null),
+
+  -- Christmas Feast (unpublished)
+  ('b0000000-0000-0000-0000-000000000006', 'c0000000-0000-0000-0000-000000000001', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000006', 'c0000000-0000-0000-0000-000000000002', 'attending', true,  'Tuva Norén'),
+  ('b0000000-0000-0000-0000-000000000006', 'c0000000-0000-0000-0000-000000000003', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000006', 'c0000000-0000-0000-0000-000000000004', 'attending', false, null),
+  ('b0000000-0000-0000-0000-000000000006', 'c0000000-0000-0000-0000-000000000007', 'attending', false, null)
+on conflict (event_id, user_id) do nothing;
+
+-- Stress-test data: 22 extra members, all attending "Wine Tasting on the Roof", so
+-- the attendee dialog can be checked with a long, scrolling guest list. Generated
+-- with deterministic d… UUIDs. The trigger only copies the id, so names/diet are
+-- filled in by the UPDATE below.
+insert into auth.users (
+  instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
+  created_at, updated_at, raw_app_meta_data, raw_user_meta_data,
+  confirmation_token, recovery_token, email_change, email_change_token_new
+)
+select
+  '00000000-0000-0000-0000-000000000000',
+  ('d0000000-0000-0000-0000-00000000' || lpad(n::text, 4, '0'))::uuid,
+  'authenticated', 'authenticated',
+  'guest' || n || '@dinnerclub.test',
+  '', now(), now(), now(),
+  '{"provider":"email","providers":["email"]}',
+  '{}',
+  '', '', '', ''
+from generate_series(1, 22) as n
+on conflict (id) do nothing;
+
+update public.profiles as p set
+  full_name = (array[
+    'Alice Berg','Ola Nyström','Nina Falk','Erik Sandell','Sara Lund','Jonas Vik',
+    'Lena Holm','Per Åberg','Maja Ek','Karl Sjögren','Ida Frost','Emil Dahl',
+    'Tove Lind','Anders Ström','Wilma Näslund','Gustav Ohlin','Nora Beck','Axel Ryd',
+    'Saga Munk','Leo Palm','Alva Sten','Milo Träff'
+  ])[n],
+  dietary_restrictions = case
+    when n % 5 = 0 then array['vegan']
+    when n % 4 = 0 then array['lactose']
+    when n % 3 = 0 then array['gluten']
+    when n % 7 = 0 then array['shellfish']
+    else array[]::text[]
+  end
+from generate_series(1, 22) as n
+where p.id = ('d0000000-0000-0000-0000-00000000' || lpad(n::text, 4, '0'))::uuid;
+
+insert into public.rsvps (event_id, user_id, status, has_plus_one, plus_one_name)
+select
+  'b0000000-0000-0000-0000-000000000003',
+  ('d0000000-0000-0000-0000-00000000' || lpad(n::text, 4, '0'))::uuid,
+  'attending',
+  (n % 6 = 0),
+  case when n % 6 = 0 then 'Sällskap ' || n else null end
+from generate_series(1, 22) as n
+on conflict (event_id, user_id) do nothing;
