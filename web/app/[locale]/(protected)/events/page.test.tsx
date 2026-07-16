@@ -3,15 +3,20 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import mockSv from "@/messages/sv.json";
-import { getUpcomingEvents } from "./actions";
+import { getUpcomingEvents, getPastEvents } from "./actions";
 
 vi.mock("./actions", () => ({
   getUpcomingEvents: vi.fn(),
+  getPastEvents: vi.fn(),
 }));
 
 vi.mock("./events-gallery", () => ({
-  EventsGallery: vi.fn(({ events }) => (
-    <div data-testid="mock-events-gallery" data-events={events.length} />
+  EventsGallery: vi.fn(({ events, pastEvents }) => (
+    <div
+      data-testid="mock-events-gallery"
+      data-events={events.length}
+      data-past-events={pastEvents.length}
+    />
   )),
 }));
 
@@ -56,20 +61,40 @@ describe("Events Server Page", () => {
         },
       ],
     });
+    vi.mocked(getPastEvents).mockResolvedValue({
+      success: true,
+      events: [
+        {
+          id: "p1",
+          name: "Past Dinner",
+          event_date: "2026-03-01T18:00:00.000Z",
+          description: null,
+          venue: null,
+          myRsvpStatus: null,
+          myHasPlusOne: false,
+          myPlusOneName: null,
+        },
+      ],
+    });
 
     const { default: Events } = await import("./page");
     render(await Events());
 
     expect(screen.getByRole("heading", { name: mockSv.EventsPage.Title })).toBeInTheDocument();
-    expect(screen.getByTestId("mock-events-gallery")).toHaveAttribute("data-events", "1");
+    const gallery = screen.getByTestId("mock-events-gallery");
+    expect(gallery).toHaveAttribute("data-events", "1");
+    expect(gallery).toHaveAttribute("data-past-events", "1");
   });
 
-  it("falls back to an empty list when fetching events fails", async () => {
+  it("falls back to empty lists when fetching events fails", async () => {
     vi.mocked(getUpcomingEvents).mockResolvedValue({ success: false, message: "boom" });
+    vi.mocked(getPastEvents).mockResolvedValue({ success: false, message: "boom" });
 
     const { default: Events } = await import("./page");
     render(await Events());
 
-    expect(screen.getByTestId("mock-events-gallery")).toHaveAttribute("data-events", "0");
+    const gallery = screen.getByTestId("mock-events-gallery");
+    expect(gallery).toHaveAttribute("data-events", "0");
+    expect(gallery).toHaveAttribute("data-past-events", "0");
   });
 });

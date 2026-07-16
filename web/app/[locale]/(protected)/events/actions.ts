@@ -66,6 +66,39 @@ export async function getUpcomingEvents() {
   return { success: true as const, events: eventsWithRsvp };
 }
 
+export async function getPastEvents() {
+  const { supabase, user } = await getCurrentUser();
+
+  if (!user) {
+    return { success: false as const, message: "Not authenticated" };
+  }
+
+  const { data, error } = await supabase
+    .from("events")
+    .select("id, name, event_date, description, venue:venues(id, name, address, district)")
+    .eq("visibility", "published")
+    .lt("event_date", new Date().toISOString())
+    .order("event_date", { ascending: false });
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  const events = data as unknown as Omit<
+    GalleryEvent,
+    "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName"
+  >[];
+
+  const pastEvents: GalleryEvent[] = events.map((event) => ({
+    ...event,
+    myRsvpStatus: null,
+    myHasPlusOne: false,
+    myPlusOneName: null,
+  }));
+
+  return { success: true as const, events: pastEvents };
+}
+
 export async function rsvpToEvent(eventId: string, status: RsvpStatus) {
   const { supabase, user } = await getCurrentUser();
 

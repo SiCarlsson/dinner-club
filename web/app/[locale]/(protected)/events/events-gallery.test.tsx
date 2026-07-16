@@ -33,10 +33,13 @@ function event(overrides: Partial<GalleryEvent> = {}): GalleryEvent {
   };
 }
 
-function renderGallery(events: GalleryEvent[], locale: "en" | "sv" = "en") {
+function renderGallery(
+  events: GalleryEvent[],
+  { locale = "en", pastEvents = [] }: { locale?: "en" | "sv"; pastEvents?: GalleryEvent[] } = {},
+) {
   return render(
     <NextIntlClientProvider locale={locale} messages={locale === "sv" ? svMessages : messages}>
-      <EventsGallery events={events} />
+      <EventsGallery events={events} pastEvents={pastEvents} />
     </NextIntlClientProvider>,
   );
 }
@@ -102,7 +105,7 @@ describe("EventsGallery Component", () => {
           venue: venue("Pelikan"),
         }),
       ],
-      "sv",
+      { locale: "sv" },
     );
 
     const eyebrow = screen.getByText(new RegExp(svMessages.EventsPage.Eyebrow));
@@ -191,8 +194,6 @@ describe("EventsGallery Component", () => {
 
     await user.click(screen.getByRole("button", { name: /Second Dinner/ }));
 
-    // Scope to the dialog: while it's open the modal marks the page behind it inert,
-    // so the hero's own description/RSVP fall out of the accessibility tree.
     const dialog = within(await screen.findByRole("dialog"));
     expect(dialog.getByText("A cosy autumn supper.")).toBeInTheDocument();
     expect(dialog.getByRole("button", { name: messages.EventsPage.Attend })).toBeInTheDocument();
@@ -239,5 +240,46 @@ describe("EventsGallery Component", () => {
       screen.getByRole("button", { name: messages.EventsPage.PlusOneSave }),
     ).not.toBeDisabled();
     expect(setRsvpPlusOne).not.toHaveBeenCalled();
+  });
+
+  it("lists past dinners under their own heading", () => {
+    renderGallery([event({ id: "1", name: "Hero Dinner" })], {
+      pastEvents: [
+        event({
+          id: "p1",
+          name: "Spring Dinner",
+          event_date: "2026-03-01T18:00:00.000Z",
+          venue: venue("Bar Söder"),
+        }),
+      ],
+    });
+
+    expect(screen.getByText(messages.EventsPage.PastHeading)).toBeInTheDocument();
+    expect(screen.getByText("Spring Dinner")).toBeInTheDocument();
+  });
+
+  it("shows past dinners even when there are no upcoming ones", () => {
+    renderGallery([], {
+      pastEvents: [event({ id: "p1", name: "Spring Dinner" })],
+    });
+
+    expect(screen.getByText(messages.EventsPage.Empty)).toBeInTheDocument();
+    expect(screen.getByText(messages.EventsPage.PastHeading)).toBeInTheDocument();
+    expect(screen.getByText("Spring Dinner")).toBeInTheDocument();
+  });
+
+  it("opens a past dinner's dialog without any RSVP controls", async () => {
+    const user = userEvent.setup();
+    renderGallery([event({ id: "1", name: "Hero Dinner" })], {
+      pastEvents: [event({ id: "p1", name: "Spring Dinner", description: "A bygone feast." })],
+    });
+
+    await user.click(screen.getByRole("button", { name: /Spring Dinner/ }));
+
+    const dialog = within(await screen.findByRole("dialog"));
+    expect(dialog.getByText("A bygone feast.")).toBeInTheDocument();
+    // Past dinners are informational only — no way to attend or decline.
+    expect(dialog.queryByRole("button", { name: messages.EventsPage.Attend })).toBeNull();
+    expect(dialog.queryByRole("button", { name: messages.EventsPage.Decline })).toBeNull();
   });
 });

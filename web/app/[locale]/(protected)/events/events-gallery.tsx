@@ -39,7 +39,6 @@ function formatGridLabel(dateString: string, locale: DateFnsLocale) {
   return `${day} · ${format(date, "HH:mm")}`.toUpperCase();
 }
 
-// The Attend / Decline pair, plus a +1 popover shown only once attending
 function RsvpControls({
   eventId,
   status,
@@ -191,93 +190,141 @@ function PlusOnePopover({
   );
 }
 
-export function EventsGallery({ events }: { events: GalleryEvent[] }) {
+function EventGridItem({
+  event,
+  dateFnsLocale,
+  venueLabel,
+  rsvpControls,
+}: {
+  event: GalleryEvent;
+  dateFnsLocale: DateFnsLocale;
+  venueLabel: (event: GalleryEvent) => string;
+  rsvpControls?: React.ReactNode;
+}) {
+  return (
+    <li className="border-border border-t py-4 first:border-t-0 first:pt-0 sm:border-t-0 sm:border-l sm:px-6 sm:py-0 sm:[&:nth-child(3n)]:pr-0 sm:[&:nth-child(3n+1)]:border-l-0 sm:[&:nth-child(3n+1)]:pl-0">
+      <AttendeesDialog
+        eventId={event.id}
+        eventName={event.name}
+        description={event.description}
+        rsvpControls={rsvpControls}
+        trigger={
+          <button type="button" className="group flex w-full flex-col gap-2 text-left">
+            <span className="text-muted-foreground text-[10px] tracking-[.24em] uppercase">
+              {formatGridLabel(event.event_date, dateFnsLocale)}
+            </span>
+            <span className="group-hover:text-accent font-serif text-[26px] leading-[1.05] transition-colors">
+              {event.name}
+            </span>
+            <span className="text-muted-foreground text-[11.5px]">{venueLabel(event)}</span>
+          </button>
+        }
+      />
+    </li>
+  );
+}
+
+export function EventsGallery({
+  events,
+  pastEvents = [],
+}: {
+  events: GalleryEvent[];
+  pastEvents?: GalleryEvent[];
+}) {
   const t = useTranslations("EventsPage");
   const locale = useLocale();
   const dateFnsLocale = DATE_FNS_LOCALES[locale as keyof typeof DATE_FNS_LOCALES] ?? enUS;
 
   const venueLabel = (event: GalleryEvent) => event.venue?.name ?? t("SecretLocation");
 
-  if (events.length === 0) {
-    return <p className="text-muted-foreground text-center text-[13px]">{t("Empty")}</p>;
-  }
-
   const [next, ...upcoming] = events;
 
   return (
     <div className="flex flex-col">
-      <section className="border-border flex flex-col items-center gap-6 border-b pb-10 text-center md:pb-[52px]">
-        <p className="text-accent text-[9px] tracking-[.36em] uppercase sm:text-[10px] sm:tracking-[.42em]">
-          {t("Eyebrow")} · {formatEyebrowDate(next.event_date, dateFnsLocale)}
-        </p>
-        <h2 className="font-serif text-[44px] leading-[.98] font-light tracking-[-.01em] md:text-[66px]">
-          {next.name}
-        </h2>
-        {next.description && (
-          <p className="text-body max-w-[46ch] text-[13.5px] leading-[1.7]">{next.description}</p>
-        )}
-        <RsvpControls
-          eventId={next.id}
-          status={next.myRsvpStatus}
-          hasPlusOne={next.myHasPlusOne}
-          plusOneName={next.myPlusOneName}
-        />
-        <p className="text-muted-foreground flex items-center gap-2 text-[11px]">
-          <span className="text-body">{formatDateTime(next.event_date, dateFnsLocale)}</span>
-          <span aria-hidden="true">·</span>
-          <span>{venueLabel(next)}</span>
-        </p>
-        <AttendeesDialog
-          eventId={next.id}
-          eventName={next.name}
-          trigger={
-            <Button
-              variant="link"
-              className="text-muted-foreground hover:text-foreground h-auto p-0 text-[11px] tracking-[.08em] uppercase hover:no-underline"
-            >
-              {t("SeeAttendees")}
-            </Button>
-          }
-        />
-      </section>
+      {events.length === 0 ? (
+        <p className="text-muted-foreground text-center text-[13px]">{t("Empty")}</p>
+      ) : (
+        <>
+          <section className="border-border flex flex-col items-center gap-6 border-b pb-10 text-center md:pb-[52px]">
+            <p className="text-accent text-[9px] tracking-[.36em] uppercase sm:text-[10px] sm:tracking-[.42em]">
+              {t("Eyebrow")} · {formatEyebrowDate(next.event_date, dateFnsLocale)}
+            </p>
+            <h2 className="font-serif text-[44px] leading-[.98] font-light tracking-[-.01em] md:text-[66px]">
+              {next.name}
+            </h2>
+            {next.description && (
+              <p className="text-body max-w-[46ch] text-[13.5px] leading-[1.7]">
+                {next.description}
+              </p>
+            )}
+            <RsvpControls
+              eventId={next.id}
+              status={next.myRsvpStatus}
+              hasPlusOne={next.myHasPlusOne}
+              plusOneName={next.myPlusOneName}
+            />
+            <p className="text-muted-foreground flex items-center gap-2 text-[11px]">
+              <span className="text-body">{formatDateTime(next.event_date, dateFnsLocale)}</span>
+              <span aria-hidden="true">·</span>
+              <span>{venueLabel(next)}</span>
+            </p>
+            <AttendeesDialog
+              eventId={next.id}
+              eventName={next.name}
+              trigger={
+                <Button
+                  variant="link"
+                  className="text-muted-foreground hover:text-foreground h-auto p-0 text-[11px] tracking-[.08em] uppercase hover:no-underline"
+                >
+                  {t("SeeAttendees")}
+                </Button>
+              }
+            />
+          </section>
 
-      {upcoming.length > 0 && (
-        <section className="pt-10 md:pt-[52px]">
-          <ul className="grid grid-cols-1 sm:grid-cols-3">
-            {upcoming.map((event) => (
-              <li
+          {upcoming.length > 0 && (
+            <section className="pt-10 md:pt-[52px]">
+              <ul className="grid grid-cols-1 sm:grid-cols-3 sm:gap-y-10">
+                {upcoming.map((event) => (
+                  <EventGridItem
+                    key={event.id}
+                    event={event}
+                    dateFnsLocale={dateFnsLocale}
+                    venueLabel={venueLabel}
+                    rsvpControls={
+                      <RsvpControls
+                        eventId={event.id}
+                        status={event.myRsvpStatus}
+                        hasPlusOne={event.myHasPlusOne}
+                        plusOneName={event.myPlusOneName}
+                      />
+                    }
+                  />
+                ))}
+              </ul>
+            </section>
+          )}
+        </>
+      )}
+
+      {pastEvents.length > 0 && (
+        <section
+          className={cn(
+            "border-border pt-10 md:pt-[52px]",
+            events.length > 0 && "mt-10 border-t md:mt-[52px]",
+          )}
+        >
+          <h2 className="text-foreground mb-6 text-[12px] font-medium tracking-[.2em] uppercase md:mb-8">
+            {t("PastHeading")}
+          </h2>
+          <ul className="grid grid-cols-1 sm:grid-cols-3 sm:gap-y-10">
+            {pastEvents.map((event) => (
+              <EventGridItem
                 key={event.id}
-                className={
-                  "border-border border-t py-4 first:border-t-0 first:pt-0 sm:border-t-0 sm:border-l sm:px-6 sm:py-0 sm:first:border-l-0 sm:first:pl-0 sm:last:pr-0"
-                }
-              >
-                <AttendeesDialog
-                  eventId={event.id}
-                  eventName={event.name}
-                  description={event.description}
-                  rsvpControls={
-                    <RsvpControls
-                      eventId={event.id}
-                      status={event.myRsvpStatus}
-                      hasPlusOne={event.myHasPlusOne}
-                      plusOneName={event.myPlusOneName}
-                    />
-                  }
-                  trigger={
-                    <button type="button" className="group flex w-full flex-col gap-2 text-left">
-                      <span className="text-muted-foreground text-[10px] tracking-[.24em] uppercase">
-                        {formatGridLabel(event.event_date, dateFnsLocale)}
-                      </span>
-                      <span className="group-hover:text-accent font-serif text-[26px] leading-[1.05] transition-colors">
-                        {event.name}
-                      </span>
-                      <span className="text-muted-foreground text-[11.5px]">
-                        {venueLabel(event)}
-                      </span>
-                    </button>
-                  }
-                />
-              </li>
+                event={event}
+                dateFnsLocale={dateFnsLocale}
+                venueLabel={venueLabel}
+              />
             ))}
           </ul>
         </section>
