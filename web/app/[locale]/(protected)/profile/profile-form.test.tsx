@@ -53,13 +53,14 @@ describe("ProfileForm Component", () => {
     signOutMock.mockResolvedValue({ error: null });
   });
 
-  it("renders the initial name, read-only fields and diet pills", () => {
+  it("renders the initial name, read-only fields and selected diet toggles", () => {
     renderProfileForm();
 
     expect((screen.getByLabelText("Name") as HTMLInputElement).value).toBe("John Doe");
     expect(screen.getByText("john@example.com")).toBeInTheDocument();
     expect(screen.getByText("member")).toBeInTheDocument();
-    expect(screen.getByText("gluten")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Gluten", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Vegan", pressed: false })).toBeInTheDocument();
   });
 
   it("disables the save button until something changes", () => {
@@ -70,18 +71,16 @@ describe("ProfileForm Component", () => {
     expect(screen.getByRole("button", { name: "Save" })).not.toBeDisabled();
   });
 
-  it("adds a new diet pill and removes an existing one", async () => {
+  it("toggles diet options on and off", async () => {
     const user = userEvent.setup();
     renderProfileForm();
 
-    await user.click(screen.getByRole("button", { name: "+ Add" }));
-    await user.type(screen.getByLabelText("Add an allergy or dietary preference"), "nuts{Enter}");
-
-    expect(screen.getByText("nuts")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Vegan" }));
+    expect(screen.getByRole("button", { name: "Vegan", pressed: true })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Save" })).not.toBeDisabled();
 
-    await user.click(screen.getByRole("button", { name: "Remove gluten" }));
-    expect(screen.queryByText("gluten")).not.toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Gluten" }));
+    expect(screen.getByRole("button", { name: "Gluten", pressed: false })).toBeInTheDocument();
   });
 
   it("submits the current name and diet list, and shows the saved state", async () => {

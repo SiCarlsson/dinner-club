@@ -24,7 +24,8 @@ describe("updateProfile Server Action", () => {
 
   const validUpdate = {
     fullName: "John Doe",
-    dietaryRestrictions: ["gluten", "nötter"],
+    // "nötter" is not a known option and must be stripped before persisting.
+    dietaryRestrictions: ["gluten", "gluten", "nötter"],
   };
 
   beforeEach(() => {
@@ -58,8 +59,8 @@ describe("updateProfile Server Action", () => {
     expect(mockUpdate).toHaveBeenCalledWith(
       expect.objectContaining({
         full_name: "John Doe",
-        dietary_restrictions: ["gluten", "nötter"],
-        updated_at: expect.any(String), // Asserts that an ISO timestamp string was generated
+        dietary_restrictions: ["gluten"],
+        updated_at: expect.any(String),
       }),
     );
     expect(mockEq).toHaveBeenCalledWith("id", "user-123");

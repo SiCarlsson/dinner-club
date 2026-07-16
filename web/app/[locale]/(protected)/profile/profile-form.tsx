@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl";
 import { updateProfile } from "./actions";
 import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/utils/supabase/client";
+import { DIETARY_OPTIONS, isDietaryOption } from "@/lib/dietary-options";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
@@ -34,20 +35,21 @@ export function ProfileForm({
   role,
 }: ProfileFormProps) {
   const t = useTranslations("ProfilePage");
+  const tDiet = useTranslations("ProfilePage.Diet");
   const router = useRouter();
 
+  const baselineDiet: string[] = initialDietaryRestrictions.filter(isDietaryOption);
+
   const [name, setName] = useState(initialName);
-  const [diet, setDiet] = useState(initialDietaryRestrictions);
-  const [addingDiet, setAddingDiet] = useState(false);
-  const [newDietItem, setNewDietItem] = useState("");
+  const [diet, setDiet] = useState<string[]>(baselineDiet);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [message, setMessage] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
 
   const isDirty =
     name !== initialName ||
-    diet.length !== initialDietaryRestrictions.length ||
-    diet.some((item, i) => item !== initialDietaryRestrictions[i]);
+    diet.length !== baselineDiet.length ||
+    diet.some((item) => !baselineDiet.includes(item));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -63,17 +65,8 @@ export function ProfileForm({
     }
   };
 
-  const commitDietItem = () => {
-    const value = newDietItem.trim();
-    if (value && !diet.includes(value)) {
-      setDiet((prev) => [...prev, value]);
-      setStatus("idle");
-    }
-    setNewDietItem("");
-  };
-
-  const removeDietItem = (item: string) => {
-    setDiet((prev) => prev.filter((d) => d !== item));
+  const toggleDietItem = (item: string) => {
+    setDiet((prev) => (prev.includes(item) ? prev.filter((d) => d !== item) : [...prev, item]));
     setStatus("idle");
   };
 
@@ -129,55 +122,24 @@ export function ProfileForm({
           {t("Sections.Diet")}
         </h2>
         <div className="flex flex-wrap items-center gap-2">
-          {diet.map((item) => (
-            <span
-              key={item}
-              className="border-input inline-flex items-center gap-2 rounded-full border px-[15px] py-[7px] text-[12px]"
-            >
-              {item}
+          {DIETARY_OPTIONS.map((item) => {
+            const selected = diet.includes(item);
+            return (
               <button
+                key={item}
                 type="button"
-                onClick={() => removeDietItem(item)}
-                aria-label={t("Diet.Remove", { item })}
-                className="text-muted-foreground hover:text-foreground cursor-pointer"
+                aria-pressed={selected}
+                onClick={() => toggleDietItem(item)}
+                className={`cursor-pointer rounded-full border px-[15px] py-[7px] text-[12px] transition-colors ${
+                  selected
+                    ? "border-accent text-foreground"
+                    : "border-input text-muted-foreground hover:text-foreground"
+                }`}
               >
-                ✕
+                {tDiet(item)}
               </button>
-            </span>
-          ))}
-
-          {addingDiet ? (
-            <Input
-              autoFocus
-              value={newDietItem}
-              onChange={(e) => setNewDietItem(e.target.value)}
-              onBlur={() => {
-                commitDietItem();
-                setAddingDiet(false);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  commitDietItem();
-                }
-                if (e.key === "Escape") {
-                  setNewDietItem("");
-                  setAddingDiet(false);
-                }
-              }}
-              placeholder={t("Diet.AddPlaceholder")}
-              aria-label={t("Diet.AddLabel")}
-              className="border-input h-auto w-32 rounded-full border px-[15px] py-[7px] text-[12px]"
-            />
-          ) : (
-            <button
-              type="button"
-              onClick={() => setAddingDiet(true)}
-              className="text-muted-foreground hover:text-foreground border-input cursor-pointer rounded-full border border-dashed px-[15px] py-[7px] text-[12px]"
-            >
-              + {t("Diet.Add")}
-            </button>
-          )}
+            );
+          })}
         </div>
       </div>
 

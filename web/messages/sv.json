@@ -27,7 +27,7 @@
     },
     "Sections": {
       "Account": "Konto",
-      "Diet": "Allergier & kost"
+      "Diet": "Allergier"
     },
     "Information": {
       "Role": "Roll",
@@ -35,19 +35,21 @@
       "Name": "Namn",
       "NamePlaceholder": "För- och efternamn"
     },
-    "Diet": {
-      "Remove": "Ta bort {item}",
-      "Add": "Lägg till",
-      "AddLabel": "Lägg till allergi eller kostpreferens",
-      "AddPlaceholder": "T.ex. gluten"
-    },
     "SaveButton": {
       "Default": "Spara",
       "Loading": "Sparar",
       "Saved": "Sparat",
       "Error": "Något gick fel"
     },
-    "Logout": "Logga ut"
+    "Logout": "Logga ut",
+    "Diet": {
+      "gluten": "Gluten",
+      "lactose": "Laktos",
+      "shellfish": "Skaldjur",
+      "vegetarian": "Vegetarian",
+      "vegan": "Vegan",
+      "pescatarian": "Pescetarian"
+    }
   },
   "LoginPage": {
     "Title": "Logga in",

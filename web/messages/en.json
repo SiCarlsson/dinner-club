@@ -27,7 +27,7 @@
     },
     "Sections": {
       "Account": "Account",
-      "Diet": "Allergies & diet"
+      "Diet": "Allergies"
     },
     "Information": {
       "Role": "Role",
@@ -35,19 +35,21 @@
       "Name": "Name",
       "NamePlaceholder": "First and last name"
     },
-    "Diet": {
-      "Remove": "Remove {item}",
-      "Add": "Add",
-      "AddLabel": "Add an allergy or dietary preference",
-      "AddPlaceholder": "E.g. gluten"
-    },
     "SaveButton": {
       "Default": "Save",
       "Loading": "Saving",
       "Saved": "Saved",
       "Error": "Something went wrong"
     },
-    "Logout": "Log out"
+    "Logout": "Log out",
+    "Diet": {
+      "gluten": "Gluten",
+      "lactose": "Lactose",
+      "shellfish": "Shellfish",
+      "vegetarian": "Vegetarian",
+      "vegan": "Vegan",
+      "pescatarian": "Pescatarian"
+    }
   },
   "LoginPage": {
     "Title": "Log in",
