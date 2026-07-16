@@ -6,6 +6,7 @@ import { useState, useTransition } from "react";
 import { format } from "date-fns";
 import { enUS, sv } from "date-fns/locale";
 import { useLocale, useTranslations } from "next-intl";
+import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { BUTTON_TEXT, FIELD_INPUT, FIELD_LABEL, FLOATING_SURFACE } from "@/lib/form-styles";
 import { Button } from "@/components/ui/button";
@@ -14,7 +15,14 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AttendeesDialog } from "./attendees-dialog";
-import { rsvpToEvent, setRsvpPlusOne, type GalleryEvent, type RsvpStatus } from "./actions";
+import {
+  rateEvent,
+  rsvpToEvent,
+  setRsvpPlusOne,
+  type EventRating,
+  type GalleryEvent,
+  type RsvpStatus,
+} from "./actions";
 
 const DATE_FNS_LOCALES = { en: enUS, sv } as const;
 
@@ -190,16 +198,116 @@ function PlusOnePopover({
   );
 }
 
+function StarRow({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  onChange: (value: number) => void;
+}) {
+  const t = useTranslations("EventsPage");
+  const [hover, setHover] = useState(0);
+  const active = hover || value;
+
+  return (
+    <div className="flex items-center justify-between gap-4">
+      <span className="text-muted-foreground text-[10px] tracking-[.14em] uppercase">{label}</span>
+      <div className="flex gap-1" onMouseLeave={() => setHover(0)}>
+        {[1, 2, 3, 4, 5].map((n) => (
+          <button
+            key={n}
+            type="button"
+            aria-label={t("RateStarAria", { value: n })}
+            aria-pressed={value === n}
+            onClick={() => onChange(n)}
+            onMouseEnter={() => setHover(n)}
+            className="cursor-pointer p-0.5"
+          >
+            <Star
+              className={cn(
+                "size-5 transition-colors",
+                n <= active ? "text-accent fill-current" : "text-muted-foreground/40",
+              )}
+            />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function RatingControls({ eventId, rating }: { eventId: string; rating: EventRating | null }) {
+  const t = useTranslations("EventsPage");
+  const [drinks, setDrinks] = useState(rating?.drinks ?? 0);
+  const [food, setFood] = useState(rating?.food ?? 0);
+  const [venue, setVenue] = useState(rating?.venue ?? 0);
+  // The last persisted rating
+  const [committed, setCommitted] = useState(rating);
+  const [justSaved, setJustSaved] = useState(false);
+  const [isPending, startTransition] = useTransition();
+
+  const complete = drinks > 0 && food > 0 && venue > 0;
+  const changed =
+    !committed ||
+    committed.drinks !== drinks ||
+    committed.food !== food ||
+    committed.venue !== venue;
+
+  const change = (setter: (value: number) => void) => (value: number) => {
+    setJustSaved(false);
+    setter(value);
+  };
+
+  const submit = () => {
+    if (!complete || isPending || !changed) return;
+    startTransition(async () => {
+      const result = await rateEvent(eventId, { drinks, food, venue });
+      if (result.success) {
+        setCommitted({ drinks, food, venue });
+        setJustSaved(true);
+      }
+    });
+  };
+
+  const label = isPending
+    ? t("RateSaving")
+    : justSaved
+      ? t("RateSaved")
+      : committed
+        ? t("RateUpdate")
+        : t("RateSave");
+
+  return (
+    <div className="flex w-full flex-col gap-3">
+      <StarRow label={t("RateDrinks")} value={drinks} onChange={change(setDrinks)} />
+      <StarRow label={t("RateFood")} value={food} onChange={change(setFood)} />
+      <StarRow label={t("RateVenue")} value={venue} onChange={change(setVenue)} />
+      <Button
+        type="button"
+        onClick={submit}
+        disabled={!complete || isPending || !changed}
+        className={cn(BUTTON_TEXT, "mt-1 h-auto w-full rounded-none py-[11px]")}
+      >
+        {label}
+      </Button>
+    </div>
+  );
+}
+
 function EventGridItem({
   event,
   dateFnsLocale,
   venueLabel,
   rsvpControls,
+  subtitle,
 }: {
   event: GalleryEvent;
   dateFnsLocale: DateFnsLocale;
   venueLabel: (event: GalleryEvent) => string;
   rsvpControls?: React.ReactNode;
+  subtitle?: string;
 }) {
   return (
     <li className="border-border border-t py-4 first:border-t-0 first:pt-0 sm:border-t-0 sm:border-l sm:px-6 sm:py-0 sm:[&:nth-child(3n)]:pr-0 sm:[&:nth-child(3n+1)]:border-l-0 sm:[&:nth-child(3n+1)]:pl-0">
@@ -208,6 +316,7 @@ function EventGridItem({
         eventName={event.name}
         description={event.description}
         rsvpControls={rsvpControls}
+        subtitle={subtitle}
         trigger={
           <button type="button" className="group flex w-full flex-col gap-2 text-left">
             <span className="text-muted-foreground text-[10px] tracking-[.24em] uppercase">
@@ -318,14 +427,23 @@ export function EventsGallery({
             {t("PastHeading")}
           </h2>
           <ul className="grid grid-cols-1 sm:grid-cols-3 sm:gap-y-10">
-            {pastEvents.map((event) => (
-              <EventGridItem
-                key={event.id}
-                event={event}
-                dateFnsLocale={dateFnsLocale}
-                venueLabel={venueLabel}
-              />
-            ))}
+            {pastEvents.map((event) => {
+              const canRate = event.myRsvpStatus === "attending";
+              return (
+                <EventGridItem
+                  key={event.id}
+                  event={event}
+                  dateFnsLocale={dateFnsLocale}
+                  venueLabel={venueLabel}
+                  subtitle={canRate ? t("RateSubtitle") : undefined}
+                  rsvpControls={
+                    canRate ? (
+                      <RatingControls eventId={event.id} rating={event.myRating} />
+                    ) : undefined
+                  }
+                />
+              );
+            })}
           </ul>
         </section>
       )}

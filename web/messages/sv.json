@@ -63,7 +63,16 @@
     "AttendeesCount": "{total} kommer · {members} medlemmar + {guests} gäster",
     "AttendeesUnnamed": "Namnlös medlem",
     "AttendeesDietaryHeading": "Kosthänsyn",
-    "AttendeesDietaryNone": "Inga kosthänsyn angivna."
+    "AttendeesDietaryNone": "Inga kosthänsyn angivna.",
+    "RateSubtitle": "Betygsätt kvällen",
+    "RateDrinks": "Dryck",
+    "RateFood": "Mat",
+    "RateVenue": "Lokal",
+    "RateSave": "Spara betyg",
+    "RateUpdate": "Uppdatera betyg",
+    "RateSaving": "Sparar…",
+    "RateSaved": "Sparat",
+    "RateStarAria": "{value} av 5"
   },
   "ProfilePage": {
     "Title": "Profil",

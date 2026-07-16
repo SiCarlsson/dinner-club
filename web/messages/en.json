@@ -63,7 +63,16 @@
     "AttendeesCount": "{total} coming · {members} members + {guests} guests",
     "AttendeesUnnamed": "Unnamed member",
     "AttendeesDietaryHeading": "Dietary",
-    "AttendeesDietaryNone": "No dietary restrictions noted."
+    "AttendeesDietaryNone": "No dietary restrictions noted.",
+    "RateSubtitle": "Rate the evening",
+    "RateDrinks": "Drinks",
+    "RateFood": "Food",
+    "RateVenue": "Venue",
+    "RateSave": "Save rating",
+    "RateUpdate": "Update rating",
+    "RateSaving": "Saving…",
+    "RateSaved": "Saved",
+    "RateStarAria": "{value} of 5"
   },
   "ProfilePage": {
     "Title": "Profile",

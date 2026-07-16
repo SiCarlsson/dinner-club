@@ -7,12 +7,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { EventsGallery } from "./events-gallery";
-import { rsvpToEvent, setRsvpPlusOne, getEventAttendees, type GalleryEvent } from "./actions";
+import {
+  rsvpToEvent,
+  setRsvpPlusOne,
+  getEventAttendees,
+  rateEvent,
+  type GalleryEvent,
+} from "./actions";
 
 vi.mock("./actions", () => ({
   rsvpToEvent: vi.fn(),
   setRsvpPlusOne: vi.fn(),
   getEventAttendees: vi.fn(),
+  rateEvent: vi.fn(),
 }));
 
 function venue(name: string): GalleryEvent["venue"] {
@@ -29,6 +36,7 @@ function event(overrides: Partial<GalleryEvent> = {}): GalleryEvent {
     myRsvpStatus: null,
     myHasPlusOne: false,
     myPlusOneName: null,
+    myRating: null,
     ...overrides,
   };
 }
@@ -281,5 +289,65 @@ describe("EventsGallery Component", () => {
     // Past dinners are informational only — no way to attend or decline.
     expect(dialog.queryByRole("button", { name: messages.EventsPage.Attend })).toBeNull();
     expect(dialog.queryByRole("button", { name: messages.EventsPage.Decline })).toBeNull();
+    // A member who did not attend cannot rate the evening.
+    expect(dialog.queryByRole("button", { name: messages.EventsPage.RateSave })).toBeNull();
+  });
+
+  it("lets an attendee rate a past dinner and submits the three sub-scores", async () => {
+    const user = userEvent.setup();
+    vi.mocked(rateEvent).mockResolvedValue({ success: true, message: "Rating saved" });
+    renderGallery([event({ id: "1", name: "Hero Dinner" })], {
+      pastEvents: [event({ id: "p1", name: "Spring Dinner", myRsvpStatus: "attending" })],
+    });
+
+    await user.click(screen.getByRole("button", { name: /Spring Dinner/ }));
+    const dialog = within(await screen.findByRole("dialog"));
+
+    // Save stays disabled until all three categories have a score.
+    const save = dialog.getByRole("button", { name: messages.EventsPage.RateSave });
+    expect(save).toBeDisabled();
+
+    const stars = (category: string, value: number) =>
+      dialog.getAllByRole("button", {
+        name: messages.EventsPage.RateStarAria.replace("{value}", String(value)),
+      });
+    // Three rows share each aria-label, one per category (drinks, food, venue).
+    await user.click(stars("drinks", 4)[0]);
+    await user.click(stars("food", 5)[1]);
+    await user.click(stars("venue", 3)[2]);
+
+    expect(save).toBeEnabled();
+    await user.click(save);
+
+    expect(rateEvent).toHaveBeenCalledWith("p1", { drinks: 4, food: 5, venue: 3 });
+  });
+
+  it("prefills stars and disables the update button until a score actually changes", async () => {
+    const user = userEvent.setup();
+    renderGallery([event({ id: "1", name: "Hero Dinner" })], {
+      pastEvents: [
+        event({
+          id: "p1",
+          name: "Spring Dinner",
+          myRsvpStatus: "attending",
+          myRating: { drinks: 2, food: 2, venue: 2 },
+        }),
+      ],
+    });
+
+    await user.click(screen.getByRole("button", { name: /Spring Dinner/ }));
+    const dialog = within(await screen.findByRole("dialog"));
+
+    const update = dialog.getByRole("button", { name: messages.EventsPage.RateUpdate });
+    expect(dialog.queryByRole("button", { name: messages.EventsPage.RateSave })).toBeNull();
+    // Prefilled and unchanged — there is nothing to save.
+    expect(update).toBeDisabled();
+
+    // Changing one category re-enables the update.
+    const food4 = dialog.getAllByRole("button", {
+      name: messages.EventsPage.RateStarAria.replace("{value}", "4"),
+    })[1];
+    await user.click(food4);
+    expect(update).toBeEnabled();
   });
 });

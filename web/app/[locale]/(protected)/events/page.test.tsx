@@ -58,6 +58,7 @@ describe("Events Server Page", () => {
           myRsvpStatus: null,
           myHasPlusOne: false,
           myPlusOneName: null,
+          myRating: null,
         },
       ],
     });
@@ -73,6 +74,7 @@ describe("Events Server Page", () => {
           myRsvpStatus: null,
           myHasPlusOne: false,
           myPlusOneName: null,
+          myRating: null,
         },
       ],
     });

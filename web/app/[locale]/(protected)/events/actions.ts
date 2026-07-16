@@ -7,6 +7,8 @@ import { getCurrentUser } from "@/utils/supabase/auth";
 
 export type RsvpStatus = "attending" | "declined" | "maybe";
 
+export type EventRating = { drinks: number; food: number; venue: number };
+
 export type GalleryEvent = {
   id: string;
   name: string;
@@ -16,6 +18,7 @@ export type GalleryEvent = {
   myRsvpStatus: RsvpStatus | null;
   myHasPlusOne: boolean;
   myPlusOneName: string | null;
+  myRating: EventRating | null;
 };
 
 export async function getUpcomingEvents() {
@@ -39,7 +42,7 @@ export async function getUpcomingEvents() {
 
   const events = data as unknown as Omit<
     GalleryEvent,
-    "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName"
+    "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName" | "myRating"
   >[];
 
   const { data: rsvps } = await supabase
@@ -60,6 +63,7 @@ export async function getUpcomingEvents() {
       myRsvpStatus: (rsvp?.status as RsvpStatus | undefined) ?? null,
       myHasPlusOne: rsvp?.has_plus_one ?? false,
       myPlusOneName: rsvp?.plus_one_name ?? null,
+      myRating: null,
     };
   });
 
@@ -86,15 +90,39 @@ export async function getPastEvents() {
 
   const events = data as unknown as Omit<
     GalleryEvent,
-    "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName"
+    "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName" | "myRating"
   >[];
 
-  const pastEvents: GalleryEvent[] = events.map((event) => ({
-    ...event,
-    myRsvpStatus: null,
-    myHasPlusOne: false,
-    myPlusOneName: null,
-  }));
+  const eventIds = events.map((event) => event.id);
+
+  const [{ data: rsvps }, { data: ratings }] = await Promise.all([
+    supabase
+      .from("rsvps")
+      .select("event_id, status")
+      .eq("user_id", user.id)
+      .in("event_id", eventIds),
+    supabase
+      .from("ratings")
+      .select("event_id, drinks_rating, food_rating, venue_rating")
+      .eq("user_id", user.id)
+      .in("event_id", eventIds),
+  ]);
+
+  const statusByEvent = new Map((rsvps ?? []).map((rsvp) => [rsvp.event_id, rsvp.status]));
+  const ratingByEvent = new Map((ratings ?? []).map((rating) => [rating.event_id, rating]));
+
+  const pastEvents: GalleryEvent[] = events.map((event) => {
+    const rating = ratingByEvent.get(event.id);
+    return {
+      ...event,
+      myRsvpStatus: (statusByEvent.get(event.id) as RsvpStatus | undefined) ?? null,
+      myHasPlusOne: false,
+      myPlusOneName: null,
+      myRating: rating
+        ? { drinks: rating.drinks_rating, food: rating.food_rating, venue: rating.venue_rating }
+        : null,
+    };
+  });
 
   return { success: true as const, events: pastEvents };
 }
@@ -154,6 +182,33 @@ export async function setRsvpPlusOne(eventId: string, hasPlusOne: boolean, plusO
 
   revalidatePath("/events");
   return { success: true as const, message: "Plus-one saved" };
+}
+
+export async function rateEvent(eventId: string, rating: EventRating) {
+  const { supabase, user } = await getCurrentUser();
+
+  if (!user) {
+    return { success: false as const, message: "Not authenticated" };
+  }
+
+  const { error } = await supabase.from("ratings").upsert(
+    {
+      event_id: eventId,
+      user_id: user.id,
+      drinks_rating: rating.drinks,
+      food_rating: rating.food,
+      venue_rating: rating.venue,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "event_id,user_id" },
+  );
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  revalidatePath("/events");
+  return { success: true as const, message: "Rating saved" };
 }
 
 export type AttendeeSummary = {

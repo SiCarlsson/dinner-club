@@ -22,14 +22,14 @@ export function AttendeesDialog({
   trigger,
   description,
   rsvpControls,
+  subtitle,
 }: {
   eventId: string;
   eventName: string;
   trigger: React.ReactElement;
-  // Optional: upcoming dinners surface their description and RSVP controls in the
-  // dialog too (the hero already shows these on the page, so it omits them).
   description?: string | null;
   rsvpControls?: React.ReactNode;
+  subtitle?: string;
 }) {
   const t = useTranslations("EventsPage");
   const tDiet = useTranslations("ProfilePage.Diet");
@@ -72,7 +72,9 @@ export function AttendeesDialog({
       >
         <DialogHeader>
           <DialogTitle className="font-serif text-[20px] font-normal">{eventName}</DialogTitle>
-          <DialogDescription className="text-[13px]">{t("AttendeesSubtitle")}</DialogDescription>
+          <DialogDescription className="text-[13px]">
+            {subtitle ?? t("AttendeesSubtitle")}
+          </DialogDescription>
         </DialogHeader>
 
         {description && <p className="text-body text-[13.5px] leading-[1.7]">{description}</p>}
