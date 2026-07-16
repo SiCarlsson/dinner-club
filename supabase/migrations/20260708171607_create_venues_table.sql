@@ -6,11 +6,9 @@ CREATE TABLE public.venues (
   latitude double precision,
   district text,
   city text,
-  type text NOT NULL DEFAULT 'restaurant'::text,
   created_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
   updated_at timestamp with time zone NOT NULL DEFAULT timezone('utc'::text, now()),
-  CONSTRAINT venues_pkey PRIMARY KEY (id),
-  CONSTRAINT check_venue_type CHECK (type IN ('restaurant', 'bar'))
+  CONSTRAINT venues_pkey PRIMARY KEY (id)
 );
 
 ALTER TABLE public.venues ENABLE ROW LEVEL SECURITY;

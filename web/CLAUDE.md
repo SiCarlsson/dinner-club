@@ -46,7 +46,7 @@ Mutations and data fetching use `"use server"` action files (e.g. `app/[locale]/
 
 ### Data model (`../supabase/migrations/`)
 - `profiles` — 1:1 with `auth.users`, auto-created by the `on_auth_user_created` trigger; `role` is `'member' | 'admin'`.
-- `venues` — `type` is `'restaurant' | 'bar'`; publicly readable (`anon`).
+- `venues` — dinner locations (always restaurants); publicly readable (`anon`).
 - `events` — `visibility` is `'published' | 'unpublished'`; members see only published, admins/co-hosts see all; FKs to `venues` and to host/co-host users.
 
 ## Conventions
