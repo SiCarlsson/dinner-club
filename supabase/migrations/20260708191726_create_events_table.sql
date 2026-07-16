@@ -19,7 +19,6 @@ CREATE TABLE public.events (
 ALTER TABLE public.events ENABLE ROW LEVEL SECURITY;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.events TO authenticated;
-GRANT SELECT ON public.events TO anon;
 
 CREATE POLICY "Members can see published events, admins and co-hosts see all" 
 ON public.events FOR SELECT 
