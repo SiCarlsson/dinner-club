@@ -2,7 +2,10 @@
 
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/utils/supabase/auth";
+
+export type RsvpStatus = "attending" | "declined" | "maybe";
 
 export type GalleryEvent = {
   id: string;
@@ -10,6 +13,9 @@ export type GalleryEvent = {
   event_date: string;
   description: string | null;
   venue: { id: string; name: string; address: string | null; district: string | null } | null;
+  myRsvpStatus: RsvpStatus | null;
+  myHasPlusOne: boolean;
+  myPlusOneName: string | null;
 };
 
 export async function getUpcomingEvents() {
@@ -31,5 +37,92 @@ export async function getUpcomingEvents() {
     return { success: false as const, message: error.message };
   }
 
-  return { success: true as const, events: data as unknown as GalleryEvent[] };
+  const events = data as unknown as Omit<
+    GalleryEvent,
+    "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName"
+  >[];
+
+  // Attach the current user's own RSVP (status + plus-one) per event so the UI can
+  // reflect it. RLS already limits the rows a member can read to their own.
+  const { data: rsvps } = await supabase
+    .from("rsvps")
+    .select("event_id, status, has_plus_one, plus_one_name")
+    .eq("user_id", user.id)
+    .in(
+      "event_id",
+      events.map((event) => event.id),
+    );
+
+  const rsvpByEvent = new Map((rsvps ?? []).map((rsvp) => [rsvp.event_id, rsvp]));
+
+  const eventsWithRsvp: GalleryEvent[] = events.map((event) => {
+    const rsvp = rsvpByEvent.get(event.id);
+    return {
+      ...event,
+      myRsvpStatus: (rsvp?.status as RsvpStatus | undefined) ?? null,
+      myHasPlusOne: rsvp?.has_plus_one ?? false,
+      myPlusOneName: rsvp?.plus_one_name ?? null,
+    };
+  });
+
+  return { success: true as const, events: eventsWithRsvp };
+}
+
+export async function rsvpToEvent(eventId: string, status: RsvpStatus) {
+  const { supabase, user } = await getCurrentUser();
+
+  if (!user) {
+    return { success: false as const, message: "Not authenticated" };
+  }
+
+  const { error } = await supabase.from("rsvps").upsert(
+    {
+      event_id: eventId,
+      user_id: user.id,
+      status,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "event_id,user_id" },
+  );
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  revalidatePath("/events");
+  return { success: true as const, message: "RSVP saved" };
+}
+
+export async function setRsvpPlusOne(eventId: string, hasPlusOne: boolean, plusOneName: string) {
+  const { supabase, user } = await getCurrentUser();
+
+  if (!user) {
+    return { success: false as const, message: "Not authenticated" };
+  }
+
+  const trimmedName = plusOneName.trim();
+
+  // A plus-one must be named; a declined plus-one clears the name to satisfy the
+  // DB constraint that ties has_plus_one and plus_one_name together.
+  if (hasPlusOne && !trimmedName) {
+    return { success: false as const, message: "A plus-one name is required" };
+  }
+
+  const { error } = await supabase.from("rsvps").upsert(
+    {
+      event_id: eventId,
+      user_id: user.id,
+      has_plus_one: hasPlusOne,
+      plus_one_name: hasPlusOne ? trimmedName : null,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "event_id,user_id" },
+  );
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  revalidatePath("/events");
+  return { success: true as const, message: "Plus-one saved" };
 }

@@ -24,7 +24,7 @@ import {
   BUTTON_TEXT,
   FLOATING_SURFACE,
   DIALOG_DESCRIPTION,
-} from "./form-styles";
+} from "@/lib/form-styles";
 import { cn } from "@/lib/utils";
 
 const EMPTY_FORM = { name: "", address: "", city: "", district: "", latitude: "", longitude: "" };

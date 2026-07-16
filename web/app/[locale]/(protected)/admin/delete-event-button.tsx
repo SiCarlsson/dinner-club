@@ -18,7 +18,7 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { deleteEvent, type EventRecord } from "./actions";
-import { BUTTON_TEXT, FLOATING_SURFACE, DIALOG_DESCRIPTION } from "./form-styles";
+import { BUTTON_TEXT, FLOATING_SURFACE, DIALOG_DESCRIPTION } from "@/lib/form-styles";
 import { cn } from "@/lib/utils";
 
 export function DeleteEventButton({ event }: { event: EventRecord }) {

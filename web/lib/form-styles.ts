@@ -1,4 +1,4 @@
-// app/[locale]/(protected)/admin/form-styles.ts
+// lib/form-styles.ts — shared editorial form/surface design tokens
 
 export const FIELD_LABEL = "text-muted-foreground text-[10px] tracking-[.14em] uppercase";
 

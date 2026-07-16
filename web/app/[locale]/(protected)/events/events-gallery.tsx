@@ -2,11 +2,18 @@
 
 "use client";
 
+import { useState, useTransition } from "react";
 import { format } from "date-fns";
 import { enUS, sv } from "date-fns/locale";
 import { useLocale, useTranslations } from "next-intl";
+import { cn } from "@/lib/utils";
+import { BUTTON_TEXT, FIELD_INPUT, FIELD_LABEL, FLOATING_SURFACE } from "@/lib/form-styles";
 import { Button } from "@/components/ui/button";
-import type { GalleryEvent } from "./actions";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { rsvpToEvent, setRsvpPlusOne, type GalleryEvent, type RsvpStatus } from "./actions";
 
 const DATE_FNS_LOCALES = { en: enUS, sv } as const;
 
@@ -29,6 +36,158 @@ function formatGridLabel(dateString: string, locale: DateFnsLocale) {
   const date = new Date(dateString);
   const day = format(date, "dd MMM", { locale }).replace(/\./g, "");
   return `${day} · ${format(date, "HH:mm")}`.toUpperCase();
+}
+
+// The hero Attend / Decline pair, plus a +1 popover shown only once attending.
+function HeroRsvp({
+  eventId,
+  status,
+  hasPlusOne: initialHasPlusOne,
+  plusOneName: initialPlusOneName,
+}: {
+  eventId: string;
+  status: RsvpStatus | null;
+  hasPlusOne: boolean;
+  plusOneName: string | null;
+}) {
+  const t = useTranslations("EventsPage");
+  const [current, setCurrent] = useState(status);
+  const [isPending, startTransition] = useTransition();
+
+  const submit = (next: RsvpStatus) => {
+    if (isPending || current === next) return;
+    const previous = current;
+    setCurrent(next);
+    startTransition(async () => {
+      const result = await rsvpToEvent(eventId, next);
+      if (!result.success) setCurrent(previous);
+    });
+  };
+
+  return (
+    <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row sm:justify-center">
+      <Button
+        type="button"
+        variant={current === "attending" ? "default" : "outline"}
+        aria-pressed={current === "attending"}
+        disabled={isPending}
+        onClick={() => submit("attending")}
+        className="h-auto w-full rounded-none px-[30px] py-[13px] text-[12px] tracking-[.08em] uppercase sm:w-auto sm:py-[12px]"
+      >
+        {t("Attend")}
+      </Button>
+      <Button
+        type="button"
+        variant={current === "declined" ? "default" : "outline"}
+        aria-pressed={current === "declined"}
+        disabled={isPending}
+        onClick={() => submit("declined")}
+        className="border-input h-auto w-full rounded-none bg-transparent px-[26px] py-[13px] text-[12px] tracking-[.08em] uppercase sm:w-auto sm:py-[12px]"
+      >
+        {t("Decline")}
+      </Button>
+      {current === "attending" && (
+        <PlusOnePopover
+          eventId={eventId}
+          initialHasPlusOne={initialHasPlusOne}
+          initialPlusOneName={initialPlusOneName}
+        />
+      )}
+    </div>
+  );
+}
+
+function PlusOnePopover({
+  eventId,
+  initialHasPlusOne,
+  initialPlusOneName,
+}: {
+  eventId: string;
+  initialHasPlusOne: boolean;
+  initialPlusOneName: string | null;
+}) {
+  const t = useTranslations("EventsPage");
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  // Committed values (what's persisted); drive the trigger's active state.
+  const [hasPlusOne, setHasPlusOne] = useState(initialHasPlusOne);
+  const [plusOneName, setPlusOneName] = useState(initialPlusOneName ?? "");
+  // Draft values edited inside the popover; reset from committed state on each open.
+  const [draftHasPlusOne, setDraftHasPlusOne] = useState(initialHasPlusOne);
+  const [draftName, setDraftName] = useState(initialPlusOneName ?? "");
+
+  const onOpenChange = (next: boolean) => {
+    if (next) {
+      setDraftHasPlusOne(hasPlusOne);
+      setDraftName(plusOneName);
+    }
+    setOpen(next);
+  };
+
+  const nameMissing = draftHasPlusOne && draftName.trim() === "";
+
+  const save = async () => {
+    if (nameMissing) return;
+    setSaving(true);
+    const result = await setRsvpPlusOne(eventId, draftHasPlusOne, draftName);
+    setSaving(false);
+    if (result.success) {
+      setHasPlusOne(draftHasPlusOne);
+      setPlusOneName(draftHasPlusOne ? draftName.trim() : "");
+      setOpen(false);
+    }
+  };
+
+  return (
+    <Popover open={open} onOpenChange={onOpenChange}>
+      <PopoverTrigger
+        render={
+          <Button
+            type="button"
+            variant={hasPlusOne ? "default" : "outline"}
+            aria-label={t("PlusOneAria")}
+            className="h-auto w-full rounded-none px-[18px] py-[13px] text-[12px] tracking-[.08em] uppercase sm:w-auto sm:py-[12px]"
+          >
+            {t("PlusOne")}
+          </Button>
+        }
+      />
+      <PopoverContent align="center" className={cn(FLOATING_SURFACE, "font-ui w-64 gap-4 p-5")}>
+        <p className="font-serif text-[17px] font-normal">{t("PlusOneTitle")}</p>
+        <div className="flex items-center gap-2">
+          <Checkbox
+            id="plus-one-toggle"
+            checked={draftHasPlusOne}
+            onCheckedChange={(checked) => setDraftHasPlusOne(checked === true)}
+          />
+          <Label htmlFor="plus-one-toggle" className="font-normal">
+            {t("PlusOneToggle")}
+          </Label>
+        </div>
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="plus-one-name" className={FIELD_LABEL}>
+            {t("PlusOneNameLabel")}
+          </Label>
+          <Input
+            id="plus-one-name"
+            value={draftName}
+            onChange={(e) => setDraftName(e.target.value)}
+            placeholder={t("PlusOneNamePlaceholder")}
+            disabled={!draftHasPlusOne}
+            className={FIELD_INPUT}
+          />
+        </div>
+        <Button
+          type="button"
+          onClick={save}
+          disabled={saving || nameMissing}
+          className={cn(BUTTON_TEXT, "h-auto w-full rounded-none py-[11px]")}
+        >
+          {saving ? t("PlusOneSaving") : t("PlusOneSave")}
+        </Button>
+      </PopoverContent>
+    </Popover>
+  );
 }
 
 export function EventsGallery({ events }: { events: GalleryEvent[] }) {
@@ -56,21 +215,12 @@ export function EventsGallery({ events }: { events: GalleryEvent[] }) {
         {next.description && (
           <p className="text-body max-w-[46ch] text-[13.5px] leading-[1.7]">{next.description}</p>
         )}
-        <div className="flex w-full flex-col gap-3 sm:w-auto sm:flex-row sm:justify-center">
-          <Button
-            type="button"
-            className="h-auto w-full rounded-none px-[30px] py-[13px] text-[12px] tracking-[.08em] uppercase sm:w-auto sm:py-[12px]"
-          >
-            {t("Attend")}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="border-input h-auto w-full rounded-none bg-transparent px-[26px] py-[13px] text-[12px] tracking-[.08em] uppercase sm:w-auto sm:py-[12px]"
-          >
-            {t("Decline")}
-          </Button>
-        </div>
+        <HeroRsvp
+          eventId={next.id}
+          status={next.myRsvpStatus}
+          hasPlusOne={next.myHasPlusOne}
+          plusOneName={next.myPlusOneName}
+        />
         <p className="text-muted-foreground flex items-center gap-2 text-[11px]">
           <span className="text-body">{formatDateTime(next.event_date, dateFnsLocale)}</span>
           <span aria-hidden="true">·</span>

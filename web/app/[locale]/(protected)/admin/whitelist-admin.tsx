@@ -7,7 +7,7 @@ import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { FIELD_INPUT } from "./form-styles";
+import { FIELD_INPUT } from "@/lib/form-styles";
 
 type WhitelistEntry = {
   id: string;

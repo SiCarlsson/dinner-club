@@ -22,7 +22,7 @@ import {
   FLOATING_SURFACE,
   DIALOG_DESCRIPTION,
   SCROLL_10_ITEMS,
-} from "./form-styles";
+} from "@/lib/form-styles";
 import { useLocale, useTranslations } from "next-intl";
 import {
   createEvent,

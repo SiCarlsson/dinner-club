@@ -3,24 +3,50 @@
 import messages from "@/messages/en.json";
 import svMessages from "@/messages/sv.json";
 import { NextIntlClientProvider } from "next-intl";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { EventsGallery } from "./events-gallery";
-import type { GalleryEvent } from "./actions";
+import { rsvpToEvent, setRsvpPlusOne, type GalleryEvent } from "./actions";
+
+vi.mock("./actions", () => ({
+  rsvpToEvent: vi.fn(),
+  setRsvpPlusOne: vi.fn(),
+}));
 
 function venue(name: string): GalleryEvent["venue"] {
   return { id: `v-${name}`, name, address: null, district: null };
 }
 
-function renderGallery(events: GalleryEvent[]) {
+function event(overrides: Partial<GalleryEvent> = {}): GalleryEvent {
+  return {
+    id: "1",
+    name: "Summer Dinner",
+    event_date: "2026-08-01T18:00:00.000Z",
+    description: null,
+    venue: venue("Café Norr"),
+    myRsvpStatus: null,
+    myHasPlusOne: false,
+    myPlusOneName: null,
+    ...overrides,
+  };
+}
+
+function renderGallery(events: GalleryEvent[], locale: "en" | "sv" = "en") {
   return render(
-    <NextIntlClientProvider locale="en" messages={messages}>
+    <NextIntlClientProvider locale={locale} messages={locale === "sv" ? svMessages : messages}>
       <EventsGallery events={events} />
     </NextIntlClientProvider>,
   );
 }
 
 describe("EventsGallery Component", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    vi.mocked(rsvpToEvent).mockResolvedValue({ success: true, message: "RSVP saved" });
+    vi.mocked(setRsvpPlusOne).mockResolvedValue({ success: true, message: "Plus-one saved" });
+  });
+
   it("shows the empty state when there are no events", () => {
     renderGallery([]);
 
@@ -29,17 +55,7 @@ describe("EventsGallery Component", () => {
   });
 
   it("renders the next event as a hero with eyebrow, name, intro and RSVP buttons", () => {
-    const events: GalleryEvent[] = [
-      {
-        id: "1",
-        name: "Summer Dinner",
-        event_date: "2026-08-01T18:00:00.000Z",
-        description: "A warm evening in the city.",
-        venue: venue("Café Norr"),
-      },
-    ];
-
-    renderGallery(events);
+    renderGallery([event({ name: "Summer Dinner", description: "A warm evening in the city." })]);
 
     expect(screen.getByRole("heading", { name: "Summer Dinner" })).toBeInTheDocument();
     expect(screen.getByText(new RegExp(messages.EventsPage.Eyebrow))).toBeInTheDocument();
@@ -49,40 +65,21 @@ describe("EventsGallery Component", () => {
   });
 
   it("does not render the upcoming grid when there is only the hero event", () => {
-    const events: GalleryEvent[] = [
-      {
-        id: "1",
-        name: "Only Dinner",
-        event_date: "2026-08-01T18:00:00.000Z",
-        description: null,
-        venue: venue("Café Norr"),
-      },
-    ];
-
-    renderGallery(events);
+    renderGallery([event({ name: "Only Dinner" })]);
 
     expect(screen.queryByRole("list")).not.toBeInTheDocument();
   });
 
   it("renders the events after the hero in the upcoming grid", () => {
-    const events: GalleryEvent[] = [
-      {
-        id: "1",
-        name: "Hero Dinner",
-        event_date: "2026-08-01T18:00:00.000Z",
-        description: null,
-        venue: venue("Café Norr"),
-      },
-      {
+    renderGallery([
+      event({ id: "1", name: "Hero Dinner" }),
+      event({
         id: "2",
         name: "Second Dinner",
         event_date: "2026-09-12T18:00:00.000Z",
-        description: null,
         venue: venue("Bar Söder"),
-      },
-    ];
-
-    renderGallery(events);
+      }),
+    ]);
 
     const upcoming = within(screen.getByRole("list"));
     expect(upcoming.getByText("Second Dinner")).toBeInTheDocument();
@@ -92,20 +89,15 @@ describe("EventsGallery Component", () => {
   });
 
   it("formats the eyebrow date without a trailing period in Swedish", () => {
-    const events: GalleryEvent[] = [
-      {
-        id: "1",
-        name: "Höstens första",
-        event_date: "2026-08-14T17:00:00.000Z",
-        description: null,
-        venue: venue("Pelikan"),
-      },
-    ];
-
-    render(
-      <NextIntlClientProvider locale="sv" messages={svMessages}>
-        <EventsGallery events={events} />
-      </NextIntlClientProvider>,
+    renderGallery(
+      [
+        event({
+          name: "Höstens första",
+          event_date: "2026-08-14T17:00:00.000Z",
+          venue: venue("Pelikan"),
+        }),
+      ],
+      "sv",
     );
 
     // Swedish abbreviates "augusti" as "aug." — the trailing period must be stripped.
@@ -114,26 +106,112 @@ describe("EventsGallery Component", () => {
   });
 
   it("spells out a missing venue as a secret location", () => {
-    const events: GalleryEvent[] = [
-      {
-        id: "1",
-        name: "Hero Dinner",
-        event_date: "2026-08-01T18:00:00.000Z",
-        description: null,
-        venue: venue("Café Norr"),
-      },
-      {
+    renderGallery([
+      event({ id: "1", name: "Hero Dinner" }),
+      event({
         id: "2",
         name: "Secret Dinner",
         event_date: "2026-09-12T18:00:00.000Z",
-        description: null,
         venue: null,
-      },
-    ];
-
-    renderGallery(events);
+      }),
+    ]);
 
     const upcoming = within(screen.getByRole("list"));
     expect(upcoming.getByText(messages.EventsPage.SecretLocation)).toBeInTheDocument();
+  });
+
+  it("marks the hero button matching the user's existing RSVP as pressed", () => {
+    renderGallery([event({ id: "e1", myRsvpStatus: "attending" })]);
+
+    expect(screen.getByRole("button", { name: messages.EventsPage.Attend })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: messages.EventsPage.Decline })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
+  it("submits the chosen status and optimistically marks the button pressed", async () => {
+    const user = userEvent.setup();
+    renderGallery([event({ id: "e1", myRsvpStatus: null })]);
+
+    await user.click(screen.getByRole("button", { name: messages.EventsPage.Attend }));
+
+    expect(rsvpToEvent).toHaveBeenCalledWith("e1", "attending");
+    expect(screen.getByRole("button", { name: messages.EventsPage.Attend })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+  });
+
+  it("rolls back the optimistic status when the RSVP action fails", async () => {
+    vi.mocked(rsvpToEvent).mockResolvedValue({ success: false, message: "db down" });
+    const user = userEvent.setup();
+    renderGallery([event({ id: "e1", myRsvpStatus: "attending" })]);
+
+    await user.click(screen.getByRole("button", { name: messages.EventsPage.Decline }));
+
+    // The failed choice reverts, leaving the original "attending" answer intact.
+    expect(screen.getByRole("button", { name: messages.EventsPage.Attend })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: messages.EventsPage.Decline })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
+  it("does not re-submit when the current status is clicked again", async () => {
+    const user = userEvent.setup();
+    renderGallery([event({ id: "e1", myRsvpStatus: "attending" })]);
+
+    await user.click(screen.getByRole("button", { name: messages.EventsPage.Attend }));
+
+    expect(rsvpToEvent).not.toHaveBeenCalled();
+  });
+
+  it("hides the +1 button until the member is attending", async () => {
+    const user = userEvent.setup();
+    renderGallery([event({ id: "e1", myRsvpStatus: null })]);
+
+    expect(screen.queryByRole("button", { name: messages.EventsPage.PlusOneAria })).toBeNull();
+
+    await user.click(screen.getByRole("button", { name: messages.EventsPage.Attend }));
+
+    expect(
+      screen.getByRole("button", { name: messages.EventsPage.PlusOneAria }),
+    ).toBeInTheDocument();
+  });
+
+  it("saves a named plus-one from the popover", async () => {
+    const user = userEvent.setup();
+    renderGallery([event({ id: "e1", myRsvpStatus: "attending" })]);
+
+    await user.click(screen.getByRole("button", { name: messages.EventsPage.PlusOneAria }));
+    await user.click(screen.getByRole("checkbox", { name: messages.EventsPage.PlusOneToggle }));
+    await user.type(screen.getByLabelText(messages.EventsPage.PlusOneNameLabel), "Alex");
+    await user.click(screen.getByRole("button", { name: messages.EventsPage.PlusOneSave }));
+
+    expect(setRsvpPlusOne).toHaveBeenCalledWith("e1", true, "Alex");
+  });
+
+  it("disables saving a plus-one until a name is entered", async () => {
+    const user = userEvent.setup();
+    renderGallery([event({ id: "e1", myRsvpStatus: "attending" })]);
+
+    await user.click(screen.getByRole("button", { name: messages.EventsPage.PlusOneAria }));
+    await user.click(screen.getByRole("checkbox", { name: messages.EventsPage.PlusOneToggle }));
+
+    expect(screen.getByRole("button", { name: messages.EventsPage.PlusOneSave })).toBeDisabled();
+
+    await user.type(screen.getByLabelText(messages.EventsPage.PlusOneNameLabel), "Sam");
+
+    expect(
+      screen.getByRole("button", { name: messages.EventsPage.PlusOneSave }),
+    ).not.toBeDisabled();
+    expect(setRsvpPlusOne).not.toHaveBeenCalled();
   });
 });

@@ -17,7 +17,15 @@
     "SecretLocation": "Hemlig plats",
     "Attend": "Jag kommer",
     "Decline": "Kan inte",
-    "Empty": "Inga kommande middagar än."
+    "Empty": "Inga kommande middagar än.",
+    "PlusOne": "+1",
+    "PlusOneAria": "Lägg till +1",
+    "PlusOneTitle": "Ta med en +1",
+    "PlusOneToggle": "Jag tar med en +1",
+    "PlusOneNameLabel": "Namn",
+    "PlusOneNamePlaceholder": "Namn på din +1",
+    "PlusOneSave": "Spara",
+    "PlusOneSaving": "Sparar…"
   },
   "ProfilePage": {
     "Title": "Profil",

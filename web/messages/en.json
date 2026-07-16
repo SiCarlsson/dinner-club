@@ -17,7 +17,15 @@
     "SecretLocation": "Secret location",
     "Attend": "I'm coming",
     "Decline": "Can't make it",
-    "Empty": "No upcoming dinners yet."
+    "Empty": "No upcoming dinners yet.",
+    "PlusOne": "+1",
+    "PlusOneAria": "Add a +1",
+    "PlusOneTitle": "Bring a +1",
+    "PlusOneToggle": "I'm bringing a +1",
+    "PlusOneNameLabel": "Name",
+    "PlusOneNamePlaceholder": "Your +1's name",
+    "PlusOneSave": "Save",
+    "PlusOneSaving": "Saving…"
   },
   "ProfilePage": {
     "Title": "Profile",

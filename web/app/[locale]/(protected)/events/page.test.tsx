@@ -50,6 +50,9 @@ describe("Events Server Page", () => {
           event_date: "2026-08-01T18:00:00.000Z",
           description: null,
           venue: null,
+          myRsvpStatus: null,
+          myHasPlusOne: false,
+          myPlusOneName: null,
         },
       ],
     });
