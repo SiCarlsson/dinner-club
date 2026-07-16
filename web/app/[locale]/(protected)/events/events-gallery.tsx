@@ -39,8 +39,7 @@ function formatGridLabel(dateString: string, locale: DateFnsLocale) {
   return `${day} · ${format(date, "HH:mm")}`.toUpperCase();
 }
 
-// The Attend / Decline pair, plus a +1 popover shown only once attending. Used on
-// the hero and inside each upcoming dinner's dialog.
+// The Attend / Decline pair, plus a +1 popover shown only once attending
 function RsvpControls({
   eventId,
   status,
@@ -111,10 +110,10 @@ function PlusOnePopover({
   const t = useTranslations("EventsPage");
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
-  // Committed values (what's persisted); drive the trigger's active state.
+  // Committed values (what's persisted)
   const [hasPlusOne, setHasPlusOne] = useState(initialHasPlusOne);
   const [plusOneName, setPlusOneName] = useState(initialPlusOneName ?? "");
-  // Draft values edited inside the popover; reset from committed state on each open.
+  // Draft values edited inside the popover
   const [draftHasPlusOne, setDraftHasPlusOne] = useState(initialHasPlusOne);
   const [draftName, setDraftName] = useState(initialPlusOneName ?? "");
 

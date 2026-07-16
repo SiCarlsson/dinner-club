@@ -105,7 +105,6 @@ describe("EventsGallery Component", () => {
       "sv",
     );
 
-    // Swedish abbreviates "augusti" as "aug." — the trailing period must be stripped.
     const eyebrow = screen.getByText(new RegExp(svMessages.EventsPage.Eyebrow));
     expect(eyebrow.textContent).not.toContain(".");
   });

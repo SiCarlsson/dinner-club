@@ -11,10 +11,6 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
-// Builds a Supabase stub whose `from` returns a table-specific query chain:
-// - events: select().eq().gte().order().limit() → { data, error }
-// - rsvps:  select().eq().in()                  → { data, error }  (getUpcomingEvents)
-//           upsert()                            → { error }        (rsvpToEvent)
 function mockSupabase({
   events,
   eventsError,
@@ -277,7 +273,6 @@ describe("events gallery actions", () => {
   });
 
   describe("getEventAttendees", () => {
-    // rsvps: select().eq().eq() → { data, error }; profiles: select().in() → { data, error }
     function attendeeSupabase({
       rsvps = [],
       rsvpsError = null,

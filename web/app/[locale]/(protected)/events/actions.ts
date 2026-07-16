@@ -42,8 +42,6 @@ export async function getUpcomingEvents() {
     "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName"
   >[];
 
-  // Attach the current user's own RSVP (status + plus-one) per event so the UI can
-  // reflect it. RLS already limits the rows a member can read to their own.
   const { data: rsvps } = await supabase
     .from("rsvps")
     .select("event_id, status, has_plus_one, plus_one_name")
@@ -102,8 +100,6 @@ export async function setRsvpPlusOne(eventId: string, hasPlusOne: boolean, plusO
 
   const trimmedName = plusOneName.trim();
 
-  // A plus-one must be named; a declined plus-one clears the name to satisfy the
-  // DB constraint that ties has_plus_one and plus_one_name together.
   if (hasPlusOne && !trimmedName) {
     return { success: false as const, message: "A plus-one name is required" };
   }
