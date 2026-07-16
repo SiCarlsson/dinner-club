@@ -12,13 +12,13 @@
     "Eyebrow": "Dinner club · since 2026",
     "TitleLead": "We try",
     "TitleEmphasis": "new restaurants",
-    "Intro": "CaLí is a dinner club that gathers the most curious food lovers to discover restaurants together.",
+    "Intro": "CaLí is a dinner club that gathers the most curious food lovers to discover new restaurants together.",
     "Apply": "Apply for a seat",
     "Member": "I'm a member",
     "Tenets": {
       "One": {
         "Title": "New restaurants",
-        "Body": "We pick among the latest openings and most talked-about kitchens."
+        "Body": "We select the most talked-about kitchens and always try to find places we haven't visited yet."
       },
       "Two": {
         "Title": "Good company",
@@ -26,7 +26,7 @@
       },
       "Three": {
         "Title": "Shared ratings",
-        "Body": "After every visit we rate the food and drink together."
+        "Body": "After every visit, we rate the food and drinks together. The results contribute to our own food guide."
       }
     },
     "Ratings": {
