@@ -50,6 +50,7 @@ export function AppHeaderMenu({ isAdmin }: { isAdmin: boolean }) {
           className={itemClass}
           render={<Link href="/events">{t("Dinners")}</Link>}
         />
+        <DropdownMenuItem className={itemClass} render={<Link href="/guide">{t("Guide")}</Link>} />
         <DropdownMenuItem
           className={itemClass}
           render={<Link href="/profile">{t("Profile")}</Link>}

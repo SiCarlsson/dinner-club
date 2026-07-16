@@ -44,9 +44,12 @@ export async function AppHeader() {
             >
               {t("Dinners")}
             </Link>
-            <span className="text-muted-foreground hidden text-[12px] tracking-[.06em] uppercase sm:inline-flex">
-              {t("PastDinners")}
-            </span>
+            <Link
+              href="/guide"
+              className="text-muted-foreground hover:text-foreground hidden text-[12px] tracking-[.06em] uppercase transition-colors sm:inline-flex"
+            >
+              {t("Guide")}
+            </Link>
             <Link
               href="/profile"
               className="text-muted-foreground hover:text-foreground hidden text-[12px] tracking-[.06em] uppercase transition-colors sm:inline-flex"
@@ -58,9 +61,12 @@ export async function AppHeader() {
           </div>
         ) : (
           <nav className="flex shrink-0 items-center gap-6 sm:gap-7">
-            <span className="text-muted-foreground hidden text-[12px] tracking-[.06em] uppercase sm:inline">
-              {t("PastDinners")}
-            </span>
+            <Link
+              href="/guide"
+              className="text-muted-foreground hover:text-foreground text-[12px] tracking-[.06em] uppercase transition-colors"
+            >
+              {t("Guide")}
+            </Link>
             <Link
               href="/login"
               className="border-foreground/25 hover:border-foreground border px-[18px] py-[8px] text-[12px] tracking-[.06em] uppercase transition-colors"

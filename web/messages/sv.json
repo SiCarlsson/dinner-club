@@ -1,12 +1,24 @@
 {
   "Nav": {
     "Dinners": "Events",
+    "Guide": "Guide",
     "Admin": "Admin",
     "Login": "Logga in",
     "Profile": "Profil",
     "Logout": "Logga ut",
-    "Menu": "Meny",
-    "PastDinners": "Tidigare middagar"
+    "Menu": "Meny"
+  },
+  "GuidePage": {
+    "Title": "Guide",
+    "Eyebrow": "Där vi ätit",
+    "Intro": "Varje restaurang klubben besökt, rankad efter hur vi betygsatt den tillsammans. Endast de som deltagit på middagarna får vara med och sätta betyg.",
+    "Empty": "Inga betygsatta restauranger än.",
+    "Restaurant": "Restaurang",
+    "Drinks": "Dryck",
+    "Food": "Mat",
+    "Venue": "Lokal",
+    "Overall": "Helhet",
+    "Ratings": "{count, plural, =1 {# betyg} other {# betyg}}"
   },
   "LandingPage": {
     "Eyebrow": "Middagsklubb · sedan 2026",
@@ -121,10 +133,6 @@
       "Description1": "Epost har skickats till",
       "Description2": "Använd länken där för att logga in."
     }
-  },
-  "Auth": {
-    "Login": "Logga in",
-    "Logout": "Logga ut"
   },
   "AdminPage": {
     "Title": "Admin",

@@ -1,12 +1,24 @@
 {
   "Nav": {
     "Dinners": "Events",
+    "Guide": "Guide",
     "Admin": "Admin",
     "Login": "Log in",
     "Profile": "Profile",
     "Logout": "Log out",
-    "Menu": "Menu",
-    "PastDinners": "Past dinners"
+    "Menu": "Menu"
+  },
+  "GuidePage": {
+    "Title": "Guide",
+    "Eyebrow": "Where we've dined",
+    "Intro": "Every restaurant the club has visited, ranked by how we rated it together. Only the people that attended the dinner are allowed to give a rating.",
+    "Empty": "No rated restaurants yet.",
+    "Restaurant": "Restaurant",
+    "Drinks": "Drinks",
+    "Food": "Food",
+    "Venue": "Venue",
+    "Overall": "Overall",
+    "Ratings": "{count, plural, =1 {# rating} other {# ratings}}"
   },
   "LandingPage": {
     "Eyebrow": "Dinner club · since 2026",
@@ -121,10 +133,6 @@
       "Description1": "We sent a login link to",
       "Description2": "Click it to sign in."
     }
-  },
-  "Auth": {
-    "Login": "Log in",
-    "Logout": "Log out"
   },
   "AdminPage": {
     "Title": "Admin",
