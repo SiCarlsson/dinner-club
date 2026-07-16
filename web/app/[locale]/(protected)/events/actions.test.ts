@@ -275,4 +275,112 @@ describe("events gallery actions", () => {
       );
     });
   });
+
+  describe("getEventAttendees", () => {
+    // rsvps: select().eq().eq() → { data, error }; profiles: select().in() → { data, error }
+    function attendeeSupabase({
+      rsvps = [],
+      rsvpsError = null,
+      profiles = [],
+    }: {
+      rsvps?: {
+        user_id: string;
+        has_plus_one: boolean;
+        plus_one_name: string | null;
+      }[];
+      rsvpsError?: { message: string } | null;
+      profiles?: { id: string; full_name: string | null; dietary_restrictions: string[] }[];
+    } = {}) {
+      const eqStatus = vi.fn().mockResolvedValue({ data: rsvps, error: rsvpsError });
+      const eqEvent = vi.fn().mockReturnValue({ eq: eqStatus });
+      const rsvpsSelect = vi.fn().mockReturnValue({ eq: eqEvent });
+
+      const profilesIn = vi.fn().mockResolvedValue({ data: profiles, error: null });
+      const profilesSelect = vi.fn().mockReturnValue({ in: profilesIn });
+
+      const from = vi.fn((table: string) =>
+        table === "profiles" ? { select: profilesSelect } : { select: rsvpsSelect },
+      );
+
+      return { from, rsvpsSelect, eqEvent, eqStatus, profilesIn };
+    }
+
+    it("returns not authenticated when there is no user", async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: attendeeSupabase() as never,
+        user: null,
+      });
+
+      const { getEventAttendees } = await import("./actions");
+      const result = await getEventAttendees("e1");
+
+      expect(result).toEqual({ success: false, message: "Not authenticated" });
+    });
+
+    it("aggregates attendees, guests, and dietary restrictions", async () => {
+      const supabase = attendeeSupabase({
+        rsvps: [
+          { user_id: "u1", has_plus_one: true, plus_one_name: "Alex" },
+          { user_id: "u2", has_plus_one: false, plus_one_name: null },
+        ],
+        profiles: [
+          { id: "u1", full_name: "Zara", dietary_restrictions: ["vegan", "gluten"] },
+          { id: "u2", full_name: "Adam", dietary_restrictions: ["vegan"] },
+        ],
+      });
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "u1" } as never,
+      });
+
+      const { getEventAttendees } = await import("./actions");
+      const result = await getEventAttendees("e1");
+
+      expect(supabase.eqEvent).toHaveBeenCalledWith("event_id", "e1");
+      expect(supabase.eqStatus).toHaveBeenCalledWith("status", "attending");
+      expect(supabase.profilesIn).toHaveBeenCalledWith("id", ["u1", "u2"]);
+      expect(result.success && result.summary).toEqual({
+        // Sorted by name: Adam before Zara.
+        attendees: [
+          { name: "Adam", plusOneName: null },
+          { name: "Zara", plusOneName: "Alex" },
+        ],
+        memberCount: 2,
+        guestCount: 1,
+        totalCount: 3,
+        // vegan (2) ranks above gluten (1).
+        dietary: [
+          { option: "vegan", count: 2 },
+          { option: "gluten", count: 1 },
+        ],
+      });
+    });
+
+    it("skips the profiles query when nobody is attending", async () => {
+      const supabase = attendeeSupabase({ rsvps: [] });
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "u1" } as never,
+      });
+
+      const { getEventAttendees } = await import("./actions");
+      const result = await getEventAttendees("e1");
+
+      expect(supabase.profilesIn).not.toHaveBeenCalled();
+      expect(result.success && result.summary.totalCount).toBe(0);
+    });
+
+    it("returns an error message when the rsvps query fails", async () => {
+      const supabase = attendeeSupabase({ rsvpsError: { message: "db down" } });
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "u1" } as never,
+      });
+
+      const { getEventAttendees } = await import("./actions");
+      const result = await getEventAttendees("e1");
+
+      expect(result).toEqual({ success: false, message: "db down" });
+    });
+  });
 });

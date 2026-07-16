@@ -25,7 +25,16 @@
     "PlusOneNameLabel": "Name",
     "PlusOneNamePlaceholder": "Your +1's name",
     "PlusOneSave": "Save",
-    "PlusOneSaving": "Saving…"
+    "PlusOneSaving": "Saving…",
+    "SeeAttendees": "See who's coming",
+    "AttendeesSubtitle": "Who's coming",
+    "AttendeesLoading": "Loading guests…",
+    "AttendeesError": "Couldn't load the guests.",
+    "AttendeesEmpty": "No one has RSVP'd yet.",
+    "AttendeesCount": "{total} coming · {members} members + {guests} guests",
+    "AttendeesUnnamed": "Unnamed member",
+    "AttendeesDietaryHeading": "Dietary",
+    "AttendeesDietaryNone": "No dietary restrictions noted."
   },
   "ProfilePage": {
     "Title": "Profile",

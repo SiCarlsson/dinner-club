@@ -25,7 +25,16 @@
     "PlusOneNameLabel": "Namn",
     "PlusOneNamePlaceholder": "Namn på din +1",
     "PlusOneSave": "Spara",
-    "PlusOneSaving": "Sparar…"
+    "PlusOneSaving": "Sparar…",
+    "SeeAttendees": "Se vilka som kommer",
+    "AttendeesSubtitle": "Vilka som kommer",
+    "AttendeesLoading": "Laddar gäster…",
+    "AttendeesError": "Kunde inte ladda gästerna.",
+    "AttendeesEmpty": "Ingen har tackat ja än.",
+    "AttendeesCount": "{total} kommer · {members} medlemmar + {guests} gäster",
+    "AttendeesUnnamed": "Namnlös medlem",
+    "AttendeesDietaryHeading": "Kosthänsyn",
+    "AttendeesDietaryNone": "Inga kosthänsyn angivna."
   },
   "ProfilePage": {
     "Title": "Profil",

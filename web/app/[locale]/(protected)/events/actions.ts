@@ -126,3 +126,74 @@ export async function setRsvpPlusOne(eventId: string, hasPlusOne: boolean, plusO
   revalidatePath("/events");
   return { success: true as const, message: "Plus-one saved" };
 }
+
+export type AttendeeSummary = {
+  attendees: { name: string | null; plusOneName: string | null }[];
+  memberCount: number;
+  guestCount: number;
+  totalCount: number;
+  dietary: { option: string; count: number }[];
+};
+
+export async function getEventAttendees(eventId: string) {
+  const { supabase, user } = await getCurrentUser();
+
+  if (!user) {
+    return { success: false as const, message: "Not authenticated" };
+  }
+
+  const { data: rsvps, error } = await supabase
+    .from("rsvps")
+    .select("user_id, has_plus_one, plus_one_name")
+    .eq("event_id", eventId)
+    .eq("status", "attending");
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  const userIds = rsvps.map((rsvp) => rsvp.user_id);
+
+  const { data: profiles, error: profilesError } = userIds.length
+    ? await supabase
+        .from("profiles")
+        .select("id, full_name, dietary_restrictions")
+        .in("id", userIds)
+    : { data: [], error: null };
+
+  if (profilesError) {
+    return { success: false as const, message: profilesError.message };
+  }
+
+  const profileById = new Map((profiles ?? []).map((profile) => [profile.id, profile]));
+
+  const attendees = rsvps
+    .map((rsvp) => ({
+      name: profileById.get(rsvp.user_id)?.full_name ?? null,
+      plusOneName: rsvp.has_plus_one ? rsvp.plus_one_name : null,
+    }))
+    .sort((a, b) => (a.name ?? "").localeCompare(b.name ?? ""));
+
+  const dietaryCounts = new Map<string, number>();
+  for (const rsvp of rsvps) {
+    for (const slug of profileById.get(rsvp.user_id)?.dietary_restrictions ?? []) {
+      dietaryCounts.set(slug, (dietaryCounts.get(slug) ?? 0) + 1);
+    }
+  }
+  const dietary = [...dietaryCounts.entries()]
+    .map(([option, count]) => ({ option, count }))
+    .sort((a, b) => b.count - a.count || a.option.localeCompare(b.option));
+
+  const guestCount = rsvps.filter((rsvp) => rsvp.has_plus_one).length;
+
+  return {
+    success: true as const,
+    summary: {
+      attendees,
+      memberCount: rsvps.length,
+      guestCount,
+      totalCount: rsvps.length + guestCount,
+      dietary,
+    } satisfies AttendeeSummary,
+  };
+}

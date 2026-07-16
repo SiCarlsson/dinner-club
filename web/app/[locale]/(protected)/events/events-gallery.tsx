@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { AttendeesDialog } from "./attendees-dialog";
 import { rsvpToEvent, setRsvpPlusOne, type GalleryEvent, type RsvpStatus } from "./actions";
 
 const DATE_FNS_LOCALES = { en: enUS, sv } as const;
@@ -38,8 +39,9 @@ function formatGridLabel(dateString: string, locale: DateFnsLocale) {
   return `${day} · ${format(date, "HH:mm")}`.toUpperCase();
 }
 
-// The hero Attend / Decline pair, plus a +1 popover shown only once attending.
-function HeroRsvp({
+// The Attend / Decline pair, plus a +1 popover shown only once attending. Used on
+// the hero and inside each upcoming dinner's dialog.
+function RsvpControls({
   eventId,
   status,
   hasPlusOne: initialHasPlusOne,
@@ -215,7 +217,7 @@ export function EventsGallery({ events }: { events: GalleryEvent[] }) {
         {next.description && (
           <p className="text-body max-w-[46ch] text-[13.5px] leading-[1.7]">{next.description}</p>
         )}
-        <HeroRsvp
+        <RsvpControls
           eventId={next.id}
           status={next.myRsvpStatus}
           hasPlusOne={next.myHasPlusOne}
@@ -226,6 +228,18 @@ export function EventsGallery({ events }: { events: GalleryEvent[] }) {
           <span aria-hidden="true">·</span>
           <span>{venueLabel(next)}</span>
         </p>
+        <AttendeesDialog
+          eventId={next.id}
+          eventName={next.name}
+          trigger={
+            <Button
+              variant="link"
+              className="text-muted-foreground hover:text-foreground h-auto p-0 text-[11px] tracking-[.08em] uppercase hover:no-underline"
+            >
+              {t("SeeAttendees")}
+            </Button>
+          }
+        />
       </section>
 
       {upcoming.length > 0 && (
@@ -235,14 +249,35 @@ export function EventsGallery({ events }: { events: GalleryEvent[] }) {
               <li
                 key={event.id}
                 className={
-                  "border-border flex flex-col gap-2 border-t py-4 first:border-t-0 first:pt-0 sm:border-t-0 sm:border-l sm:px-6 sm:py-0 sm:first:border-l-0 sm:first:pl-0 sm:last:pr-0"
+                  "border-border border-t py-4 first:border-t-0 first:pt-0 sm:border-t-0 sm:border-l sm:px-6 sm:py-0 sm:first:border-l-0 sm:first:pl-0 sm:last:pr-0"
                 }
               >
-                <p className="text-muted-foreground text-[10px] tracking-[.24em] uppercase">
-                  {formatGridLabel(event.event_date, dateFnsLocale)}
-                </p>
-                <p className="font-serif text-[26px] leading-[1.05]">{event.name}</p>
-                <p className="text-muted-foreground text-[11.5px]">{venueLabel(event)}</p>
+                <AttendeesDialog
+                  eventId={event.id}
+                  eventName={event.name}
+                  description={event.description}
+                  rsvpControls={
+                    <RsvpControls
+                      eventId={event.id}
+                      status={event.myRsvpStatus}
+                      hasPlusOne={event.myHasPlusOne}
+                      plusOneName={event.myPlusOneName}
+                    />
+                  }
+                  trigger={
+                    <button type="button" className="group flex w-full flex-col gap-2 text-left">
+                      <span className="text-muted-foreground text-[10px] tracking-[.24em] uppercase">
+                        {formatGridLabel(event.event_date, dateFnsLocale)}
+                      </span>
+                      <span className="group-hover:text-accent font-serif text-[26px] leading-[1.05] transition-colors">
+                        {event.name}
+                      </span>
+                      <span className="text-muted-foreground text-[11.5px]">
+                        {venueLabel(event)}
+                      </span>
+                    </button>
+                  }
+                />
               </li>
             ))}
           </ul>

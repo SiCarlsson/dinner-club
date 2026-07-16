@@ -19,15 +19,23 @@ ALTER TABLE public.rsvps ENABLE ROW LEVEL SECURITY;
 
 GRANT SELECT, INSERT, UPDATE, DELETE ON public.rsvps TO authenticated;
 
-CREATE POLICY "Users see their own RSVPs, admins and co-hosts see all for their events"
+CREATE POLICY "Users see RSVPs for events visible to them"
 ON public.rsvps FOR SELECT
 TO authenticated
 USING (
   auth.uid() = user_id
   OR
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
-  OR
-  auth.uid() = (SELECT co_host_id FROM public.events WHERE id = event_id)
+  EXISTS (
+    SELECT 1 FROM public.events e
+    WHERE e.id = event_id
+    AND (
+      e.visibility = 'published'
+      OR
+      (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+      OR
+      auth.uid() = e.co_host_id
+    )
+  )
 );
 
 CREATE POLICY "Users can insert their own RSVPs for events visible to them"

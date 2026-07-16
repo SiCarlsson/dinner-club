@@ -7,11 +7,12 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { EventsGallery } from "./events-gallery";
-import { rsvpToEvent, setRsvpPlusOne, type GalleryEvent } from "./actions";
+import { rsvpToEvent, setRsvpPlusOne, getEventAttendees, type GalleryEvent } from "./actions";
 
 vi.mock("./actions", () => ({
   rsvpToEvent: vi.fn(),
   setRsvpPlusOne: vi.fn(),
+  getEventAttendees: vi.fn(),
 }));
 
 function venue(name: string): GalleryEvent["venue"] {
@@ -45,6 +46,10 @@ describe("EventsGallery Component", () => {
     vi.clearAllMocks();
     vi.mocked(rsvpToEvent).mockResolvedValue({ success: true, message: "RSVP saved" });
     vi.mocked(setRsvpPlusOne).mockResolvedValue({ success: true, message: "Plus-one saved" });
+    vi.mocked(getEventAttendees).mockResolvedValue({
+      success: true,
+      summary: { attendees: [], memberCount: 0, guestCount: 0, totalCount: 0, dietary: [] },
+    });
   });
 
   it("shows the empty state when there are no events", () => {
@@ -171,6 +176,28 @@ describe("EventsGallery Component", () => {
     await user.click(screen.getByRole("button", { name: messages.EventsPage.Attend }));
 
     expect(rsvpToEvent).not.toHaveBeenCalled();
+  });
+
+  it("opens an upcoming dinner's dialog with its description and RSVP controls", async () => {
+    const user = userEvent.setup();
+    renderGallery([
+      event({ id: "1", name: "Hero Dinner" }),
+      event({
+        id: "2",
+        name: "Second Dinner",
+        description: "A cosy autumn supper.",
+        event_date: "2026-09-12T18:00:00.000Z",
+      }),
+    ]);
+
+    await user.click(screen.getByRole("button", { name: /Second Dinner/ }));
+
+    // Scope to the dialog: while it's open the modal marks the page behind it inert,
+    // so the hero's own description/RSVP fall out of the accessibility tree.
+    const dialog = within(await screen.findByRole("dialog"));
+    expect(dialog.getByText("A cosy autumn supper.")).toBeInTheDocument();
+    expect(dialog.getByRole("button", { name: messages.EventsPage.Attend })).toBeInTheDocument();
+    expect(dialog.getByRole("button", { name: messages.EventsPage.Decline })).toBeInTheDocument();
   });
 
   it("hides the +1 button until the member is attending", async () => {
