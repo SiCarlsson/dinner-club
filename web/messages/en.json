@@ -5,11 +5,39 @@
     "Login": "Log in",
     "Profile": "Profile",
     "Logout": "Log out",
-    "Menu": "Menu"
+    "Menu": "Menu",
+    "PastDinners": "Past dinners"
   },
-  "HomePage": {
-    "Authenticated": "Logged in as:",
-    "Unauthenticated": "You are not logged in."
+  "LandingPage": {
+    "Eyebrow": "Dinner club · since 2026",
+    "TitleLead": "We try",
+    "TitleEmphasis": "new restaurants",
+    "Intro": "CaLí is a dinner club that gathers the most curious food lovers to discover restaurants together.",
+    "Apply": "Apply for a seat",
+    "Member": "I'm a member",
+    "Tenets": {
+      "One": {
+        "Title": "New restaurants",
+        "Body": "We pick among the latest openings and most talked-about kitchens."
+      },
+      "Two": {
+        "Title": "Good company",
+        "Body": "Curious food lovers around one table. Come alone or bring a +1, the company changes from time to time."
+      },
+      "Three": {
+        "Title": "Shared ratings",
+        "Body": "After every visit we rate the food and drink together."
+      }
+    },
+    "Ratings": {
+      "Label": "Places we've rated together",
+      "Places": {
+        "One": { "Name": "Ekstedt", "Score": "4.9" },
+        "Two": { "Name": "Punkt", "Score": "4.6" },
+        "Three": { "Name": "Lilla Ego", "Score": "4.4" }
+      }
+    },
+    "Footer": "By invitation only."
   },
   "EventsPage": {
     "Title": "Dinners",

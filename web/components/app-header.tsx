@@ -44,6 +44,9 @@ export async function AppHeader() {
             >
               {t("Dinners")}
             </Link>
+            <span className="text-muted-foreground hidden text-[12px] tracking-[.06em] uppercase sm:inline-flex">
+              {t("PastDinners")}
+            </span>
             <Link
               href="/profile"
               className="text-muted-foreground hover:text-foreground hidden text-[12px] tracking-[.06em] uppercase transition-colors sm:inline-flex"
@@ -54,12 +57,17 @@ export async function AppHeader() {
             <AppHeaderMenu isAdmin={isAdmin} />
           </div>
         ) : (
-          <Link
-            href="/login"
-            className="text-muted-foreground hover:text-foreground shrink-0 text-[12px] tracking-[.06em] uppercase transition-colors"
-          >
-            {t("Login")}
-          </Link>
+          <nav className="flex shrink-0 items-center gap-6 sm:gap-7">
+            <span className="text-muted-foreground hidden text-[12px] tracking-[.06em] uppercase sm:inline">
+              {t("PastDinners")}
+            </span>
+            <Link
+              href="/login"
+              className="border-foreground/25 hover:border-foreground border px-[18px] py-[8px] text-[12px] tracking-[.06em] uppercase transition-colors"
+            >
+              {t("Login")}
+            </Link>
+          </nav>
         )}
       </div>
     </header>

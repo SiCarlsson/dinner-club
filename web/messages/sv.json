@@ -5,11 +5,39 @@
     "Login": "Logga in",
     "Profile": "Profil",
     "Logout": "Logga ut",
-    "Menu": "Meny"
+    "Menu": "Meny",
+    "PastDinners": "Tidigare middagar"
   },
-  "HomePage": {
-    "Authenticated": "Inloggad som:",
-    "Unauthenticated": "Du är inte inloggad."
+  "LandingPage": {
+    "Eyebrow": "Middagsklubb · sedan 2026",
+    "TitleLead": "Vi provar",
+    "TitleEmphasis": "nya restauranger",
+    "Intro": "CaLí är en middagsklubb som samlar de mest matnyfikna för att upptäcka nya restauranger tillsammans.",
+    "Apply": "Ansök om en plats",
+    "Member": "Jag är medlem",
+    "Tenets": {
+      "One": {
+        "Title": "Nya restauranger",
+        "Body": "Vi väljer ut de mest omtalade köken och försöker alltid att hitta ställen vi ännu inte besökt."
+      },
+      "Two": {
+        "Title": "Gott sällskap",
+        "Body": "Nyfikna matvänner runt samma bord. Sällskapet byts från gång till gång: kom själv eller ta med en +1."
+      },
+      "Three": {
+        "Title": "Gemensamma betyg",
+        "Body": "Efter varje besök betygsätter vi mat och dryck tillsammans. Resultaten bidrar till vår egen matguide."
+      }
+    },
+    "Ratings": {
+      "Label": "Ställen vi betygsatt tillsammans",
+      "Places": {
+        "One": { "Name": "Ekstedt", "Score": "4,9" },
+        "Two": { "Name": "Punkt", "Score": "4,6" },
+        "Three": { "Name": "Lilla Ego", "Score": "4,4" }
+      }
+    },
+    "Footer": "Inbjudan krävs för medlemskap."
   },
   "EventsPage": {
     "Title": "Middagar",
