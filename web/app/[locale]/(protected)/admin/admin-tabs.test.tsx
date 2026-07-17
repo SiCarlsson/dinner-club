@@ -4,7 +4,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AdminTabs } from "./admin-tabs";
-import type { EventRecord, ProfileRecord, VenueRecord } from "./actions";
+import type { EventRecord, InvitationRecord, ProfileRecord, VenueRecord } from "./actions";
 
 vi.mock("./events-admin", () => ({
   EventsAdmin: vi.fn(({ events, venues, profiles }) => (
@@ -34,6 +34,9 @@ const EVENTS: EventRecord[] = [
 ];
 const VENUES: VenueRecord[] = [{ id: "v1", name: "Café Norr" }];
 const PROFILES: ProfileRecord[] = [{ id: "p1", full_name: "Alex Smith" }];
+const INVITATIONS: InvitationRecord[] = [
+  { id: "i1", email: "anna@example.com", created_at: "2026-07-01T10:00:00.000Z" },
+];
 
 function renderAdminTabs() {
   return render(
@@ -41,6 +44,7 @@ function renderAdminTabs() {
       events={EVENTS}
       venues={VENUES}
       profiles={PROFILES}
+      invitations={INVITATIONS}
       tabLabels={{ events: "Events", whitelist: "Whitelist" }}
     />,
   );

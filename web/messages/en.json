@@ -132,6 +132,11 @@
       "Title": "Check your email",
       "Description1": "We sent a login link to",
       "Description2": "Click it to sign in."
+    },
+    "NotMember": {
+      "Title": "You're not a member",
+      "Description": "The email <email></email> isn't on our invite list. Contact a host if you think this is a mistake.",
+      "TryAgain": "Use a different email"
     }
   },
   "AdminPage": {
@@ -213,7 +218,10 @@
       "AddButton": "Add",
       "Empty": "No email addresses whitelisted yet.",
       "AddedAtLabel": "Added:",
-      "DeleteButton": "Remove"
+      "DeleteButton": "Remove",
+      "DeleteConfirmTitle": "Remove invitation?",
+      "DeleteConfirm": "Are you sure you want to delete <bold>{email}</bold>? They will lose access to log in.",
+      "CancelButton": "Cancel"
     }
   }
 }

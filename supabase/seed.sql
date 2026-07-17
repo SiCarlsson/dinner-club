@@ -95,6 +95,21 @@ values
   )
 on conflict (id) do nothing;
 
+-- Whitelist every seeded email first: the enforce_invitation trigger on auth.users
+-- rejects any signup whose email is not in public.invitations, so these must exist
+-- before the inserts below (migrations, including that trigger, run before this seed).
+insert into public.invitations (email)
+values
+  ('astrid@dinnerclub.test'),
+  ('bjorn@dinnerclub.test'),
+  ('cecilia@dinnerclub.test'),
+  ('david@dinnerclub.test'),
+  ('elin@dinnerclub.test'),
+  ('fredrik@dinnerclub.test'),
+  ('greta@dinnerclub.test'),
+  ('henrik@dinnerclub.test')
+on conflict (email) do nothing;
+
 -- Members. Inserting into auth.users fires the on_auth_user_created trigger, which
 -- creates a bare profiles row (id only); we fill in name/role/diet just below.
 insert into auth.users (
@@ -256,6 +271,13 @@ on conflict (event_id, user_id) do nothing;
 -- the attendee dialog can be checked with a long, scrolling guest list. Generated
 -- with deterministic d… UUIDs. The trigger only copies the id, so names/diet are
 -- filled in by the UPDATE below.
+
+-- Whitelist the guest emails before their auth.users rows (see note above the members).
+insert into public.invitations (email)
+select 'guest' || n || '@dinnerclub.test'
+from generate_series(1, 22) as n
+on conflict (email) do nothing;
+
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
   created_at, updated_at, raw_app_meta_data, raw_user_meta_data,

@@ -8,14 +8,28 @@ import { Label } from "@/components/ui/label";
 import { createClient } from "@/utils/supabase/client";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
+import { checkInvitation } from "./actions";
 
 export default function Login() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error">("idle");
+  const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error" | "not-invited">(
+    "idle",
+  );
   const supabase = useMemo(() => createClient(), []);
 
   const handleLogin = async () => {
     setStatus("loading");
+
+    const invitation = await checkInvitation(email);
+    if ("error" in invitation) {
+      setStatus("error");
+      return;
+    }
+    if (!invitation.invited) {
+      setStatus("not-invited");
+      return;
+    }
+
     const { error } = await supabase.auth.signInWithOtp({
       email,
       options: {
@@ -48,6 +62,24 @@ export default function Login() {
                 {t("LinkSent.Description2")}
               </p>
             </div>
+          </>
+        ) : status === "not-invited" ? (
+          <>
+            <div className="flex flex-col gap-3">
+              <h1 className={"font-serif text-[34px] font-light"}>{t("NotMember.Title")}</h1>
+              <p className="text-foreground/80 max-w-[38ch] text-[13px] leading-[1.6]">
+                {t.rich("NotMember.Description", {
+                  email: () => <span className="text-foreground">{email}</span>,
+                })}
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setStatus("idle")}
+              className="text-muted-foreground hover:text-foreground text-[12px] tracking-[.08em] uppercase transition-colors"
+            >
+              {t("NotMember.TryAgain")}
+            </button>
           </>
         ) : (
           <>

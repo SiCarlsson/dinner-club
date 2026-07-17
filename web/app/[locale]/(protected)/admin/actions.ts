@@ -194,3 +194,72 @@ export async function deleteEvent(id: string) {
   revalidatePath("/admin");
   return { success: true, message: "Event deleted" };
 }
+
+export type InvitationRecord = {
+  id: string;
+  email: string;
+  created_at: string;
+};
+
+export async function getInvitations() {
+  const { supabase, user, role } = await getUserWithRole();
+
+  if (!user || role !== "admin") {
+    return { success: false as const, message: "Not authorized" };
+  }
+
+  const { data, error } = await supabase
+    .from("invitations")
+    .select("id, email, created_at")
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  return { success: true as const, invitations: data as InvitationRecord[] };
+}
+
+export async function addInvitation(email: string) {
+  const { supabase, user, role } = await getUserWithRole();
+
+  if (!user || role !== "admin") {
+    return { success: false as const, message: "Not authorized" };
+  }
+
+  const normalized = email.trim().toLowerCase();
+
+  if (!normalized) {
+    return { success: false as const, message: "Email required" };
+  }
+
+  const { data, error } = await supabase
+    .from("invitations")
+    .insert({ email: normalized, invited_by: user.id })
+    .select("id, email, created_at")
+    .single();
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  revalidatePath("/admin");
+  return { success: true as const, invitation: data as InvitationRecord };
+}
+
+export async function removeInvitation(id: string) {
+  const { supabase, user, role } = await getUserWithRole();
+
+  if (!user || role !== "admin") {
+    return { success: false as const, message: "Not authorized" };
+  }
+
+  const { error } = await supabase.from("invitations").delete().eq("id", id);
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  revalidatePath("/admin");
+  return { success: true as const };
+}

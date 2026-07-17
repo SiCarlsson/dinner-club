@@ -431,4 +431,192 @@ describe("admin actions", () => {
       expect(result).toEqual({ success: false, message: "Not authorized" });
     });
   });
+
+  describe("getInvitations", () => {
+    it("rejects when there is no authenticated user", async () => {
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: mockSupabase() as never,
+        user: null,
+        role: null,
+      });
+
+      const { getInvitations } = await import("./actions");
+      const result = await getInvitations();
+
+      expect(result).toEqual({ success: false, message: "Not authorized" });
+    });
+
+    it("rejects when the user is not an admin", async () => {
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: mockSupabase() as never,
+        user: { id: "user-1" } as never,
+        role: "member",
+      });
+
+      const { getInvitations } = await import("./actions");
+      const result = await getInvitations();
+
+      expect(result).toEqual({ success: false, message: "Not authorized" });
+    });
+
+    it("returns invitations ordered by created_at descending for an admin", async () => {
+      const supabase = mockSupabase();
+      const rows = [
+        { id: "2", email: "b@example.com", created_at: "2026-07-05T00:00:00.000Z" },
+        { id: "1", email: "a@example.com", created_at: "2026-07-01T00:00:00.000Z" },
+      ];
+      supabase.order.mockResolvedValue({ data: rows, error: null });
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "admin-1" } as never,
+        role: "admin",
+      });
+
+      const { getInvitations } = await import("./actions");
+      const result = await getInvitations();
+
+      expect(supabase.from).toHaveBeenCalledWith("invitations");
+      expect(supabase.order).toHaveBeenCalledWith("created_at", { ascending: false });
+      expect(result).toEqual({ success: true, invitations: rows });
+    });
+
+    it("returns an error message when the query fails", async () => {
+      const supabase = mockSupabase();
+      supabase.order.mockResolvedValue({ data: null, error: { message: "db down" } });
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "admin-1" } as never,
+        role: "admin",
+      });
+
+      const { getInvitations } = await import("./actions");
+      const result = await getInvitations();
+
+      expect(result).toEqual({ success: false, message: "db down" });
+    });
+  });
+
+  describe("addInvitation", () => {
+    it("rejects when the user is not an admin", async () => {
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: mockSupabase() as never,
+        user: { id: "user-1" } as never,
+        role: "member",
+      });
+
+      const { addInvitation } = await import("./actions");
+      const result = await addInvitation("new@example.com");
+
+      expect(result).toEqual({ success: false, message: "Not authorized" });
+    });
+
+    it("returns 'Email required' for a blank email", async () => {
+      const supabase = mockSupabase();
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "admin-1" } as never,
+        role: "admin",
+      });
+
+      const { addInvitation } = await import("./actions");
+      const result = await addInvitation("   ");
+
+      expect(result).toEqual({ success: false, message: "Email required" });
+      expect(supabase.insert).not.toHaveBeenCalled();
+    });
+
+    it("normalizes the email, records the inviter, and returns the invitation", async () => {
+      const supabase = mockSupabase();
+      const invitation = {
+        id: "inv-1",
+        email: "henrik@example.com",
+        created_at: "2026-07-17T00:00:00.000Z",
+      };
+      supabase.single.mockResolvedValue({ data: invitation, error: null });
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "admin-1" } as never,
+        role: "admin",
+      });
+
+      const { addInvitation } = await import("./actions");
+      const result = await addInvitation("  Henrik@Example.COM ");
+
+      expect(supabase.from).toHaveBeenCalledWith("invitations");
+      expect(supabase.insert).toHaveBeenCalledWith({
+        email: "henrik@example.com",
+        invited_by: "admin-1",
+      });
+      expect(result).toEqual({ success: true, invitation });
+    });
+
+    it("returns an error message when the insert fails", async () => {
+      const supabase = mockSupabase();
+      supabase.single.mockResolvedValue({
+        data: null,
+        error: { message: "duplicate key value violates unique constraint" },
+      });
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "admin-1" } as never,
+        role: "admin",
+      });
+
+      const { addInvitation } = await import("./actions");
+      const result = await addInvitation("dupe@example.com");
+
+      expect(result).toEqual({
+        success: false,
+        message: "duplicate key value violates unique constraint",
+      });
+    });
+  });
+
+  describe("removeInvitation", () => {
+    it("rejects when the user is not an admin", async () => {
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: mockSupabase() as never,
+        user: { id: "user-1" } as never,
+        role: "member",
+      });
+
+      const { removeInvitation } = await import("./actions");
+      const result = await removeInvitation("inv-1");
+
+      expect(result).toEqual({ success: false, message: "Not authorized" });
+    });
+
+    it("deletes the invitation by id for an admin", async () => {
+      const supabase = mockSupabase();
+      supabase.eq.mockResolvedValue({ error: null });
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "admin-1" } as never,
+        role: "admin",
+      });
+
+      const { removeInvitation } = await import("./actions");
+      const result = await removeInvitation("inv-1");
+
+      expect(supabase.from).toHaveBeenCalledWith("invitations");
+      expect(supabase.delete).toHaveBeenCalled();
+      expect(supabase.eq).toHaveBeenCalledWith("id", "inv-1");
+      expect(result).toEqual({ success: true });
+    });
+
+    it("returns an error message when the delete fails", async () => {
+      const supabase = mockSupabase();
+      supabase.eq.mockResolvedValue({ error: { message: "delete failed" } });
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "admin-1" } as never,
+        role: "admin",
+      });
+
+      const { removeInvitation } = await import("./actions");
+      const result = await removeInvitation("inv-1");
+
+      expect(result).toEqual({ success: false, message: "delete failed" });
+    });
+  });
 });

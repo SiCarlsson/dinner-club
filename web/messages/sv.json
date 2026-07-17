@@ -132,6 +132,11 @@
       "Title": "Kolla din epost",
       "Description1": "Epost har skickats till",
       "Description2": "Använd länken där för att logga in."
+    },
+    "NotMember": {
+      "Title": "Du är inte medlem",
+      "Description": "E-postadressen <email></email> finns inte bland våra inbjudna. Kontakta en arrangör om du tror att det är fel.",
+      "TryAgain": "Använd en annan adress"
     }
   },
   "AdminPage": {
@@ -213,7 +218,10 @@
       "AddButton": "Lägg till",
       "Empty": "Inga e-postadresser tillagda än.",
       "AddedAtLabel": "Tillagd:",
-      "DeleteButton": "Ta bort"
+      "DeleteButton": "Ta bort",
+      "DeleteConfirmTitle": "Ta bort inbjudan?",
+      "DeleteConfirm": "Är du säker på att du vill ta bort <bold>{email}</bold>? Personen förlorar åtkomst till att logga in.",
+      "CancelButton": "Avbryt"
     }
   }
 }

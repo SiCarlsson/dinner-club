@@ -5,7 +5,7 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import mockSv from "@/messages/sv.json";
 import { createClient } from "@/utils/supabase/server";
-import { getEvents, getVenues, getProfiles } from "./actions";
+import { getEvents, getVenues, getProfiles, getInvitations } from "./actions";
 
 vi.mock("@/utils/supabase/server", () => ({
   createClient: vi.fn(),
@@ -15,6 +15,7 @@ vi.mock("./actions", () => ({
   getEvents: vi.fn(),
   getVenues: vi.fn(),
   getProfiles: vi.fn(),
+  getInvitations: vi.fn(),
 }));
 
 vi.mock("./events-admin", () => ({
@@ -61,6 +62,7 @@ describe("Admin Server Page", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(getInvitations).mockResolvedValue({ success: true, invitations: [] });
     vi.mocked(createClient).mockResolvedValue({
       auth: { getUser: mockGetUser },
       from: mockFrom,

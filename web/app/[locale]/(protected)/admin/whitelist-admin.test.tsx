@@ -2,14 +2,29 @@
 
 import messages from "@/messages/en.json";
 import { NextIntlClientProvider } from "next-intl";
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { WhitelistAdmin } from "./whitelist-admin";
+import type { InvitationRecord } from "./actions";
 
-function renderWhitelistAdmin() {
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: vi.fn() }),
+}));
+
+vi.mock("./actions", () => ({
+  addInvitation: vi.fn(),
+  removeInvitation: vi.fn(),
+}));
+
+const INVITATIONS: InvitationRecord[] = [
+  { id: "1", email: "anna@example.com", created_at: "2026-07-01T10:00:00.000Z" },
+  { id: "2", email: "erik@example.com", created_at: "2026-07-05T10:00:00.000Z" },
+];
+
+function renderWhitelistAdmin(invitations: InvitationRecord[] = INVITATIONS) {
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
-      <WhitelistAdmin />
+      <WhitelistAdmin invitations={invitations} />
     </NextIntlClientProvider>,
   );
 }
@@ -33,7 +48,7 @@ describe("WhitelistAdmin Component", () => {
     ).toBeInTheDocument();
   });
 
-  it("renders the mock whitelist entries with their added-at labels", () => {
+  it("renders the invitations with their added-at labels and delete buttons", () => {
     renderWhitelistAdmin();
 
     expect(screen.getByText("anna@example.com")).toBeInTheDocument();
@@ -44,5 +59,11 @@ describe("WhitelistAdmin Component", () => {
     expect(
       screen.getAllByRole("button", { name: messages.AdminPage.Whitelist.DeleteButton }).length,
     ).toBe(2);
+  });
+
+  it("shows the empty state when there are no invitations", () => {
+    renderWhitelistAdmin([]);
+
+    expect(screen.getByText(messages.AdminPage.Whitelist.Empty)).toBeInTheDocument();
   });
 });

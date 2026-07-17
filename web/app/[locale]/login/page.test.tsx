@@ -16,6 +16,12 @@ vi.mock("@/utils/supabase/client", () => ({
   }),
 }));
 
+vi.mock("./actions", () => ({
+  checkInvitation: vi.fn(),
+}));
+
+import { checkInvitation } from "./actions";
+
 function renderLogin() {
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
@@ -27,6 +33,7 @@ function renderLogin() {
 describe("Login page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.mocked(checkInvitation).mockResolvedValue({ invited: true });
   });
 
   it("calls signInWithOtp with the correct email and redirect url", async () => {
@@ -54,6 +61,18 @@ describe("Login page", () => {
     await user.click(screen.getByRole("button", { name: /send login link/i }));
 
     expect(await screen.findByText(/check your email/i)).toBeInTheDocument();
+  });
+
+  it("tells uninvited users they are not a member and does not request a link", async () => {
+    vi.mocked(checkInvitation).mockResolvedValue({ invited: false });
+    const user = userEvent.setup();
+
+    renderLogin();
+    await user.type(screen.getByRole("textbox"), "stranger@example.com");
+    await user.click(screen.getByRole("button", { name: /send login link/i }));
+
+    expect(await screen.findByText(/not a member/i)).toBeInTheDocument();
+    expect(signInWithOtpMock).not.toHaveBeenCalled();
   });
 
   it("does NOT show the confirmation message if Supabase returns an error", async () => {
