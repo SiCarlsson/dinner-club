@@ -34,7 +34,7 @@ export async function getEvents() {
   const { data, error } = await supabase
     .from("events")
     .select("id, name, event_date, description, visibility, co_host_id, venue:venues(id, name)")
-    .order("event_date", { ascending: true });
+    .order("event_date", { ascending: false });
 
   if (error) {
     return { success: false as const, message: error.message };

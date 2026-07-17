@@ -22,7 +22,7 @@ function formatEventDate(
   locale: (typeof DATE_FNS_LOCALES)[keyof typeof DATE_FNS_LOCALES],
 ) {
   const date = new Date(dateString);
-  return `${format(date, "d MMM", { locale })} · ${format(date, "HH:mm")}`.toLowerCase();
+  return `${format(date, "d MMM yyyy", { locale })} · ${format(date, "HH:mm")}`.toLowerCase();
 }
 
 function StatusBadge({ visibility }: { visibility: EventRecord["visibility"] }) {
