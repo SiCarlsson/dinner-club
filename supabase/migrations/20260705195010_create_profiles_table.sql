@@ -13,14 +13,14 @@ ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
 GRANT SELECT, INSERT, UPDATE ON public.profiles TO authenticated;
 
-CREATE POLICY "Users can insert their own profile" 
-ON public.profiles FOR INSERT 
-WITH CHECK (auth.uid() = id);
+CREATE POLICY "Users can insert their own profile"
+ON public.profiles FOR INSERT
+WITH CHECK ((select auth.uid()) = id);
 
 CREATE POLICY "Users can see all profiles" 
 ON public.profiles FOR SELECT 
 USING (true);
 
-CREATE POLICY "Users can update their own profile" 
-ON public.profiles FOR UPDATE 
-USING (auth.uid() = id);
+CREATE POLICY "Users can update their own profile"
+ON public.profiles FOR UPDATE
+USING ((select auth.uid()) = id);

@@ -23,12 +23,12 @@ USING (true);
 
 CREATE POLICY "Only admins can insert venues" 
 ON public.venues FOR INSERT 
-WITH CHECK ((SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin');
+WITH CHECK ((SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin');
 
 CREATE POLICY "Only admins can update venues" 
 ON public.venues FOR UPDATE 
-USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin');
+USING ((SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin');
 
 CREATE POLICY "Only admins can delete venues" 
 ON public.venues FOR DELETE 
-USING ((SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin');
+USING ((SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin');

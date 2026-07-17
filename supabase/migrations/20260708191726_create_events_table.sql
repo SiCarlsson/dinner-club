@@ -26,32 +26,32 @@ TO authenticated
 USING (
   visibility = 'published' 
   OR 
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
   OR 
-  auth.uid() = co_host_id
+  (select auth.uid()) = co_host_id
 );
 
-CREATE POLICY "Only admins can insert events" 
+CREATE POLICY "Only admins can insert events"
 ON public.events FOR INSERT 
 TO authenticated
 WITH CHECK (
-  auth.uid() = created_by 
+  (select auth.uid()) = created_by
   AND 
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
 );
 
 CREATE POLICY "Admins or co-hosts can update events" 
 ON public.events FOR UPDATE 
 TO authenticated
 USING (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
   OR
-  auth.uid() = co_host_id
+  (select auth.uid()) = co_host_id
 );
 
-CREATE POLICY "Admins can delete events" 
+CREATE POLICY "Admins can delete events"
 ON public.events FOR DELETE 
 TO authenticated
 USING (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
 );

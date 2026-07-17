@@ -30,9 +30,9 @@ USING (
     AND (
       e.visibility = 'published'
       OR
-      (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+      (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
       OR
-      auth.uid() = e.co_host_id
+      (select auth.uid()) = e.co_host_id
     )
   )
 );
@@ -41,7 +41,7 @@ CREATE POLICY "Attendees can rate events after they have happened"
 ON public.ratings FOR INSERT
 TO authenticated
 WITH CHECK (
-  auth.uid() = user_id
+  (select auth.uid()) = user_id
   AND
   EXISTS (
     SELECT 1 FROM public.events e
@@ -52,7 +52,7 @@ WITH CHECK (
   EXISTS (
     SELECT 1 FROM public.rsvps r
     WHERE r.event_id = ratings.event_id
-    AND r.user_id = auth.uid()
+    AND r.user_id = (select auth.uid())
     AND r.status = 'attending'
   )
 );
@@ -60,12 +60,12 @@ WITH CHECK (
 CREATE POLICY "Users can update their own ratings"
 ON public.ratings FOR UPDATE
 TO authenticated
-USING (auth.uid() = user_id)
-WITH CHECK (auth.uid() = user_id);
+USING ((select auth.uid()) = user_id)
+WITH CHECK ((select auth.uid()) = user_id);
 
 CREATE POLICY "Only admins can delete ratings"
 ON public.ratings FOR DELETE
 TO authenticated
 USING (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
 );

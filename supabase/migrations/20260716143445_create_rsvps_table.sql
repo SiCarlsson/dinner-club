@@ -23,7 +23,7 @@ CREATE POLICY "Users see RSVPs for events visible to them"
 ON public.rsvps FOR SELECT
 TO authenticated
 USING (
-  auth.uid() = user_id
+  (select auth.uid()) = user_id
   OR
   EXISTS (
     SELECT 1 FROM public.events e
@@ -31,9 +31,9 @@ USING (
     AND (
       e.visibility = 'published'
       OR
-      (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+      (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
       OR
-      auth.uid() = e.co_host_id
+      (select auth.uid()) = e.co_host_id
     )
   )
 );
@@ -42,7 +42,7 @@ CREATE POLICY "Users can insert their own RSVPs for events visible to them"
 ON public.rsvps FOR INSERT
 TO authenticated
 WITH CHECK (
-  auth.uid() = user_id
+  (select auth.uid()) = user_id
   AND
   EXISTS (
     SELECT 1 FROM public.events e
@@ -50,9 +50,9 @@ WITH CHECK (
     AND (
       e.visibility = 'published'
       OR
-      (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+      (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
       OR
-      auth.uid() = e.co_host_id
+      (select auth.uid()) = e.co_host_id
     )
   )
 );
@@ -60,9 +60,9 @@ WITH CHECK (
 CREATE POLICY "Users can update their own RSVPs for events visible to them"
 ON public.rsvps FOR UPDATE
 TO authenticated
-USING (auth.uid() = user_id)
+USING ((select auth.uid()) = user_id)
 WITH CHECK (
-  auth.uid() = user_id
+  (select auth.uid()) = user_id
   AND
   EXISTS (
     SELECT 1 FROM public.events e
@@ -70,9 +70,9 @@ WITH CHECK (
     AND (
       e.visibility = 'published'
       OR
-      (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+      (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
       OR
-      auth.uid() = e.co_host_id
+      (select auth.uid()) = e.co_host_id
     )
   )
 );
@@ -81,5 +81,5 @@ CREATE POLICY "Only admins can delete RSVPs"
 ON public.rsvps FOR DELETE
 TO authenticated
 USING (
-  (SELECT role FROM public.profiles WHERE id = auth.uid()) = 'admin'
+  (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
 );
