@@ -16,16 +16,14 @@ function mockSupabase({
   error?: { message: string } | null;
 } = {}) {
   const result = { data, error };
-  // The query chains .select().order().order() and is then awaited, so `order`
-  // is both chainable (returns itself) and thenable (resolves to the result).
   const order = vi.fn();
   order.mockReturnValue({
     order,
     then: (resolve: (value: typeof result) => unknown) => Promise.resolve(result).then(resolve),
   });
   const select = vi.fn().mockReturnValue({ order });
-  const from = vi.fn().mockReturnValue({ select });
-  return { from, select, order };
+  const rpc = vi.fn().mockReturnValue({ select });
+  return { rpc, select, order };
 }
 
 describe("getVenueRatings", () => {
@@ -33,7 +31,7 @@ describe("getVenueRatings", () => {
     vi.clearAllMocks();
   });
 
-  it("reads the aggregated view ordered by overall score then rating count", async () => {
+  it("reads the aggregated ratings ordered by overall score then rating count", async () => {
     const venues = [
       {
         venue_id: "v1",
@@ -54,7 +52,7 @@ describe("getVenueRatings", () => {
 
     const result = await getVenueRatings();
 
-    expect(supabase.from).toHaveBeenCalledWith("venue_rating_averages");
+    expect(supabase.rpc).toHaveBeenCalledWith("venue_rating_averages");
     expect(supabase.select).toHaveBeenCalledWith(expect.stringContaining("city"));
     expect(supabase.order).toHaveBeenNthCalledWith(1, "avg_overall", { ascending: false });
     expect(supabase.order).toHaveBeenNthCalledWith(2, "rating_count", { ascending: false });

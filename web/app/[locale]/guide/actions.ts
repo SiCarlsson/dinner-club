@@ -20,7 +20,7 @@ export async function getVenueRatings() {
   const supabase = await createClient();
 
   const { data, error } = await supabase
-    .from("venue_rating_averages")
+    .rpc("venue_rating_averages")
     .select(
       "venue_id, venue_name, avg_overall, avg_drinks, avg_food, avg_venue, rating_count, district, city",
     )
