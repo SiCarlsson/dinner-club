@@ -52,7 +52,7 @@ export default function Login() {
         "font-ui bg-background text-foreground flex flex-1 flex-col px-6 py-8 md:px-10 md:py-10"
       }
     >
-      <div className="flex flex-1 flex-col items-center justify-center gap-8 text-center">
+      <div className="flex flex-1 flex-col items-center justify-center gap-8 pb-[81px] text-center sm:pb-[90px]">
         {status === "sent" ? (
           <>
             <div className="flex flex-col gap-3">
