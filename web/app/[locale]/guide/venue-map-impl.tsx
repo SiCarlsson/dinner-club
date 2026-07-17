@@ -66,20 +66,24 @@ export default function VenueMapImpl({ venues }: { venues: MappableVenue[] }) {
             {venue.address && (
               <p className="text-muted-foreground mt-0.5 text-[11px]">{venue.address}</p>
             )}
-            <dl className="mt-1.5 flex flex-col gap-0.5 text-[11px]">
+            <dl className="mt-1.5 flex flex-col gap-1 text-[11px] leading-none">
               {[
                 { label: t("Drinks"), value: venue.avg_drinks },
                 { label: t("Food"), value: venue.avg_food },
                 { label: t("Venue"), value: venue.avg_venue },
               ].map(({ label, value }) => (
-                <div key={label} className="flex items-center justify-between gap-6">
+                <div key={label} className="flex items-baseline justify-between gap-6">
                   <dt className="text-muted-foreground tracking-[.08em] uppercase">{label}</dt>
-                  <dd className="tabular-nums">{formatScore(value)}</dd>
+                  <dd className="text-muted-foreground font-serif text-[14px] tabular-nums">
+                    {formatScore(value)}
+                  </dd>
                 </div>
               ))}
-              <div className="border-border mt-1 flex items-center justify-between gap-6 border-t pt-1">
+              <div className="border-border mt-1 flex items-baseline justify-between gap-6 border-t pt-1">
                 <dt className="tracking-[.08em] uppercase">{t("Overall")}</dt>
-                <dd className="font-medium tabular-nums">{formatScore(venue.avg_overall)}</dd>
+                <dd className="font-serif text-[16px] font-medium tabular-nums">
+                  {formatScore(venue.avg_overall)}
+                </dd>
               </div>
             </dl>
           </Popup>
