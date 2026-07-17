@@ -244,7 +244,7 @@ otp_expiry = 3600
 # sender_name = "Admin"
 
 [auth.email.template.magic_link]
-subject = "CaLí Dinner Club login link"
+subject = "CaLí Dinner Club - Login link"
 content_path = "./supabase/templates/magic_link.html"
 
 # Uncomment to customize email template
