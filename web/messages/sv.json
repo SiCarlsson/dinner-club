@@ -11,7 +11,7 @@
   "GuidePage": {
     "Title": "Guide",
     "Eyebrow": "Där vi ätit",
-    "Intro": "Varje restaurang klubben besökt, rankad efter hur vi betygsatt den tillsammans. Endast de som deltagit på middagarna får vara med och sätta betyg.",
+    "Intro": "Varje restaurang klubben besökt rankas individuellt mellan 1-5 på mat, dryck och lokal. Endast de som deltagit på middagarna får vara med och sätta betyg och nedan syns de aggregerade resultaten.",
     "Empty": "Inga betygsatta restauranger än.",
     "Restaurant": "Restaurang",
     "Drinks": "Dryck",

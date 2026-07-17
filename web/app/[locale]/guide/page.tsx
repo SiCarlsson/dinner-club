@@ -3,6 +3,7 @@
 import { getTranslations } from "next-intl/server";
 import { getVenueRatings } from "./actions";
 import { GuideLeaderboard } from "./guide-leaderboard";
+import { VenueMap } from "./venue-map";
 
 export default async function Guide() {
   const t = await getTranslations("GuidePage");
@@ -26,7 +27,10 @@ export default async function Guide() {
         {venues.length === 0 ? (
           <p className="text-muted-foreground text-center text-[13px]">{t("Empty")}</p>
         ) : (
-          <GuideLeaderboard venues={venues} />
+          <div className="flex flex-col gap-10 md:gap-[52px]">
+            <VenueMap venues={venues} />
+            <GuideLeaderboard venues={venues} />
+          </div>
         )}
       </section>
     </main>

@@ -43,6 +43,9 @@ const venue = {
   avg_food: 4.2,
   avg_venue: 4.1,
   rating_count: 3,
+  latitude: 59.3405,
+  longitude: 18.0599,
+  address: "Tegnérgatan 41",
   district: "Norrmalm",
   city: "Stockholm",
 };
