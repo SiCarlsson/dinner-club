@@ -146,10 +146,12 @@
       "Whitelist": "Invitations"
     },
     "Events": {
-      "Title": "Upcoming dinners",
-      "Description": "See and manage upcoming dinners.",
+      "Title": "Dinners",
+      "Description": "See and manage dinners.",
+      "UpcomingHeading": "Upcoming dinners",
+      "PastHeading": "Past dinners",
       "AddButton": "New event",
-      "Empty": "No upcoming events yet.",
+      "Empty": "No dinners yet.",
       "EditButton": "Edit",
       "DeleteButton": "Delete",
       "DeleteConfirmTitle": "Delete event?",

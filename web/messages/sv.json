@@ -146,10 +146,12 @@
       "Whitelist": "Inbjudningar"
     },
     "Events": {
-      "Title": "Kommande middagar",
-      "Description": "Se och administrera kommande middagar.",
+      "Title": "Middagar",
+      "Description": "Se och administrera middagar.",
+      "UpcomingHeading": "Kommande middagar",
+      "PastHeading": "Tidigare middagar",
       "AddButton": "Ny middag",
-      "Empty": "Inga kommande middagar än.",
+      "Empty": "Inga middagar än.",
       "EditButton": "Redigera",
       "DeleteButton": "Ta bort",
       "DeleteConfirmTitle": "Ta bort middag?",

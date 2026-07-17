@@ -2,7 +2,7 @@
 
 import messages from "@/messages/en.json";
 import { NextIntlClientProvider } from "next-intl";
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
 import { EventsAdmin } from "./events-admin";
 import type { EventRecord, ProfileRecord, VenueRecord } from "./actions";
@@ -32,6 +32,15 @@ function renderEventsAdmin(events: EventRecord[]) {
 }
 
 describe("EventsAdmin Component", () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-07-17T00:00:00.000Z"));
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it("renders the title, description and new-event trigger", () => {
     renderEventsAdmin([]);
 
@@ -85,6 +94,63 @@ describe("EventsAdmin Component", () => {
     expect(table.getByText("Mock Delete 1")).toBeInTheDocument();
     expect(table.getByText("Mock Edit 2")).toBeInTheDocument();
     expect(table.getByText("Mock Delete 2")).toBeInTheDocument();
+  });
+
+  it("separates past dinners from upcoming ones under their own headings", () => {
+    const events: EventRecord[] = [
+      {
+        id: "future",
+        name: "Future Dinner",
+        event_date: "2026-08-01T18:00:00.000Z",
+        description: null,
+        visibility: "published",
+        co_host_id: null,
+        venue: null,
+      },
+      {
+        id: "past",
+        name: "Past Dinner",
+        event_date: "2026-06-01T18:00:00.000Z",
+        description: null,
+        visibility: "published",
+        co_host_id: null,
+        venue: null,
+      },
+    ];
+
+    renderEventsAdmin(events);
+
+    expect(screen.getByText(messages.AdminPage.Events.UpcomingHeading)).toBeInTheDocument();
+    expect(screen.getByText(messages.AdminPage.Events.PastHeading)).toBeInTheDocument();
+
+    // Two groups → two tables, upcoming first, past second.
+    const [upcomingTable, pastTable] = screen.getAllByRole("table");
+
+    expect(within(upcomingTable).getByText("Future Dinner")).toBeInTheDocument();
+    expect(within(upcomingTable).queryByText("Past Dinner")).not.toBeInTheDocument();
+
+    expect(within(pastTable).getByText("Past Dinner")).toBeInTheDocument();
+    expect(within(pastTable).queryByText("Future Dinner")).not.toBeInTheDocument();
+  });
+
+  it("shows only the upcoming heading when there are no past dinners", () => {
+    const events: EventRecord[] = [
+      {
+        id: "future",
+        name: "Future Dinner",
+        event_date: "2026-08-01T18:00:00.000Z",
+        description: null,
+        visibility: "published",
+        co_host_id: null,
+        venue: null,
+      },
+    ];
+
+    renderEventsAdmin(events);
+
+    expect(screen.getByText(messages.AdminPage.Events.UpcomingHeading)).toBeInTheDocument();
+    expect(screen.queryByText(messages.AdminPage.Events.PastHeading)).not.toBeInTheDocument();
+    expect(screen.getAllByRole("table")).toHaveLength(1);
   });
 
   it("shows a Published badge for published events and a Draft badge otherwise", () => {
