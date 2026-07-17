@@ -42,12 +42,10 @@
       }
     },
     "Ratings": {
-      "Label": "Places we've rated together",
-      "Places": {
-        "One": { "Name": "Ekstedt", "Score": "4.9" },
-        "Two": { "Name": "Punkt", "Score": "4.6" },
-        "Three": { "Name": "Lilla Ego", "Score": "4.4" }
-      }
+      "Label": "Top 3 places we've rated together",
+      "Drinks": "Drinks",
+      "Food": "Food",
+      "Venue": "Venue"
     },
     "Footer": "By invitation only."
   },

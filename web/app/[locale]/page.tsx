@@ -6,6 +6,7 @@ import { Link } from "@/i18n/navigation";
 import { getCurrentUser } from "@/utils/supabase/auth";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
+import { getVenueRatings } from "./guide/actions";
 
 const CONTACT_EMAIL = "hej@calidinner.se";
 
@@ -14,8 +15,6 @@ const tenets = [
   { number: "02", key: "Two" },
   { number: "03", key: "Three" },
 ] as const;
-
-const ratedPlaces = ["One", "Two", "Three"] as const;
 
 const ctaClass = "h-auto px-[32px] py-[14px] text-[12px] tracking-[.08em] uppercase";
 
@@ -27,6 +26,10 @@ export default async function Home() {
   }
 
   const t = await getTranslations("LandingPage");
+
+  // Top 3 venues by overall score
+  const ratings = await getVenueRatings();
+  const topVenues = ratings.success ? ratings.venues.slice(0, 3) : [];
 
   return (
     <main className="font-ui bg-background text-foreground flex-1 px-6 py-8 md:px-10 md:py-10">
@@ -69,27 +72,47 @@ export default async function Home() {
         </section>
 
         {/* Places rated together */}
-        <section className="bg-foreground/5 mt-14 rounded-sm px-8 py-7">
-          <div className="text-muted-foreground mb-4 text-[10px] tracking-[.28em] uppercase">
-            {t("Ratings.Label")}
-          </div>
-          <ul>
-            {ratedPlaces.map((key) => (
-              <li
-                key={key}
-                className="border-border flex items-baseline justify-between gap-4 border-t py-4 first:border-t-0"
-              >
-                <span className="font-serif text-[22px]">{t(`Ratings.Places.${key}.Name`)}</span>
-                <span className="font-serif text-[22px] leading-none">
-                  {t(`Ratings.Places.${key}.Score`)}
-                  <span className="text-muted-foreground ml-1.5 text-[11px] tracking-[.12em]">
-                    / 5
-                  </span>
-                </span>
-              </li>
-            ))}
-          </ul>
-        </section>
+        {topVenues.length > 0 && (
+          <section className="bg-foreground/8 dark:bg-foreground/5 mt-14 px-8 py-5">
+            <div className="text-muted-foreground mb-1 text-[10px] tracking-[.28em] uppercase">
+              {t("Ratings.Label")}
+            </div>
+            <ul>
+              {topVenues.map((venue) => {
+                const subScores = [
+                  { label: t("Ratings.Drinks"), value: venue.avg_drinks },
+                  { label: t("Ratings.Food"), value: venue.avg_food },
+                  { label: t("Ratings.Venue"), value: venue.avg_venue },
+                ];
+                return (
+                  <li key={venue.venue_id} className="border-border border-t py-3 first:border-t-0">
+                    <div className="flex items-baseline justify-between gap-4">
+                      <span className="font-serif text-[20px]">{venue.venue_name}</span>
+                      <span className="text-accent font-serif text-[22px] leading-none tabular-nums">
+                        {venue.avg_overall.toFixed(2)}
+                        <span className="text-muted-foreground ml-1 text-[11px] tracking-[.12em]">
+                          / 5
+                        </span>
+                      </span>
+                    </div>
+                    <div className="mt-1 flex justify-center gap-4">
+                      {subScores.map(({ label, value }) => (
+                        <div key={label} className="flex items-baseline gap-1">
+                          <span className="text-muted-foreground text-[10px] tracking-[.14em] uppercase">
+                            {label}
+                          </span>
+                          <span className="font-serif text-[13px] tabular-nums">
+                            {value.toFixed(2)}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </section>
+        )}
 
         {/* Footer */}
         <footer className="border-border mt-14 flex items-center justify-between gap-4 border-t pt-6 text-[11px] tracking-[.04em]">

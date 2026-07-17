@@ -42,12 +42,10 @@
       }
     },
     "Ratings": {
-      "Label": "Ställen vi betygsatt tillsammans",
-      "Places": {
-        "One": { "Name": "Ekstedt", "Score": "4,9" },
-        "Two": { "Name": "Punkt", "Score": "4,6" },
-        "Three": { "Name": "Lilla Ego", "Score": "4,4" }
-      }
+      "Label": "Topp 3 ställen vi betygsatt tillsammans",
+      "Drinks": "Dryck",
+      "Food": "Mat",
+      "Venue": "Lokal"
     },
     "Footer": "Inbjudan krävs för medlemskap."
   },
