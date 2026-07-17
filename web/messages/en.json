@@ -94,7 +94,18 @@
     },
     "Sections": {
       "Account": "Account",
-      "Diet": "Allergies"
+      "Diet": "Allergies",
+      "Appearance": "Appearance",
+      "Language": "Language"
+    },
+    "Theme": {
+      "light": "Light",
+      "dark": "Dark",
+      "system": "System"
+    },
+    "Language": {
+      "sv": "Svenska",
+      "en": "English"
     },
     "Information": {
       "Role": "Role",

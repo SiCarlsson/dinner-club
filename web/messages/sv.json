@@ -94,7 +94,18 @@
     },
     "Sections": {
       "Account": "Konto",
-      "Diet": "Allergier"
+      "Diet": "Allergier",
+      "Appearance": "Utseende",
+      "Language": "Språk"
+    },
+    "Theme": {
+      "light": "Ljust",
+      "dark": "Mörkt",
+      "system": "System"
+    },
+    "Language": {
+      "sv": "Svenska",
+      "en": "English"
     },
     "Information": {
       "Role": "Roll",

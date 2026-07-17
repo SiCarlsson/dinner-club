@@ -8,18 +8,28 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import userEvent from "@testing-library/user-event";
 import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 
-const { pushMock, refreshMock, signOutMock } = vi.hoisted(() => ({
-  pushMock: vi.fn(),
-  refreshMock: vi.fn(),
-  signOutMock: vi.fn(),
-}));
+const { pushMock, refreshMock, signOutMock, replaceMock, setThemeMock, themeState } = vi.hoisted(
+  () => ({
+    pushMock: vi.fn(),
+    refreshMock: vi.fn(),
+    signOutMock: vi.fn(),
+    replaceMock: vi.fn(),
+    setThemeMock: vi.fn(),
+    themeState: { current: "system" as string | undefined },
+  }),
+);
 
 vi.mock("./actions", () => ({
   updateProfile: vi.fn(),
 }));
 
 vi.mock("@/i18n/navigation", () => ({
-  useRouter: () => ({ push: pushMock, refresh: refreshMock }),
+  useRouter: () => ({ push: pushMock, refresh: refreshMock, replace: replaceMock }),
+  usePathname: () => "/profile",
+}));
+
+vi.mock("next-themes", () => ({
+  useTheme: () => ({ theme: themeState.current, setTheme: setThemeMock }),
 }));
 
 vi.mock("@/utils/supabase/client", () => ({
@@ -51,6 +61,7 @@ describe("ProfileForm Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     signOutMock.mockResolvedValue({ error: null });
+    themeState.current = "system";
   });
 
   it("renders the initial name, read-only fields and selected diet toggles", () => {
@@ -117,6 +128,37 @@ describe("ProfileForm Component", () => {
       expect(screen.getByRole("button", { name: "Something went wrong" })).toBeInTheDocument();
       expect(screen.getByText("Database connection failed")).toBeInTheDocument();
     });
+  });
+
+  it("highlights the active theme and switches theme when another option is clicked", async () => {
+    const user = userEvent.setup();
+    renderProfileForm();
+
+    expect(screen.getByRole("button", { name: "System", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Light", pressed: false })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Dark", pressed: false })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Dark" }));
+    expect(setThemeMock).toHaveBeenCalledWith("dark");
+  });
+
+  it("reflects the persisted theme as the highlighted option", () => {
+    themeState.current = "dark";
+    renderProfileForm();
+
+    expect(screen.getByRole("button", { name: "Dark", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "System", pressed: false })).toBeInTheDocument();
+  });
+
+  it("highlights the active language and switches locale when another option is clicked", async () => {
+    const user = userEvent.setup();
+    renderProfileForm();
+
+    expect(screen.getByRole("button", { name: "English", pressed: true })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Svenska", pressed: false })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Svenska" }));
+    expect(replaceMock).toHaveBeenCalledWith("/profile", { locale: "sv" });
   });
 
   it("signs out and redirects home when logout is clicked", async () => {
