@@ -90,7 +90,7 @@ function RsvpControls({
         aria-pressed={current === "declined"}
         disabled={isPending}
         onClick={() => submit("declined")}
-        className="border-input h-auto w-full rounded-none bg-transparent px-[26px] py-[13px] text-[12px] tracking-[.08em] uppercase sm:w-auto sm:py-[12px]"
+        className="h-auto w-full rounded-none px-[26px] py-[13px] text-[12px] tracking-[.08em] uppercase sm:w-auto sm:py-[12px]"
       >
         {t("Decline")}
       </Button>
@@ -99,6 +99,7 @@ function RsvpControls({
           eventId={eventId}
           initialHasPlusOne={initialHasPlusOne}
           initialPlusOneName={initialPlusOneName}
+          disabled={isPending}
         />
       )}
     </div>
@@ -109,10 +110,12 @@ function PlusOnePopover({
   eventId,
   initialHasPlusOne,
   initialPlusOneName,
+  disabled = false,
 }: {
   eventId: string;
   initialHasPlusOne: boolean;
   initialPlusOneName: string | null;
+  disabled?: boolean;
 }) {
   const t = useTranslations("EventsPage");
   const [open, setOpen] = useState(false);
@@ -125,6 +128,7 @@ function PlusOnePopover({
   const [draftName, setDraftName] = useState(initialPlusOneName ?? "");
 
   const onOpenChange = (next: boolean) => {
+    if (next && disabled) return;
     if (next) {
       setDraftHasPlusOne(hasPlusOne);
       setDraftName(plusOneName);
@@ -154,6 +158,7 @@ function PlusOnePopover({
             type="button"
             variant={hasPlusOne ? "default" : "outline"}
             aria-label={t("PlusOneAria")}
+            disabled={disabled}
             className="h-auto w-full rounded-none px-[18px] py-[13px] text-[12px] tracking-[.08em] uppercase sm:w-auto sm:py-[12px]"
           >
             {t("PlusOne")}

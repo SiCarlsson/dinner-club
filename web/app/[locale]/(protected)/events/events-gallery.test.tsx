@@ -4,7 +4,7 @@ import messages from "@/messages/en.json";
 import svMessages from "@/messages/sv.json";
 import { NextIntlClientProvider } from "next-intl";
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen, within } from "@testing-library/react";
+import { render, screen, waitFor, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { EventsGallery } from "./events-gallery";
 import {
@@ -219,6 +219,28 @@ describe("EventsGallery Component", () => {
     expect(
       screen.getByRole("button", { name: messages.EventsPage.PlusOneAria }),
     ).toBeInTheDocument();
+  });
+
+  it("keeps the +1 button disabled and unopenable until the attending RSVP is saved", async () => {
+    const user = userEvent.setup();
+    let resolveRsvp: (value: { success: true; message: string }) => void = () => {};
+    vi.mocked(rsvpToEvent).mockReturnValue(
+      new Promise<{ success: true; message: string }>((resolve) => {
+        resolveRsvp = resolve;
+      }) as ReturnType<typeof rsvpToEvent>,
+    );
+    renderGallery([event({ id: "e1", myRsvpStatus: null })]);
+
+    await user.click(screen.getByRole("button", { name: messages.EventsPage.Attend }));
+
+    const plusOne = screen.getByRole("button", { name: messages.EventsPage.PlusOneAria });
+    expect(plusOne).toBeDisabled();
+
+    await user.click(plusOne);
+    expect(screen.queryByRole("button", { name: messages.EventsPage.PlusOneSave })).toBeNull();
+
+    resolveRsvp({ success: true, message: "RSVP saved" });
+    await waitFor(() => expect(plusOne).toBeEnabled());
   });
 
   it("saves a named plus-one from the popover", async () => {
