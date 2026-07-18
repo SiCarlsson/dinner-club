@@ -1,2 +1,2 @@
 cd web
-pnpm test
+pnpm test:unit
