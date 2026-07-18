@@ -3,7 +3,7 @@ name: CI
 on:
   push:
     branches: [main]
-  pull_request:
+  workflow_dispatch: # allow manual runs from the Actions tab
 
 concurrency:
   group: ci-${{ github.ref }}
