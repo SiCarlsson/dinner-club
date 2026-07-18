@@ -26,6 +26,13 @@ web/.yarn/*
 !web/.yarn/releases
 !web/.yarn/versions
 
+# Playwright (inside the web/ directory)
+web/test-results/
+web/playwright-report/
+web/blob-report/
+web/playwright/.cache/
+web/tests/e2e/.auth/
+
 # ==========================================
 # TERRAFORM (Inside the terraform/ directory)
 # ==========================================

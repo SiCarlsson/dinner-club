@@ -9,8 +9,10 @@ export default defineConfig({
   test: {
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
-    // Integration tests need a real Supabase and run via vitest.integration.config.ts.
-    exclude: [...configDefaults.exclude, "tests/integration/**"],
+    // Integration + E2E suites run via their own configs (vitest.integration.config.ts
+    // and playwright.config.ts) — keep vitest from globbing them, especially the
+    // Playwright .spec.ts files, which vitest's default `include` would match.
+    exclude: [...configDefaults.exclude, "tests/integration/**", "tests/e2e/**"],
   },
   resolve: {
     alias: { "@": path.resolve(__dirname, "./") },
