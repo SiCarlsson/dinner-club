@@ -85,17 +85,18 @@ export default async function Home() {
                   { label: t("Ratings.Venue"), value: venue.avg_venue },
                 ];
                 return (
-                  <li key={venue.venue_id} className="border-border border-t py-3 first:border-t-0">
-                    <div className="flex items-baseline justify-between gap-4">
-                      <span className="font-serif text-[20px]">{venue.venue_name}</span>
-                      <span className="text-accent font-serif text-[22px] leading-none tabular-nums">
-                        {venue.avg_overall.toFixed(2)}
-                        <span className="text-muted-foreground ml-1 text-[11px] tracking-[.12em]">
-                          / 5
-                        </span>
+                  <li
+                    key={venue.venue_id}
+                    className="border-border flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1 border-t py-3 first:border-t-0 md:flex-nowrap md:justify-start"
+                  >
+                    <span className="order-1 font-serif text-[20px]">{venue.venue_name}</span>
+                    <span className="text-accent order-2 font-serif text-[22px] leading-none tabular-nums md:order-3">
+                      {venue.avg_overall.toFixed(2)}
+                      <span className="text-muted-foreground ml-1 text-[11px] tracking-[.12em]">
+                        / 5
                       </span>
-                    </div>
-                    <div className="mt-1 flex justify-center gap-4">
+                    </span>
+                    <div className="order-3 flex basis-full justify-center gap-4 md:order-2 md:mx-auto md:basis-auto">
                       {subScores.map(({ label, value }) => (
                         <div key={label} className="flex items-baseline gap-1">
                           <span className="text-muted-foreground text-[10px] tracking-[.14em] uppercase">
