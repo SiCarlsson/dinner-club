@@ -5,10 +5,11 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { EventsAdmin } from "./events-admin";
+import { VenuesAdmin } from "./venues-admin";
 import { WhitelistAdmin } from "./whitelist-admin";
 import type { EventRecord, InvitationRecord, ProfileRecord, VenueRecord } from "./actions";
 
-const TABS = ["events", "whitelist"] as const;
+const TABS = ["events", "venues", "whitelist"] as const;
 type Tab = (typeof TABS)[number];
 
 export function AdminTabs({
@@ -48,11 +49,9 @@ export function AdminTabs({
         ))}
       </div>
       <div className="pt-10">
-        {tab === "events" ? (
-          <EventsAdmin events={events} venues={venues} profiles={profiles} />
-        ) : (
-          <WhitelistAdmin invitations={invitations} />
-        )}
+        {tab === "events" && <EventsAdmin events={events} venues={venues} profiles={profiles} />}
+        {tab === "venues" && <VenuesAdmin venues={venues} />}
+        {tab === "whitelist" && <WhitelistAdmin invitations={invitations} />}
       </div>
     </div>
   );

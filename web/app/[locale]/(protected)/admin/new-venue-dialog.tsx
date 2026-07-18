@@ -17,7 +17,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { createVenue, type VenueRecord } from "./actions";
+import { createVenue, updateVenue, type VenueRecord } from "./actions";
 import {
   FIELD_INPUT,
   FIELD_LABEL,
@@ -29,15 +29,35 @@ import { cn } from "@/lib/utils";
 
 const EMPTY_FORM = { name: "", address: "", city: "", district: "", latitude: "", longitude: "" };
 
-export function NewVenueDialog({ onCreated }: { onCreated: (venue: VenueRecord) => void }) {
+function formFromVenue(venue: VenueRecord) {
+  return {
+    name: venue.name,
+    address: venue.address ?? "",
+    city: venue.city ?? "",
+    district: venue.district ?? "",
+    latitude: venue.latitude != null ? String(venue.latitude) : "",
+    longitude: venue.longitude != null ? String(venue.longitude) : "",
+  };
+}
+
+export function VenueDialog({
+  venue,
+  trigger,
+  onSaved,
+}: {
+  venue?: VenueRecord;
+  trigger: React.ReactElement;
+  onSaved: (venue: VenueRecord) => void;
+}) {
+  const initialForm = venue ? formFromVenue(venue) : EMPTY_FORM;
   const [open, setOpen] = useState(false);
-  const [form, setForm] = useState(EMPTY_FORM);
+  const [form, setForm] = useState(initialForm);
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
   const t = useTranslations("AdminPage.Events.Dialog.NewVenue");
 
   const resetAndClose = () => {
-    setForm(EMPTY_FORM);
+    setForm(initialForm);
     setStatus("idle");
     setErrorMessage("");
     setOpen(false);
@@ -48,17 +68,19 @@ export function NewVenueDialog({ onCreated }: { onCreated: (venue: VenueRecord) 
     e.stopPropagation();
     setStatus("saving");
 
-    const result = await createVenue({
+    const input = {
       name: form.name,
       address: form.address || null,
       city: form.city || null,
       district: form.district || null,
       latitude: form.latitude ? Number(form.latitude) : null,
       longitude: form.longitude ? Number(form.longitude) : null,
-    });
+    };
+
+    const result = venue ? await updateVenue(venue.id, input) : await createVenue(input);
 
     if (result.success) {
-      onCreated(result.venue);
+      onSaved(result.venue);
       resetAndClose();
     } else {
       setStatus("error");
@@ -71,20 +93,17 @@ export function NewVenueDialog({ onCreated }: { onCreated: (venue: VenueRecord) 
       open={open}
       onOpenChange={(nextOpen: boolean) => (nextOpen ? setOpen(true) : resetAndClose())}
     >
-      <DialogTrigger
-        render={
-          <Button type="button" variant="outline" className={cn(BUTTON_TEXT)}>
-            <PlusIcon />
-            {t("TriggerButton")}
-          </Button>
-        }
-      />
+      <DialogTrigger render={trigger} />
       <DialogContent
         className={cn(FLOATING_SURFACE, "font-ui flex h-[44rem] flex-col gap-6 p-7 sm:max-w-md")}
       >
         <DialogHeader>
-          <DialogTitle className="font-serif text-[20px] font-normal">{t("Title")}</DialogTitle>
-          <DialogDescription className={DIALOG_DESCRIPTION}>{t("Description")}</DialogDescription>
+          <DialogTitle className="font-serif text-[20px] font-normal">
+            {venue ? t("EditTitle") : t("Title")}
+          </DialogTitle>
+          <DialogDescription className={DIALOG_DESCRIPTION}>
+            {venue ? t("EditDescription") : t("Description")}
+          </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5 overflow-y-auto">
           <div className="flex flex-col gap-2">
@@ -187,5 +206,21 @@ export function NewVenueDialog({ onCreated }: { onCreated: (venue: VenueRecord) 
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+export function NewVenueDialog({ onCreated }: { onCreated: (venue: VenueRecord) => void }) {
+  const t = useTranslations("AdminPage.Events.Dialog.NewVenue");
+
+  return (
+    <VenueDialog
+      onSaved={onCreated}
+      trigger={
+        <Button type="button" variant="outline" className={cn(BUTTON_TEXT)}>
+          <PlusIcon />
+          {t("TriggerButton")}
+        </Button>
+      }
+    />
   );
 }

@@ -26,7 +26,11 @@ export default async function Admin() {
           venues={venues}
           profiles={profiles}
           invitations={invitations}
-          tabLabels={{ events: t("Tabs.Events"), whitelist: t("Tabs.Whitelist") }}
+          tabLabels={{
+            events: t("Tabs.Events"),
+            venues: t("Tabs.Venues"),
+            whitelist: t("Tabs.Whitelist"),
+          }}
         />
       </div>
     </main>

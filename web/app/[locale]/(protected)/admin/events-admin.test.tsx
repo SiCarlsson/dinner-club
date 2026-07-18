@@ -20,7 +20,17 @@ vi.mock("./delete-event-button", () => ({
   )),
 }));
 
-const VENUES: VenueRecord[] = [{ id: "v1", name: "Café Norr" }];
+const VENUES: VenueRecord[] = [
+  {
+    id: "v1",
+    name: "Café Norr",
+    address: null,
+    city: null,
+    district: null,
+    latitude: null,
+    longitude: null,
+  },
+];
 const PROFILES: ProfileRecord[] = [{ id: "p1", full_name: "Alex Smith" }];
 
 function renderEventsAdmin(events: EventRecord[]) {

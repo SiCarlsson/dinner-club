@@ -70,7 +70,14 @@ export async function getProfiles() {
 export type VenueRecord = {
   id: string;
   name: string;
+  address: string | null;
+  city: string | null;
+  district: string | null;
+  latitude: number | null;
+  longitude: number | null;
 };
+
+const VENUE_COLUMNS = "id, name, address, city, district, latitude, longitude";
 
 export async function getVenues() {
   const { supabase, user } = await getCurrentUser();
@@ -79,7 +86,7 @@ export async function getVenues() {
     return { success: false as const, message: "Not authenticated" };
   }
 
-  const { data, error } = await supabase.from("venues").select("id, name").order("name");
+  const { data, error } = await supabase.from("venues").select(VENUE_COLUMNS).order("name");
 
   if (error) {
     return { success: false as const, message: error.message };
@@ -114,7 +121,7 @@ export async function createVenue(input: VenueInput) {
       latitude: input.latitude ?? null,
       longitude: input.longitude ?? null,
     })
-    .select("id, name")
+    .select(VENUE_COLUMNS)
     .single();
 
   if (error) {
@@ -123,6 +130,53 @@ export async function createVenue(input: VenueInput) {
 
   revalidatePath("/admin");
   return { success: true as const, venue: data as VenueRecord };
+}
+
+export async function updateVenue(id: string, input: VenueInput) {
+  const { supabase, user, role } = await getUserWithRole();
+
+  if (!user || role !== "admin") {
+    return { success: false as const, message: "Not authorized" };
+  }
+
+  const { data, error } = await supabase
+    .from("venues")
+    .update({
+      name: input.name,
+      address: input.address ?? null,
+      city: input.city ?? null,
+      district: input.district ?? null,
+      latitude: input.latitude ?? null,
+      longitude: input.longitude ?? null,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", id)
+    .select(VENUE_COLUMNS)
+    .single();
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  revalidatePath("/admin");
+  return { success: true as const, venue: data as VenueRecord };
+}
+
+export async function deleteVenue(id: string) {
+  const { supabase, user, role } = await getUserWithRole();
+
+  if (!user || role !== "admin") {
+    return { success: false as const, message: "Not authorized" };
+  }
+
+  const { error } = await supabase.from("venues").delete().eq("id", id);
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  revalidatePath("/admin");
+  return { success: true as const };
 }
 
 export async function createEvent(input: EventInput) {

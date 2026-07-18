@@ -185,6 +185,114 @@ describe("admin actions", () => {
     });
   });
 
+  describe("updateVenue", () => {
+    it("rejects when the user is not an admin", async () => {
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: mockSupabase() as never,
+        user: { id: "user-1" } as never,
+        role: "member",
+      });
+
+      const { updateVenue } = await import("./actions");
+      const result = await updateVenue("venue-1", { name: "Café Norr" });
+
+      expect(result).toEqual({ success: false, message: "Not authorized" });
+    });
+
+    it("updates the venue for an admin and returns it", async () => {
+      const supabase = mockSupabase();
+      supabase.eq.mockReturnValue({ select: supabase.select });
+      supabase.single.mockResolvedValue({
+        data: { id: "venue-1", name: "Café Söder" },
+        error: null,
+      });
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "admin-1" } as never,
+        role: "admin",
+      });
+
+      const { updateVenue } = await import("./actions");
+      const result = await updateVenue("venue-1", { name: "Café Söder", city: "Stockholm" });
+
+      expect(supabase.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: "Café Söder",
+          city: "Stockholm",
+          address: null,
+          district: null,
+          latitude: null,
+          longitude: null,
+        }),
+      );
+      expect(supabase.eq).toHaveBeenCalledWith("id", "venue-1");
+      expect(result).toEqual({ success: true, venue: { id: "venue-1", name: "Café Söder" } });
+    });
+
+    it("returns an error message when the update fails", async () => {
+      const supabase = mockSupabase();
+      supabase.eq.mockReturnValue({ select: supabase.select });
+      supabase.single.mockResolvedValue({ data: null, error: { message: "update failed" } });
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "admin-1" } as never,
+        role: "admin",
+      });
+
+      const { updateVenue } = await import("./actions");
+      const result = await updateVenue("venue-1", { name: "X" });
+
+      expect(result).toEqual({ success: false, message: "update failed" });
+    });
+  });
+
+  describe("deleteVenue", () => {
+    it("rejects when the user is not an admin", async () => {
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: mockSupabase() as never,
+        user: { id: "user-1" } as never,
+        role: "member",
+      });
+
+      const { deleteVenue } = await import("./actions");
+      const result = await deleteVenue("venue-1");
+
+      expect(result).toEqual({ success: false, message: "Not authorized" });
+    });
+
+    it("deletes the venue if user is admin", async () => {
+      const supabase = mockSupabase();
+      supabase.eq.mockResolvedValue({ error: null });
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "admin-1" } as never,
+        role: "admin",
+      });
+
+      const { deleteVenue } = await import("./actions");
+      const result = await deleteVenue("venue-1");
+
+      expect(supabase.delete).toHaveBeenCalled();
+      expect(supabase.eq).toHaveBeenCalledWith("id", "venue-1");
+      expect(result).toEqual({ success: true });
+    });
+
+    it("returns an error message when the delete fails", async () => {
+      const supabase = mockSupabase();
+      supabase.eq.mockResolvedValue({ error: { message: "delete failed" } });
+      vi.mocked(getUserWithRole).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "admin-1" } as never,
+        role: "admin",
+      });
+
+      const { deleteVenue } = await import("./actions");
+      const result = await deleteVenue("venue-1");
+
+      expect(result).toEqual({ success: false, message: "delete failed" });
+    });
+  });
+
   describe("createEvent", () => {
     it("rejects when the user is not an admin", async () => {
       vi.mocked(getUserWithRole).mockResolvedValue({

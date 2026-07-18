@@ -152,6 +152,7 @@
     "Title": "Admin",
     "Tabs": {
       "Events": "Middagar",
+      "Venues": "Platser",
       "Whitelist": "Inbjudningar"
     },
     "Events": {
@@ -203,6 +204,8 @@
           "TriggerButton": "Skapa plats",
           "Title": "Ny plats",
           "Description": "Lägg till en ny plats för framtida middagar.",
+          "EditTitle": "Redigera plats",
+          "EditDescription": "Uppdatera detaljerna för denna plats.",
           "NameLabel": "Namn",
           "NamePlaceholder": "Café Norr",
           "AddressLabel": "Adress",
@@ -220,6 +223,22 @@
           "SavingButton": "Sparar",
           "Error": "Något gick fel. Testa igen."
         }
+      }
+    },
+    "Venues": {
+      "Title": "Platser",
+      "Description": "Se och administrera platser.",
+      "AddButton": "Ny plats",
+      "Empty": "Inga platser än.",
+      "EditButton": "Redigera",
+      "DeleteButton": "Ta bort",
+      "DeleteConfirmTitle": "Ta bort plats?",
+      "DeleteConfirm": "Är du säker på att du vill ta bort denna plats? Detta går inte att ångra. Den tas bort från alla middagar som använder den.",
+      "CancelButton": "Avbryt",
+      "Columns": {
+        "Name": "Plats",
+        "City": "Stad",
+        "District": "Distrikt"
       }
     },
     "Whitelist": {

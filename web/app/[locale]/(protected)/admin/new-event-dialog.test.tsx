@@ -30,7 +30,17 @@ vi.mock("./new-venue-dialog", () => ({
 const t = messages.AdminPage.Events.Dialog;
 const tEvents = messages.AdminPage.Events;
 
-const VENUES: VenueRecord[] = [{ id: "v1", name: "Café Norr" }];
+const VENUES: VenueRecord[] = [
+  {
+    id: "v1",
+    name: "Café Norr",
+    address: null,
+    city: null,
+    district: null,
+    latitude: null,
+    longitude: null,
+  },
+];
 const PROFILES: ProfileRecord[] = [
   { id: "p1", full_name: "Alex Smith" },
   { id: "p2", full_name: "Jamie Lee" },

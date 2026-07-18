@@ -1,12 +1,12 @@
-// app/[locale]/(protected)/admin/delete-event-button.test.tsx
+// app/[locale]/(protected)/admin/delete-venue-button.test.tsx
 
 import messages from "@/messages/en.json";
 import { NextIntlClientProvider } from "next-intl";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { DeleteEventButton } from "./delete-event-button";
-import { deleteEvent, type EventRecord } from "./actions";
+import { DeleteVenueButton } from "./delete-venue-button";
+import { deleteVenue, type VenueRecord } from "./actions";
 
 const refreshMock = vi.fn();
 
@@ -15,30 +15,30 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("./actions", () => ({
-  deleteEvent: vi.fn(),
+  deleteVenue: vi.fn(),
 }));
 
-const t = messages.AdminPage.Events;
+const t = messages.AdminPage.Venues;
 
-const EVENT: EventRecord = {
-  id: "event-1",
-  name: "Summer dinner",
-  event_date: "2026-08-01T18:00:00.000Z",
-  description: null,
-  visibility: "published",
-  co_host_id: null,
-  venue: null,
+const VENUE: VenueRecord = {
+  id: "venue-1",
+  name: "Café Norr",
+  address: null,
+  city: null,
+  district: null,
+  latitude: null,
+  longitude: null,
 };
 
 function renderButton() {
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
-      <DeleteEventButton event={EVENT} />
+      <DeleteVenueButton venue={VENUE} />
     </NextIntlClientProvider>,
   );
 }
 
-describe("DeleteEventButton Component", () => {
+describe("DeleteVenueButton Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -51,22 +51,22 @@ describe("DeleteEventButton Component", () => {
 
     expect(await screen.findByText(t.DeleteConfirmTitle)).toBeInTheDocument();
     expect(screen.getByText(t.DeleteConfirm)).toBeInTheDocument();
-    expect(deleteEvent).not.toHaveBeenCalled();
+    expect(deleteVenue).not.toHaveBeenCalled();
   });
 
-  it("does not delete the event when cancelled", async () => {
+  it("does not delete the venue when cancelled", async () => {
     const user = userEvent.setup();
     renderButton();
 
     await user.click(screen.getByRole("button", { name: t.DeleteButton }));
     await user.click(await screen.findByRole("button", { name: t.CancelButton }));
 
-    expect(deleteEvent).not.toHaveBeenCalled();
+    expect(deleteVenue).not.toHaveBeenCalled();
     expect(refreshMock).not.toHaveBeenCalled();
   });
 
-  it("deletes the event and refreshes the router when confirmed", async () => {
-    vi.mocked(deleteEvent).mockResolvedValue({ success: true, message: "Event deleted" });
+  it("deletes the venue and refreshes the router when confirmed", async () => {
+    vi.mocked(deleteVenue).mockResolvedValue({ success: true });
     const user = userEvent.setup();
     renderButton();
 
@@ -75,14 +75,14 @@ describe("DeleteEventButton Component", () => {
     const dialogButtons = await screen.findAllByRole("button", { name: t.DeleteButton });
     await user.click(dialogButtons[dialogButtons.length - 1]);
 
-    expect(deleteEvent).toHaveBeenCalledWith("event-1");
+    expect(deleteVenue).toHaveBeenCalledWith("venue-1");
     await vi.waitFor(() => {
       expect(refreshMock).toHaveBeenCalled();
     });
   });
 
   it("re-enables the trigger when deletion fails", async () => {
-    vi.mocked(deleteEvent).mockResolvedValue({ success: false, message: "boom" });
+    vi.mocked(deleteVenue).mockResolvedValue({ success: false, message: "boom" });
     const user = userEvent.setup();
     renderButton();
 
@@ -91,7 +91,7 @@ describe("DeleteEventButton Component", () => {
     await user.click(dialogButtons[dialogButtons.length - 1]);
 
     await vi.waitFor(() => {
-      expect(deleteEvent).toHaveBeenCalled();
+      expect(deleteVenue).toHaveBeenCalled();
     });
     expect(refreshMock).not.toHaveBeenCalled();
   });

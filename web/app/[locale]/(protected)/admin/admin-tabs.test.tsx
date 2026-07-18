@@ -17,6 +17,12 @@ vi.mock("./events-admin", () => ({
   )),
 }));
 
+vi.mock("./venues-admin", () => ({
+  VenuesAdmin: vi.fn(({ venues }) => (
+    <div data-testid="mock-venues-admin" data-venues={venues.length} />
+  )),
+}));
+
 vi.mock("./whitelist-admin", () => ({
   WhitelistAdmin: vi.fn(() => <div data-testid="mock-whitelist-admin" />),
 }));
@@ -32,7 +38,17 @@ const EVENTS: EventRecord[] = [
     venue: null,
   },
 ];
-const VENUES: VenueRecord[] = [{ id: "v1", name: "Café Norr" }];
+const VENUES: VenueRecord[] = [
+  {
+    id: "v1",
+    name: "Café Norr",
+    address: null,
+    city: null,
+    district: null,
+    latitude: null,
+    longitude: null,
+  },
+];
 const PROFILES: ProfileRecord[] = [{ id: "p1", full_name: "Alex Smith" }];
 const INVITATIONS: InvitationRecord[] = [
   { id: "i1", email: "anna@example.com", created_at: "2026-07-01T10:00:00.000Z" },
@@ -45,7 +61,7 @@ function renderAdminTabs() {
       venues={VENUES}
       profiles={PROFILES}
       invitations={INVITATIONS}
-      tabLabels={{ events: "Events", whitelist: "Whitelist" }}
+      tabLabels={{ events: "Events", venues: "Venues", whitelist: "Whitelist" }}
     />,
   );
 }
@@ -77,6 +93,20 @@ describe("AdminTabs Component", () => {
     expect(screen.queryByTestId("mock-events-admin")).not.toBeInTheDocument();
 
     expect(screen.getByRole("tab", { name: "Whitelist" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "Events" })).toHaveAttribute("aria-selected", "false");
+  });
+
+  it("switches to the venues panel when its tab is clicked, passing venues down", async () => {
+    const user = userEvent.setup();
+    renderAdminTabs();
+
+    await user.click(screen.getByRole("tab", { name: "Venues" }));
+
+    const venuesAdmin = screen.getByTestId("mock-venues-admin");
+    expect(venuesAdmin).toHaveAttribute("data-venues", "1");
+    expect(screen.queryByTestId("mock-events-admin")).not.toBeInTheDocument();
+
+    expect(screen.getByRole("tab", { name: "Venues" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tab", { name: "Events" })).toHaveAttribute("aria-selected", "false");
   });
 

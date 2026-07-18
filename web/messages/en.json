@@ -152,6 +152,7 @@
     "Title": "Admin",
     "Tabs": {
       "Events": "Events",
+      "Venues": "Venues",
       "Whitelist": "Invitations"
     },
     "Events": {
@@ -203,6 +204,8 @@
           "TriggerButton": "New venue",
           "Title": "New venue",
           "Description": "Add a new venue for future dinners.",
+          "EditTitle": "Edit venue",
+          "EditDescription": "Update the details for this venue.",
           "NameLabel": "Name",
           "NamePlaceholder": "Café Norr",
           "AddressLabel": "Address",
@@ -220,6 +223,22 @@
           "SavingButton": "Saving",
           "Error": "Something went wrong. Try again."
         }
+      }
+    },
+    "Venues": {
+      "Title": "Venues",
+      "Description": "See and manage venues.",
+      "AddButton": "New venue",
+      "Empty": "No venues yet.",
+      "EditButton": "Edit",
+      "DeleteButton": "Delete",
+      "DeleteConfirmTitle": "Delete venue?",
+      "DeleteConfirm": "Are you sure you want to delete this venue? This cannot be undone. It will be removed from any events using it.",
+      "CancelButton": "Cancel",
+      "Columns": {
+        "Name": "Venue",
+        "City": "City",
+        "District": "District"
       }
     },
     "Whitelist": {

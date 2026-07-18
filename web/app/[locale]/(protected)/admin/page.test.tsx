@@ -90,7 +90,17 @@ describe("Admin Server Page", () => {
     });
     vi.mocked(getVenues).mockResolvedValue({
       success: true,
-      venues: [{ id: "v1", name: "Café Norr" }],
+      venues: [
+        {
+          id: "v1",
+          name: "Café Norr",
+          address: null,
+          city: null,
+          district: null,
+          latitude: null,
+          longitude: null,
+        },
+      ],
     });
     vi.mocked(getProfiles).mockResolvedValue({
       success: true,
