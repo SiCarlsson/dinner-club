@@ -11,7 +11,8 @@ CREATE TABLE public.profiles (
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
 
-GRANT SELECT, INSERT, UPDATE ON public.profiles TO authenticated;
+GRANT SELECT, INSERT ON public.profiles TO authenticated;
+GRANT UPDATE (full_name, dietary_restrictions, updated_at) ON public.profiles TO authenticated;
 
 CREATE POLICY "Users can insert their own profile"
 ON public.profiles FOR INSERT
