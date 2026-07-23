@@ -7,6 +7,7 @@ const withNextIntl = createNextIntlPlugin();
 
 const nextConfig: NextConfig = {
   output: "standalone",
+  allowedDevOrigins: ["*.trycloudflare.com"], // Used with tunnels needed for verifying icons on mobile devices (PWA)
 };
 
 export default withNextIntl(nextConfig);
