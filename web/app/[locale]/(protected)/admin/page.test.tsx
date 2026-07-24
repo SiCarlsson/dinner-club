@@ -81,6 +81,7 @@ describe("Admin Server Page", () => {
           id: "1",
           name: "Dinner",
           event_date: "2026-08-01T18:00:00.000Z",
+          rsvp_deadline: null,
           description: null,
           visibility: "published",
           co_host_id: null,

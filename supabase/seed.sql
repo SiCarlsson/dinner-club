@@ -10,14 +10,17 @@ values
   ('a0000000-0000-0000-0000-000000000006', 'Rolfs Kök',    'Tegnérgatan 41',     'Norrmalm',   'Stockholm', 59.3407, 18.0561)
 on conflict (id) do nothing;
 
-insert into public.events (id, name, description, venue_id, event_date, visibility)
+-- Event dates are relative to now() so the seed always has a realistic spread of
+-- upcoming and past dinners no matter when `supabase db reset` runs
+insert into public.events (id, name, description, venue_id, event_date, rsvp_deadline, visibility)
 values
   (
     'b0000000-0000-0000-0000-000000000001',
     'First Dinner of Autumn',
     'We open the season with hearty classics and chatter at the timeless Pelikan. Doors at 19:00 — come hungry.',
     'a0000000-0000-0000-0000-000000000001',
-    '2026-08-14 19:00:00+02',
+    date_trunc('day', now()) + interval '21 days' + interval '19 hours',
+    date_trunc('day', now()) + interval '14 days' + interval '23 hours 59 minutes',
     'published'
   ),
   (
@@ -25,7 +28,8 @@ values
     'Seafood Evening',
     'Shellfish and white wine by the water at Oaxen Slip. An evening for long tables and late conversation.',
     'a0000000-0000-0000-0000-000000000002',
-    '2026-09-05 18:30:00+02',
+    date_trunc('day', now()) + interval '42 days' + interval '18 hours 30 minutes',
+    date_trunc('day', now()) + interval '35 days' + interval '23 hours 59 minutes',
     'published'
   ),
   (
@@ -33,7 +37,8 @@ values
     'Wine Tasting on the Roof',
     'A view over the city and six glasses to compare, high up at Tak. We finish with something sparkling.',
     'a0000000-0000-0000-0000-000000000003',
-    '2026-09-26 20:00:00+02',
+    date_trunc('day', now()) + interval '63 days' + interval '20 hours',
+    date_trunc('day', now()) + interval '56 days' + interval '23 hours 59 minutes',
     'published'
   ),
   (
@@ -41,7 +46,8 @@ values
     'Autumn Market',
     'Seasonal produce takes center stage at Nytorget 6 — small plates to share and a menu that changes with the day.',
     'a0000000-0000-0000-0000-000000000004',
-    '2026-10-17 18:00:00+02',
+    date_trunc('day', now()) + interval '84 days' + interval '18 hours',
+    date_trunc('day', now()) + interval '77 days' + interval '23 hours 59 minutes',
     'published'
   ),
   (
@@ -49,7 +55,8 @@ values
     'Cocktail Night',
     'Bar hangout and signature drinks in the vaults at Häktet. Light bites served throughout the evening.',
     'a0000000-0000-0000-0000-000000000005',
-    '2026-11-07 20:00:00+01',
+    date_trunc('day', now()) + interval '105 days' + interval '20 hours',
+    date_trunc('day', now()) + interval '98 days' + interval '23 hours 59 minutes',
     'published'
   ),
   (
@@ -57,7 +64,8 @@ values
     'Christmas Feast',
     'The year''s final dinner — a full Christmas feast at Rolfs Kök. Details to be confirmed closer to the date.',
     'a0000000-0000-0000-0000-000000000006',
-    '2026-12-12 17:00:00+01',
+    date_trunc('day', now()) + interval '140 days' + interval '17 hours',
+    date_trunc('day', now()) + interval '133 days' + interval '23 hours 59 minutes',
     'unpublished'
   ),
   -- Past dinners
@@ -66,7 +74,8 @@ values
     'Midwinter Supper',
     'A candlelit January evening at Pelikan — slow-cooked classics to keep the winter at bay.',
     'a0000000-0000-0000-0000-000000000001',
-    '2026-01-30 19:00:00+01',
+    date_trunc('day', now()) - interval '175 days' + interval '19 hours',
+    date_trunc('day', now()) - interval '182 days' + interval '23 hours 59 minutes',
     'published'
   ),
   (
@@ -74,7 +83,8 @@ values
     'Spring Bistro',
     'The first light dinners of the year at Nytorget 6, with a menu that follows the market.',
     'a0000000-0000-0000-0000-000000000004',
-    '2026-03-20 19:00:00+01',
+    date_trunc('day', now()) - interval '126 days' + interval '19 hours',
+    date_trunc('day', now()) - interval '133 days' + interval '23 hours 59 minutes',
     'published'
   ),
   (
@@ -82,7 +92,8 @@ values
     'Easter Long Lunch',
     'A leisurely afternoon feast at Rolfs Kök — many small dishes and even longer conversation.',
     'a0000000-0000-0000-0000-000000000006',
-    '2026-04-24 13:00:00+02',
+    date_trunc('day', now()) - interval '91 days' + interval '13 hours',
+    date_trunc('day', now()) - interval '98 days' + interval '23 hours 59 minutes',
     'published'
   ),
   (
@@ -90,14 +101,13 @@ values
     'Midsummer Eve',
     'Herring, new potatoes and schnapps by the water at Oaxen Slip — the club''s summer high point.',
     'a0000000-0000-0000-0000-000000000002',
-    '2026-06-19 17:00:00+02',
+    date_trunc('day', now()) - interval '35 days' + interval '17 hours',
+    date_trunc('day', now()) - interval '42 days' + interval '23 hours 59 minutes',
     'published'
   )
 on conflict (id) do nothing;
 
--- Whitelist every seeded email first: the enforce_invitation trigger on auth.users
--- rejects any signup whose email is not in public.invitations, so these must exist
--- before the inserts below (migrations, including that trigger, run before this seed).
+-- Whitelist every seeded email
 insert into public.invitations (email)
 values
   ('astrid@dinnerclub.test'),
@@ -110,8 +120,7 @@ values
   ('henrik@dinnerclub.test')
 on conflict (email) do nothing;
 
--- Members. Inserting into auth.users fires the on_auth_user_created trigger, which
--- creates a bare profiles row (id only); we fill in name/role/diet just below.
+-- Members
 insert into auth.users (
   instance_id, id, aud, role, email, encrypted_password, email_confirmed_at,
   created_at, updated_at, raw_app_meta_data, raw_user_meta_data,
@@ -128,7 +137,7 @@ values
   ('00000000-0000-0000-0000-000000000000', 'c0000000-0000-0000-0000-000000000008', 'authenticated', 'authenticated', 'henrik@dinnerclub.test',  '', now(), now(), now(), '{"provider":"email","providers":["email"]}', '{"full_name":"Henrik Palme"}',      '', '', '', '')
 on conflict (id) do nothing;
 
--- Names, roles, and dietary restrictions for the seeded members.
+-- Names, roles, and dietary restrictions for the seeded members
 update public.profiles as p set
   full_name = v.full_name,
   role = v.role,
@@ -148,7 +157,7 @@ where p.id = v.id;
 
 -- RSVPs: every event has several attendees, with a mix of members bringing a named
 -- +1 and members coming solo (plus a few declined / maybe to exercise the status
--- filter). has_plus_one = (plus_one_name is not null) per the DB constraint.
+-- filter)
 insert into public.rsvps (event_id, user_id, status, has_plus_one, plus_one_name)
 values
   -- First Dinner of Autumn
@@ -229,11 +238,7 @@ values
   ('b0000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-000000000008', 'attending', false, null)
 on conflict (event_id, user_id) do nothing;
 
--- Ratings for the four past dinners. Only attending members rate (matching the RLS
--- rule: an attendee of an event that has already happened), one score per member per
--- event — drinks / food / venue, each 1–5 — the shape the rate action writes and the
--- venue_rating_averages view aggregates. Hand-tuned so the four visited venues land at
--- distinct averages on the guide: Rolfs Kök > Nytorget 6 > Pelikan > Oaxen Slip.
+-- Ratings for the four past dinners
 insert into public.ratings (event_id, user_id, drinks_rating, food_rating, venue_rating)
 values
   -- Midwinter Supper → Pelikan
@@ -266,11 +271,6 @@ values
   ('b0000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-000000000007', 4, 4, 3),
   ('b0000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-000000000008', 3, 4, 4)
 on conflict (event_id, user_id) do nothing;
-
--- Stress-test data: 22 extra members, all attending "Wine Tasting on the Roof", so
--- the attendee dialog can be checked with a long, scrolling guest list. Generated
--- with deterministic d… UUIDs. The trigger only copies the id, so names/diet are
--- filled in by the UPDATE below.
 
 -- Whitelist the guest emails before their auth.users rows (see note above the members).
 insert into public.invitations (email)
@@ -321,3 +321,21 @@ select
   case when n % 6 = 0 then 'Sällskap ' || n else null end
 from generate_series(1, 22) as n
 on conflict (event_id, user_id) do nothing;
+
+-- Auth wiring for every seeded account
+insert into auth.identities (id, provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
+select
+  gen_random_uuid(),
+  u.id::text,
+  u.id,
+  jsonb_build_object('sub', u.id::text, 'email', u.email, 'email_verified', true),
+  'email',
+  now(), now(), now()
+from auth.users u
+where u.email like '%@dinnerclub.test'
+on conflict do nothing;
+
+update auth.users
+set encrypted_password = extensions.crypt('dinnerclub', extensions.gen_salt('bf'))
+where email like '%@dinnerclub.test'
+  and (encrypted_password is null or encrypted_password = '');

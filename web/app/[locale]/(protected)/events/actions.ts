@@ -13,6 +13,7 @@ export type GalleryEvent = {
   id: string;
   name: string;
   event_date: string;
+  rsvp_deadline: string | null;
   description: string | null;
   venue: { id: string; name: string; address: string | null; district: string | null } | null;
   myRsvpStatus: RsvpStatus | null;
@@ -30,7 +31,9 @@ export async function getUpcomingEvents() {
 
   const { data, error } = await supabase
     .from("events")
-    .select("id, name, event_date, description, venue:venues(id, name, address, district)")
+    .select(
+      "id, name, event_date, rsvp_deadline, description, venue:venues(id, name, address, district)",
+    )
     .eq("visibility", "published")
     .gte("event_date", new Date().toISOString())
     .order("event_date", { ascending: true })
@@ -79,7 +82,9 @@ export async function getPastEvents() {
 
   const { data, error } = await supabase
     .from("events")
-    .select("id, name, event_date, description, venue:venues(id, name, address, district)")
+    .select(
+      "id, name, event_date, rsvp_deadline, description, venue:venues(id, name, address, district)",
+    )
     .eq("visibility", "published")
     .lt("event_date", new Date().toISOString())
     .order("event_date", { ascending: false });

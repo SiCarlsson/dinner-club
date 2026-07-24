@@ -61,6 +61,7 @@ type FormState = {
   name: string;
   date: Date | undefined;
   time: string;
+  rsvpDeadline: Date | undefined;
   venueId: string;
   coHostId: string;
   description: string;
@@ -71,6 +72,7 @@ const EMPTY_FORM: FormState = {
   name: "",
   date: undefined,
   time: "18:00",
+  rsvpDeadline: undefined,
   venueId: "",
   coHostId: "",
   description: "",
@@ -83,11 +85,18 @@ function formFromEvent(event: EventRecord): FormState {
     name: event.name,
     date: eventDate,
     time: format(eventDate, "HH:mm"),
+    rsvpDeadline: event.rsvp_deadline ? new Date(event.rsvp_deadline) : undefined,
     venueId: event.venue?.id ?? "",
     coHostId: event.co_host_id ?? "",
     description: event.description ?? "",
     published: event.visibility === "published",
   };
+}
+
+function endOfDay(date: Date) {
+  const deadline = new Date(date);
+  deadline.setHours(23, 59, 59, 999);
+  return deadline;
 }
 
 function EventDialog({
@@ -104,6 +113,7 @@ function EventDialog({
   const initialForm = event ? formFromEvent(event) : EMPTY_FORM;
   const [open, setOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
+  const [deadlinePickerOpen, setDeadlinePickerOpen] = useState(false);
   const [venues, setVenues] = useState(initialVenues);
   const [form, setForm] = useState(initialForm);
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
@@ -120,9 +130,12 @@ function EventDialog({
     setOpen(false);
   };
 
+  // An event must always have a date and an RSVP deadline (the DB enforces NOT NULL too).
+  const canSubmit = Boolean(form.date && form.rsvpDeadline);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.date) return;
+    if (!form.date || !form.rsvpDeadline) return;
     setStatus("saving");
 
     const [hours, minutes] = form.time ? form.time.split(":").map(Number) : [0, 0];
@@ -132,6 +145,7 @@ function EventDialog({
     const input = {
       name: form.name,
       eventDate: eventDate.toISOString(),
+      rsvpDeadline: endOfDay(form.rsvpDeadline).toISOString(),
       venueId: form.venueId || null,
       coHostId: form.coHostId || null,
       description: form.description || null,
@@ -244,6 +258,59 @@ function EventDialog({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="event-rsvp-deadline" className={FIELD_LABEL}>
+              {t("RsvpDeadlineLabel")}
+            </Label>
+            <div className="flex items-end gap-2">
+              <Popover open={deadlinePickerOpen} onOpenChange={setDeadlinePickerOpen}>
+                <PopoverTrigger
+                  render={
+                    <Button
+                      id="event-rsvp-deadline"
+                      type="button"
+                      variant="outline"
+                      className={cn(
+                        FIELD_INPUT,
+                        "flex-1 justify-start gap-1.5 font-normal",
+                        !form.rsvpDeadline && "text-muted-foreground",
+                      )}
+                    >
+                      <CalendarIcon />
+                      {form.rsvpDeadline
+                        ? format(form.rsvpDeadline, "PPP", { locale: dateFnsLocale })
+                        : t("RsvpDeadlinePlaceholder")}
+                    </Button>
+                  }
+                />
+                <PopoverContent
+                  align="start"
+                  className={cn(FLOATING_SURFACE, "font-ui w-auto p-0")}
+                >
+                  <Calendar
+                    mode="single"
+                    selected={form.rsvpDeadline}
+                    locale={dateFnsLocale}
+                    onSelect={(rsvpDeadline) => {
+                      setForm((prev) => ({ ...prev, rsvpDeadline }));
+                      setDeadlinePickerOpen(false);
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+              {form.rsvpDeadline && (
+                <button
+                  type="button"
+                  aria-label={t("ClearRsvpDeadline")}
+                  onClick={() => setForm((prev) => ({ ...prev, rsvpDeadline: undefined }))}
+                  className="text-muted-foreground hover:text-foreground pb-[9px] text-[13px] transition-colors"
+                >
+                  ✕
+                </button>
+              )}
             </div>
           </div>
 
@@ -366,7 +433,7 @@ function EventDialog({
             <Button
               type="submit"
               className={cn(BUTTON_TEXT, "min-w-20")}
-              disabled={status === "saving"}
+              disabled={status === "saving" || !canSubmit}
             >
               {status === "saving" ? t("SavingButton") : t("SaveButton")}
             </Button>

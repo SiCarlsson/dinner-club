@@ -9,6 +9,7 @@ export type EventRecord = {
   id: string;
   name: string;
   event_date: string;
+  rsvp_deadline: string | null;
   description: string | null;
   visibility: "published" | "unpublished";
   co_host_id: string | null;
@@ -19,6 +20,7 @@ type EventInput = {
   name: string;
   eventDate: string;
   venueId: string | null;
+  rsvpDeadline?: string | null;
   description?: string | null;
   visibility?: "published" | "unpublished";
   coHostId?: string | null;
@@ -33,7 +35,9 @@ export async function getEvents() {
 
   const { data, error } = await supabase
     .from("events")
-    .select("id, name, event_date, description, visibility, co_host_id, venue:venues(id, name)")
+    .select(
+      "id, name, event_date, rsvp_deadline, description, visibility, co_host_id, venue:venues(id, name)",
+    )
     .order("event_date", { ascending: false });
 
   if (error) {
@@ -190,6 +194,7 @@ export async function createEvent(input: EventInput) {
     name: input.name,
     event_date: input.eventDate,
     venue_id: input.venueId,
+    rsvp_deadline: input.rsvpDeadline ?? null,
     description: input.description ?? null,
     visibility: input.visibility ?? "unpublished",
     co_host_id: input.coHostId ?? null,
@@ -217,6 +222,7 @@ export async function updateEvent(id: string, input: Partial<EventInput>) {
       ...(input.name !== undefined && { name: input.name }),
       ...(input.eventDate !== undefined && { event_date: input.eventDate }),
       ...(input.venueId !== undefined && { venue_id: input.venueId }),
+      ...(input.rsvpDeadline !== undefined && { rsvp_deadline: input.rsvpDeadline }),
       ...(input.description !== undefined && { description: input.description }),
       ...(input.visibility !== undefined && { visibility: input.visibility }),
       ...(input.coHostId !== undefined && { co_host_id: input.coHostId }),
