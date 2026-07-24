@@ -112,14 +112,16 @@ export async function seedEvent(opts: {
   visibility?: "published" | "unpublished";
   eventDate?: Date;
 }): Promise<string> {
+  const eventDate = opts.eventDate ?? new Date(Date.now() + 24 * 3600 * 1000);
   const [{ id }] = await sql<{ id: string }>(
-    `INSERT INTO public.events (name, venue_id, visibility, event_date)
-     VALUES ($1, $2, $3, $4) RETURNING id`,
+    `INSERT INTO public.events (name, venue_id, visibility, event_date, rsvp_deadline)
+     VALUES ($1, $2, $3, $4, $5) RETURNING id`,
     [
       opts.name,
       opts.venueId ?? null,
       opts.visibility ?? "published",
-      (opts.eventDate ?? new Date(Date.now() + 24 * 3600 * 1000)).toISOString(),
+      eventDate.toISOString(),
+      eventDate.toISOString(),
     ],
   );
   return id;
