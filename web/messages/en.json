@@ -95,7 +95,16 @@
       "Account": "Account",
       "Diet": "Allergies",
       "Appearance": "Appearance",
-      "Language": "Language"
+      "Language": "Language",
+      "Notifications": "Notifications"
+    },
+    "Notifications": {
+      "Description": "Get a push notification on this device when something new happens.",
+      "Enable": "Enable",
+      "On": "On",
+      "Unsupported": "This device doesn't support push notifications.",
+      "Denied": "Notifications are blocked. Enable them in your browser settings.",
+      "Error": "Something went wrong"
     },
     "Theme": {
       "light": "Light",

@@ -95,7 +95,16 @@
       "Account": "Konto",
       "Diet": "Allergier",
       "Appearance": "Utseende",
-      "Language": "Språk"
+      "Language": "Språk",
+      "Notifications": "Notiser"
+    },
+    "Notifications": {
+      "Description": "Få en notis på den här enheten när något nytt händer.",
+      "Enable": "Aktivera",
+      "On": "På",
+      "Unsupported": "Den här enheten stöder inte notiser.",
+      "Denied": "Notiser är blockerade. Aktivera dem i webbläsarens inställningar.",
+      "Error": "Något gick fel"
     },
     "Theme": {
       "light": "Ljust",

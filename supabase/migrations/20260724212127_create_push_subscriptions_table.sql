@@ -14,7 +14,15 @@ CREATE INDEX push_subscriptions_user_id_idx ON public.push_subscriptions (user_i
 
 ALTER TABLE public.push_subscriptions ENABLE ROW LEVEL SECURITY;
 
-GRANT INSERT, DELETE ON public.push_subscriptions TO authenticated;
+-- SELECT is required so an authenticated user can reference rows in the
+-- WHERE clause of their DELETE (and so RLS can make their own rows visible
+-- to be matched); the SELECT policy below keeps that scoped to their own rows.
+GRANT SELECT, INSERT, DELETE ON public.push_subscriptions TO authenticated;
+
+CREATE POLICY "Users can view their own push subscriptions"
+ON public.push_subscriptions FOR SELECT
+TO authenticated
+USING ((select auth.uid()) = user_id);
 
 CREATE POLICY "Users can add their own push subscriptions"
 ON public.push_subscriptions FOR INSERT
