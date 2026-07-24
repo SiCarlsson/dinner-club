@@ -50,6 +50,7 @@ const EVENT: EventRecord = {
   id: "event-1",
   name: "Summer dinner",
   event_date: "2026-08-01T18:30:00.000Z",
+  rsvp_deadline: "2026-07-25T21:59:00.000Z",
   description: "Bring a friend",
   visibility: "published",
   co_host_id: "p1",
@@ -112,6 +113,16 @@ describe("NewEventDialog Component", () => {
     await user.click(screen.getByRole("button", { name: t.SaveButton }));
 
     expect(createEvent).not.toHaveBeenCalled();
+  });
+
+  it("keeps Save disabled until a date and an RSVP deadline are chosen", async () => {
+    const user = userEvent.setup();
+    renderNewEventDialog();
+
+    await user.click(screen.getByRole("button", { name: tEvents.AddButton }));
+    await user.type(await screen.findByLabelText(t.NameLabel), "Autumn dinner");
+
+    expect(screen.getByRole("button", { name: t.SaveButton })).toBeDisabled();
   });
 
   it("lets the admin pick a co-host from the profiles list", async () => {
@@ -195,6 +206,20 @@ describe("EditEventDialog Component", () => {
         expect.objectContaining({ coHostId: null }),
       );
     });
+  });
+
+  it("disables Save when the RSVP deadline is cleared", async () => {
+    const user = userEvent.setup();
+    renderEditEventDialog();
+
+    await user.click(screen.getByRole("button", { name: tEvents.EditButton }));
+    await screen.findByText("Alex Smith");
+
+    expect(screen.getByRole("button", { name: t.SaveButton })).toBeEnabled();
+
+    await user.click(screen.getByRole("button", { name: t.ClearRsvpDeadline }));
+
+    expect(screen.getByRole("button", { name: t.SaveButton })).toBeDisabled();
   });
 
   it("calls updateEvent with the event id when the form is submitted", async () => {

@@ -31,6 +31,7 @@ function event(overrides: Partial<GalleryEvent> = {}): GalleryEvent {
     id: "1",
     name: "Summer Dinner",
     event_date: "2026-08-01T18:00:00.000Z",
+    rsvp_deadline: null,
     description: null,
     venue: venue("Café Norr"),
     myRsvpStatus: null,
@@ -78,6 +79,24 @@ describe("EventsGallery Component", () => {
     expect(screen.getByText("A warm evening in the city.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: messages.EventsPage.Attend })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: messages.EventsPage.Decline })).toBeInTheDocument();
+  });
+
+  it("shows the RSVP deadline on the hero event", () => {
+    renderGallery([event({ name: "Deadline Dinner", rsvp_deadline: "2026-07-25T09:00:00.000Z" })]);
+
+    expect(screen.getByText(/RSVP by 25 jul/i)).toBeInTheDocument();
+  });
+
+  it("hides the RSVP deadline once the user has responded to the event", () => {
+    renderGallery([
+      event({
+        name: "Answered Dinner",
+        rsvp_deadline: "2026-07-25T09:00:00.000Z",
+        myRsvpStatus: "attending",
+      }),
+    ]);
+
+    expect(screen.queryByText(/RSVP by/i)).not.toBeInTheDocument();
   });
 
   it("does not render the upcoming grid when there is only the hero event", () => {

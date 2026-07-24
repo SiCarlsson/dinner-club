@@ -4,6 +4,7 @@ CREATE TABLE public.events (
   description text,
   venue_id uuid,
   event_date timestamp with time zone NOT NULL,
+  rsvp_deadline timestamp with time zone NOT NULL,
   co_host_id uuid,
   visibility text NOT NULL DEFAULT 'unpublished'::text,
   created_by uuid,

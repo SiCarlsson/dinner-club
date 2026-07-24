@@ -134,6 +134,7 @@ export async function seedEvent(overrides: Record<string, unknown> = {}): Promis
   const row = {
     name: `Event ${counter++}`,
     event_date: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
+    rsvp_deadline: new Date(Date.now() + 6 * 24 * 3600 * 1000).toISOString(),
     visibility: "unpublished",
     ...overrides,
   };

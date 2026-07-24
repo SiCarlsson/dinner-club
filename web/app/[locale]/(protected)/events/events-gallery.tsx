@@ -47,6 +47,10 @@ function formatGridLabel(dateString: string, locale: DateFnsLocale) {
   return `${day} · ${format(date, "HH:mm")}`.toUpperCase();
 }
 
+function formatDeadline(dateString: string, locale: DateFnsLocale) {
+  return format(new Date(dateString), "d MMM", { locale }).replace(/\./g, "").toLowerCase();
+}
+
 function RsvpControls({
   eventId,
   status,
@@ -307,12 +311,14 @@ function EventGridItem({
   venueLabel,
   rsvpControls,
   subtitle,
+  deadline,
 }: {
   event: GalleryEvent;
   dateFnsLocale: DateFnsLocale;
   venueLabel: (event: GalleryEvent) => string;
   rsvpControls?: React.ReactNode;
   subtitle?: string;
+  deadline?: string;
 }) {
   return (
     <li className="border-border border-t py-4 first:border-t-0 first:pt-0 sm:border-t-0 sm:border-l sm:px-6 sm:py-0 sm:[&:nth-child(3n)]:pr-0 sm:[&:nth-child(3n+1)]:border-l-0 sm:[&:nth-child(3n+1)]:pl-0">
@@ -331,6 +337,11 @@ function EventGridItem({
               {event.name}
             </span>
             <span className="text-muted-foreground text-[11.5px]">{venueLabel(event)}</span>
+            {deadline && (
+              <span className="text-muted-foreground text-[10px] tracking-[.14em] uppercase">
+                {deadline}
+              </span>
+            )}
           </button>
         }
       />
@@ -377,6 +388,11 @@ export function EventsGallery({
               hasPlusOne={next.myHasPlusOne}
               plusOneName={next.myPlusOneName}
             />
+            {next.rsvp_deadline && !next.myRsvpStatus && (
+              <p className="text-muted-foreground text-[10px] tracking-[.14em] uppercase">
+                {t("RsvpDeadline", { date: formatDeadline(next.rsvp_deadline, dateFnsLocale) })}
+              </p>
+            )}
             <p className="text-muted-foreground flex items-center gap-2 text-[11px]">
               <span className="text-body">{formatDateTime(next.event_date, dateFnsLocale)}</span>
               <span aria-hidden="true">·</span>
@@ -405,6 +421,13 @@ export function EventsGallery({
                     event={event}
                     dateFnsLocale={dateFnsLocale}
                     venueLabel={venueLabel}
+                    deadline={
+                      event.rsvp_deadline && !event.myRsvpStatus
+                        ? t("RsvpDeadline", {
+                            date: formatDeadline(event.rsvp_deadline, dateFnsLocale),
+                          })
+                        : undefined
+                    }
                     rsvpControls={
                       <RsvpControls
                         eventId={event.id}

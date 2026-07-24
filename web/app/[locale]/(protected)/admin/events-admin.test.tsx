@@ -71,6 +71,7 @@ describe("EventsAdmin Component", () => {
         id: "1",
         name: "Summer Dinner",
         event_date: "2026-08-01T18:00:00.000Z",
+        rsvp_deadline: null,
         description: null,
         visibility: "published",
         co_host_id: null,
@@ -80,6 +81,7 @@ describe("EventsAdmin Component", () => {
         id: "2",
         name: "No Venue Dinner",
         event_date: "2026-09-12T18:00:00.000Z",
+        rsvp_deadline: null,
         description: null,
         visibility: "unpublished",
         co_host_id: null,
@@ -112,6 +114,7 @@ describe("EventsAdmin Component", () => {
         id: "future",
         name: "Future Dinner",
         event_date: "2026-08-01T18:00:00.000Z",
+        rsvp_deadline: null,
         description: null,
         visibility: "published",
         co_host_id: null,
@@ -121,6 +124,7 @@ describe("EventsAdmin Component", () => {
         id: "past",
         name: "Past Dinner",
         event_date: "2026-06-01T18:00:00.000Z",
+        rsvp_deadline: null,
         description: null,
         visibility: "published",
         co_host_id: null,
@@ -133,7 +137,6 @@ describe("EventsAdmin Component", () => {
     expect(screen.getByText(messages.AdminPage.Events.UpcomingHeading)).toBeInTheDocument();
     expect(screen.getByText(messages.AdminPage.Events.PastHeading)).toBeInTheDocument();
 
-    // Two groups → two tables, upcoming first, past second.
     const [upcomingTable, pastTable] = screen.getAllByRole("table");
 
     expect(within(upcomingTable).getByText("Future Dinner")).toBeInTheDocument();
@@ -149,6 +152,7 @@ describe("EventsAdmin Component", () => {
         id: "future",
         name: "Future Dinner",
         event_date: "2026-08-01T18:00:00.000Z",
+        rsvp_deadline: null,
         description: null,
         visibility: "published",
         co_host_id: null,
@@ -169,6 +173,7 @@ describe("EventsAdmin Component", () => {
         id: "1",
         name: "Published Dinner",
         event_date: "2026-08-01T18:00:00.000Z",
+        rsvp_deadline: null,
         description: null,
         visibility: "published",
         co_host_id: null,
@@ -178,6 +183,7 @@ describe("EventsAdmin Component", () => {
         id: "2",
         name: "Draft Dinner",
         event_date: "2026-09-12T18:00:00.000Z",
+        rsvp_deadline: null,
         description: null,
         visibility: "unpublished",
         co_host_id: null,

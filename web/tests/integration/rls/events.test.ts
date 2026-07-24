@@ -53,26 +53,35 @@ describe("events RLS", () => {
   describe("INSERT", () => {
     it("rejects members", async () => {
       const member = await createUser({ role: "member" });
-      const { error } = await member.client
-        .from("events")
-        .insert({ name: "Nope", event_date: new Date().toISOString(), created_by: member.id });
+      const { error } = await member.client.from("events").insert({
+        name: "Nope",
+        event_date: new Date().toISOString(),
+        rsvp_deadline: new Date().toISOString(),
+        created_by: member.id,
+      });
       expect(error).not.toBeNull();
     });
 
     it("allows admins when created_by is themselves", async () => {
       const admin = await createUser({ role: "admin" });
-      const { error } = await admin.client
-        .from("events")
-        .insert({ name: "Yes", event_date: new Date().toISOString(), created_by: admin.id });
+      const { error } = await admin.client.from("events").insert({
+        name: "Yes",
+        event_date: new Date().toISOString(),
+        rsvp_deadline: new Date().toISOString(),
+        created_by: admin.id,
+      });
       expect(error).toBeNull();
     });
 
     it("rejects admins who spoof created_by as another user", async () => {
       const admin = await createUser({ role: "admin" });
       const other = await createUser({ role: "member" });
-      const { error } = await admin.client
-        .from("events")
-        .insert({ name: "Spoof", event_date: new Date().toISOString(), created_by: other.id });
+      const { error } = await admin.client.from("events").insert({
+        name: "Spoof",
+        event_date: new Date().toISOString(),
+        rsvp_deadline: new Date().toISOString(),
+        created_by: other.id,
+      });
       expect(error).not.toBeNull();
     });
   });
