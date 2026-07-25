@@ -143,6 +143,10 @@ export async function deleteEvent(eventId: string): Promise<void> {
   await sql("DELETE FROM public.events WHERE id = $1", [eventId]);
 }
 
+export async function clearPushSubscriptions(): Promise<void> {
+  await sql("DELETE FROM public.push_subscriptions");
+}
+
 export async function deleteVenue(venueId: string): Promise<void> {
   await sql("DELETE FROM public.venues WHERE id = $1", [venueId]);
 }

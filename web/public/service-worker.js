@@ -1,4 +1,8 @@
-// web/public/sw.js
+// web/public/service-worker.js
+
+// Take control promptly so updates to this file apply on the next load.
+self.addEventListener("install", () => self.skipWaiting());
+self.addEventListener("activate", (event) => event.waitUntil(self.clients.claim()));
 
 /**
  * Show a notification when a push message arrives.
@@ -17,6 +21,9 @@ self.addEventListener("push", (event) => {
     icon: "/icon-192.png",
     badge: "/icon-192.png",
     tag: payload.tag,
+    // Re-alert when a same-tag notification replaces an earlier one, instead of
+    // updating it silently (which looks like "nothing happened").
+    renotify: Boolean(payload.tag),
     data: { url: payload.url || "/" },
   };
 

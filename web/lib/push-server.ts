@@ -19,6 +19,8 @@ export type SendResult = {
   message?: string;
 };
 
+type StoredSubscription = { endpoint: string; p256dh: string; auth: string };
+
 let vapidConfigured = false;
 
 function configureWebPush() {
@@ -39,23 +41,15 @@ function configureWebPush() {
 }
 
 /**
- * Send a push notification to every device a user has subscribed
+ * Fan a payload out to a set of subscriptions, pruning any the push service
+ * reports as gone (404/410) so they aren't retried next time.
  */
-export async function sendPushToUser(userId: string, payload: PushPayload): Promise<SendResult> {
-  configureWebPush();
-
-  const supabase = createAdminClient();
-
-  const { data: subscriptions, error } = await supabase
-    .from("push_subscriptions")
-    .select("endpoint, p256dh, auth")
-    .eq("user_id", userId);
-
-  if (error) {
-    return { success: false, sent: 0, removed: 0, message: error.message };
-  }
-
-  if (!subscriptions || subscriptions.length === 0) {
+async function fanOut(
+  supabase: ReturnType<typeof createAdminClient>,
+  subscriptions: StoredSubscription[],
+  payload: PushPayload,
+): Promise<SendResult> {
+  if (subscriptions.length === 0) {
     return { success: true, sent: 0, removed: 0 };
   }
 
@@ -85,4 +79,23 @@ export async function sendPushToUser(userId: string, payload: PushPayload): Prom
   }
 
   return { success: true, sent, removed: staleEndpoints.length };
+}
+
+/**
+ * Send a push notification to every subscribed device across all users.
+ */
+export async function sendPushToAllSubscribers(payload: PushPayload): Promise<SendResult> {
+  configureWebPush();
+
+  const supabase = createAdminClient();
+
+  const { data: subscriptions, error } = await supabase
+    .from("push_subscriptions")
+    .select("endpoint, p256dh, auth");
+
+  if (error) {
+    return { success: false, sent: 0, removed: 0, message: error.message };
+  }
+
+  return fanOut(supabase, subscriptions ?? [], payload);
 }

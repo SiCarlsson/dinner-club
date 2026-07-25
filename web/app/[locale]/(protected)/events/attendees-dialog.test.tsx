@@ -6,18 +6,20 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AttendeesDialog } from "./attendees-dialog";
-import { getEventAttendees, type AttendeeSummary } from "./actions";
+import { getEventAttendees, notifyEventSubscribers, type AttendeeSummary } from "./actions";
 
 vi.mock("./actions", () => ({
   getEventAttendees: vi.fn(),
+  notifyEventSubscribers: vi.fn(),
 }));
 
-function renderDialog() {
+function renderDialog({ canNotify = false }: { canNotify?: boolean } = {}) {
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
       <AttendeesDialog
         eventId="e1"
         eventName="Summer Dinner"
+        canNotify={canNotify}
         trigger={<button type="button">open</button>}
       />
     </NextIntlClientProvider>,
@@ -102,5 +104,36 @@ describe("AttendeesDialog", () => {
     await user.click(screen.getByRole("button", { name: "open" }));
 
     expect(await screen.findByText(messages.EventsPage.AttendeesError)).toBeInTheDocument();
+  });
+
+  it("hides the notify button when the user isn't allowed to send", async () => {
+    vi.mocked(getEventAttendees).mockResolvedValue({ success: true, summary });
+    const user = userEvent.setup();
+    renderDialog();
+
+    await user.click(screen.getByRole("button", { name: "open" }));
+
+    await screen.findByText("Adam");
+    expect(
+      screen.queryByRole("button", { name: messages.EventsPage.Notify.Button }),
+    ).not.toBeInTheDocument();
+  });
+
+  it("sends a notification and shows the sent state when authorized", async () => {
+    vi.mocked(getEventAttendees).mockResolvedValue({ success: true, summary });
+    vi.mocked(notifyEventSubscribers).mockResolvedValue({ success: true, sent: 2 });
+    const user = userEvent.setup();
+    renderDialog({ canNotify: true });
+
+    await user.click(screen.getByRole("button", { name: "open" }));
+    const notifyButton = await screen.findByRole("button", {
+      name: messages.EventsPage.Notify.Button,
+    });
+    await user.click(notifyButton);
+
+    expect(notifyEventSubscribers).toHaveBeenCalledWith("e1");
+    expect(
+      await screen.findByRole("button", { name: messages.EventsPage.Notify.Sent }),
+    ).toBeInTheDocument();
   });
 });

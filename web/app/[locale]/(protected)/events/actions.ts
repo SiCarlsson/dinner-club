@@ -4,6 +4,7 @@
 
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/utils/supabase/auth";
+import { sendPushToAllSubscribers } from "@/lib/push-server";
 
 export type RsvpStatus = "attending" | "declined" | "maybe";
 
@@ -20,6 +21,7 @@ export type GalleryEvent = {
   myHasPlusOne: boolean;
   myPlusOneName: string | null;
   myRating: EventRating | null;
+  canNotify: boolean;
 };
 
 export async function getUpcomingEvents() {
@@ -32,7 +34,7 @@ export async function getUpcomingEvents() {
   const { data, error } = await supabase
     .from("events")
     .select(
-      "id, name, event_date, rsvp_deadline, description, venue:venues(id, name, address, district)",
+      "id, name, event_date, rsvp_deadline, description, co_host_id, venue:venues(id, name, address, district)",
     )
     .eq("visibility", "published")
     .gte("event_date", new Date().toISOString())
@@ -43,10 +45,19 @@ export async function getUpcomingEvents() {
     return { success: false as const, message: error.message };
   }
 
-  const events = data as unknown as Omit<
+  type RawEvent = Omit<
     GalleryEvent,
-    "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName" | "myRating"
-  >[];
+    "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName" | "myRating" | "canNotify"
+  > & { co_host_id: string | null };
+  const events = data as unknown as RawEvent[];
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  const isAdmin = profile?.role === "admin";
 
   const { data: rsvps } = await supabase
     .from("rsvps")
@@ -59,7 +70,7 @@ export async function getUpcomingEvents() {
 
   const rsvpByEvent = new Map((rsvps ?? []).map((rsvp) => [rsvp.event_id, rsvp]));
 
-  const eventsWithRsvp: GalleryEvent[] = events.map((event) => {
+  const eventsWithRsvp: GalleryEvent[] = events.map(({ co_host_id, ...event }) => {
     const rsvp = rsvpByEvent.get(event.id);
     return {
       ...event,
@@ -67,6 +78,7 @@ export async function getUpcomingEvents() {
       myHasPlusOne: rsvp?.has_plus_one ?? false,
       myPlusOneName: rsvp?.plus_one_name ?? null,
       myRating: null,
+      canNotify: isAdmin || co_host_id === user.id,
     };
   });
 
@@ -126,6 +138,7 @@ export async function getPastEvents() {
       myRating: rating
         ? { drinks: rating.drinks_rating, food: rating.food_rating, venue: rating.venue_rating }
         : null,
+      canNotify: false, // past events aren't announced
     };
   });
 
@@ -285,4 +298,64 @@ export async function getEventAttendees(eventId: string) {
       dietary,
     } satisfies AttendeeSummary,
   };
+}
+
+// "5 sep · 19:00" — used as the push body (app default locale)
+function formatNotificationBody(dateString: string) {
+  const date = new Date(dateString);
+  const day = new Intl.DateTimeFormat("sv-SE", { day: "numeric", month: "short" })
+    .format(date)
+    .replace(/\./g, "");
+  const time = new Intl.DateTimeFormat("sv-SE", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+  return `${day} · ${time}`;
+}
+
+export async function notifyEventSubscribers(eventId: string) {
+  const { supabase, user } = await getCurrentUser();
+
+  if (!user) {
+    return { success: false as const, message: "Not authenticated" };
+  }
+
+  // RLS lets members read published events; the explicit role/co-host check
+  // below is the real gate on who may send.
+  const { data: event, error } = await supabase
+    .from("events")
+    .select("id, name, event_date, co_host_id")
+    .eq("id", eventId)
+    .single();
+
+  if (error || !event) {
+    return { success: false as const, message: "Event not found" };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  const isAdmin = profile?.role === "admin";
+  const isCoHost = event.co_host_id === user.id;
+
+  if (!isAdmin && !isCoHost) {
+    return { success: false as const, message: "Not authorized" };
+  }
+
+  const result = await sendPushToAllSubscribers({
+    title: event.name,
+    body: formatNotificationBody(event.event_date),
+    url: "/events",
+    tag: `event-${event.id}`,
+  });
+
+  if (!result.success) {
+    return { success: false as const, message: result.message ?? "Failed to send notification" };
+  }
+
+  return { success: true as const, sent: result.sent };
 }

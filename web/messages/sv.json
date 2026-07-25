@@ -67,6 +67,12 @@
     "PlusOneSave": "Spara",
     "PlusOneSaving": "Sparar…",
     "SeeAttendees": "Se vilka som kommer",
+    "Notify": {
+      "Button": "Notifiera medlemmar",
+      "Sending": "Skickar…",
+      "Sent": "Notis skickad",
+      "Error": "Kunde inte skicka"
+    },
     "AttendeesSubtitle": "Vilka som kommer",
     "AttendeesLoading": "Laddar gäster…",
     "AttendeesError": "Kunde inte ladda gästerna.",

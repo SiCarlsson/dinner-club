@@ -67,6 +67,12 @@
     "PlusOneSave": "Save",
     "PlusOneSaving": "Saving…",
     "SeeAttendees": "See who's coming",
+    "Notify": {
+      "Button": "Notify members",
+      "Sending": "Sending…",
+      "Sent": "Notification sent",
+      "Error": "Couldn't send"
+    },
     "AttendeesSubtitle": "Who's coming",
     "AttendeesLoading": "Loading guests…",
     "AttendeesError": "Couldn't load the guests.",
