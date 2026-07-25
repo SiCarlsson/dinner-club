@@ -43,8 +43,12 @@ export function AttendeesDialog({
 
   const handleNotify = async () => {
     setNotifyState("sending");
-    const result = await notifyEventSubscribers(eventId);
-    setNotifyState(result.success ? "sent" : "error");
+    try {
+      const result = await notifyEventSubscribers(eventId);
+      setNotifyState(result.success ? "sent" : "error");
+    } catch {
+      setNotifyState("error");
+    }
   };
 
   const notifyLabel = {
