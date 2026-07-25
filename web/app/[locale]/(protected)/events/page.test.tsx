@@ -60,6 +60,7 @@ describe("Events Server Page", () => {
           myHasPlusOne: false,
           myPlusOneName: null,
           myRating: null,
+          canNotify: false,
         },
       ],
     });
@@ -77,6 +78,7 @@ describe("Events Server Page", () => {
           myHasPlusOne: false,
           myPlusOneName: null,
           myRating: null,
+          canNotify: false,
         },
       ],
     });

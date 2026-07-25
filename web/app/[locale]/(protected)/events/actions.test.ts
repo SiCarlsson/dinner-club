@@ -2,6 +2,7 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getCurrentUser } from "@/utils/supabase/auth";
+import { sendPushToAllSubscribers } from "@/lib/push-server";
 
 vi.mock("@/utils/supabase/auth", () => ({
   getCurrentUser: vi.fn(),
@@ -11,12 +12,17 @@ vi.mock("next/cache", () => ({
   revalidatePath: vi.fn(),
 }));
 
+vi.mock("@/lib/push-server", () => ({
+  sendPushToAllSubscribers: vi.fn(),
+}));
+
 function mockSupabase({
   events,
   eventsError,
   rsvps,
   ratings,
   upsertError,
+  role,
 }: {
   events?: unknown[];
   eventsError?: { message: string } | null;
@@ -33,6 +39,7 @@ function mockSupabase({
     venue_rating: number;
   }[];
   upsertError?: { message: string } | null;
+  role?: "member" | "admin" | null;
 } = {}) {
   // getUpcomingEvents orders/limits; getPastEvents orders without a limit, so `order`
   // must resolve on its own too. `limit` wraps the same resolved shape.
@@ -57,9 +64,15 @@ function mockSupabase({
 
   const upsert = vi.fn().mockResolvedValue({ error: upsertError ?? null });
 
+  // getUpcomingEvents reads the caller's role to decide `canNotify`.
+  const profilesSingle = vi.fn().mockResolvedValue({ data: role ? { role } : null, error: null });
+  const profilesEq = vi.fn().mockReturnValue({ single: profilesSingle });
+  const profilesSelect = vi.fn().mockReturnValue({ eq: profilesEq });
+
   const from = vi.fn((table) => {
     if (table === "rsvps") return { select: rsvpsSelect, upsert };
     if (table === "ratings") return { select: ratingsSelect, upsert };
+    if (table === "profiles") return { select: profilesSelect };
     return { select: eventsSelect };
   });
 
@@ -135,6 +148,7 @@ describe("events gallery actions", () => {
             myHasPlusOne: false,
             myPlusOneName: null,
             myRating: null,
+            canNotify: false,
           },
         ],
       });
@@ -338,6 +352,7 @@ describe("events gallery actions", () => {
             myHasPlusOne: false,
             myPlusOneName: null,
             myRating: null,
+            canNotify: false,
           },
         ],
       });
@@ -532,6 +547,133 @@ describe("events gallery actions", () => {
       const result = await getEventAttendees("e1");
 
       expect(result).toEqual({ success: false, message: "db down" });
+    });
+  });
+
+  describe("notifyEventSubscribers", () => {
+    function notifySupabase({
+      event,
+      eventError = null,
+      role = null,
+    }: {
+      event?: { id: string; name: string; event_date: string; co_host_id: string | null } | null;
+      eventError?: { message: string } | null;
+      role?: "member" | "admin" | null;
+    } = {}) {
+      const eventsSingle = vi.fn().mockResolvedValue({ data: event ?? null, error: eventError });
+      const eventsEq = vi.fn().mockReturnValue({ single: eventsSingle });
+      const eventsSelect = vi.fn().mockReturnValue({ eq: eventsEq });
+
+      const profilesSingle = vi
+        .fn()
+        .mockResolvedValue({ data: role ? { role } : null, error: null });
+      const profilesEq = vi.fn().mockReturnValue({ single: profilesSingle });
+      const profilesSelect = vi.fn().mockReturnValue({ eq: profilesEq });
+
+      const from = vi.fn((table: string) =>
+        table === "profiles" ? { select: profilesSelect } : { select: eventsSelect },
+      );
+      return { from, eventsEq };
+    }
+
+    const event = {
+      id: "e1",
+      name: "Autumn Dinner",
+      event_date: "2026-09-05T17:00:00.000Z",
+      co_host_id: null,
+    };
+
+    it("returns not authenticated when there is no user", async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: notifySupabase() as never,
+        user: null,
+      });
+
+      const { notifyEventSubscribers } = await import("./actions");
+      const result = await notifyEventSubscribers("e1");
+
+      expect(result).toEqual({ success: false, message: "Not authenticated" });
+      expect(sendPushToAllSubscribers).not.toHaveBeenCalled();
+    });
+
+    it("returns event not found when the event is missing", async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: notifySupabase({ event: null }) as never,
+        user: { id: "user-1" } as never,
+      });
+
+      const { notifyEventSubscribers } = await import("./actions");
+      const result = await notifyEventSubscribers("e1");
+
+      expect(result).toEqual({ success: false, message: "Event not found" });
+      expect(sendPushToAllSubscribers).not.toHaveBeenCalled();
+    });
+
+    it("rejects a member who is neither admin nor the co-host", async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: notifySupabase({
+          event: { ...event, co_host_id: "someone-else" },
+          role: "member",
+        }) as never,
+        user: { id: "user-1" } as never,
+      });
+
+      const { notifyEventSubscribers } = await import("./actions");
+      const result = await notifyEventSubscribers("e1");
+
+      expect(result).toEqual({ success: false, message: "Not authorized" });
+      expect(sendPushToAllSubscribers).not.toHaveBeenCalled();
+    });
+
+    it("lets an admin send and reports how many devices were reached", async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: notifySupabase({ event, role: "admin" }) as never,
+        user: { id: "user-1" } as never,
+      });
+      vi.mocked(sendPushToAllSubscribers).mockResolvedValue({ success: true, sent: 3, removed: 1 });
+
+      const { notifyEventSubscribers } = await import("./actions");
+      const result = await notifyEventSubscribers("e1");
+
+      expect(sendPushToAllSubscribers).toHaveBeenCalledWith(
+        expect.objectContaining({ title: "Autumn Dinner", url: "/events", tag: "event-e1" }),
+      );
+      expect(result).toEqual({ success: true, sent: 3 });
+    });
+
+    it("lets the event's co-host send even without the admin role", async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: notifySupabase({
+          event: { ...event, co_host_id: "user-1" },
+          role: "member",
+        }) as never,
+        user: { id: "user-1" } as never,
+      });
+      vi.mocked(sendPushToAllSubscribers).mockResolvedValue({ success: true, sent: 1, removed: 0 });
+
+      const { notifyEventSubscribers } = await import("./actions");
+      const result = await notifyEventSubscribers("e1");
+
+      expect(sendPushToAllSubscribers).toHaveBeenCalled();
+      expect(result).toEqual({ success: true, sent: 1 });
+    });
+
+    it("surfaces a send failure", async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: notifySupabase({ event, role: "admin" }) as never,
+        user: { id: "user-1" } as never,
+      });
+      vi.mocked(sendPushToAllSubscribers).mockResolvedValue({
+        success: false,
+        sent: 0,
+        removed: 0,
+        message: "push service down",
+      });
+
+      const { notifyEventSubscribers } = await import("./actions");
+      const result = await notifyEventSubscribers("e1");
+
+      expect(result).toEqual({ success: false, message: "push service down" });
     });
   });
 });

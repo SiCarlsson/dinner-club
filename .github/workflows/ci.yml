@@ -129,6 +129,10 @@ jobs:
             echo "NEXT_PUBLIC_BASE_URL=http://localhost:3000"
           } >> "$GITHUB_ENV"
 
+      - name: Generate throwaway VAPID keys for the send path
+        run: |
+          node -e "const k=require('web-push').generateVAPIDKeys();console.log('NEXT_PUBLIC_VAPID_PUBLIC_KEY='+k.publicKey);console.log('VAPID_PRIVATE_KEY='+k.privateKey);console.log('VAPID_SUBJECT=mailto:ci@dinnerclub.test')" >> "$GITHUB_ENV"
+
       - name: E2E tests
         run: pnpm test:e2e
 

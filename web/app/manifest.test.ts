@@ -13,6 +13,7 @@ const EXPECTED_PUBLIC_FILES = [
   "icon-512.png",
   "screenshot-narrow.png",
   "screenshot-wide.png",
+  "service-worker.js",
 ];
 
 const referencedAssets = (() => {

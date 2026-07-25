@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 import { FLOATING_SURFACE } from "@/lib/form-styles";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -14,7 +15,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { getEventAttendees, type AttendeeSummary } from "./actions";
+import { getEventAttendees, notifyEventSubscribers, type AttendeeSummary } from "./actions";
 
 export function AttendeesDialog({
   eventId,
@@ -23,6 +24,7 @@ export function AttendeesDialog({
   description,
   rsvpControls,
   subtitle,
+  canNotify = false,
 }: {
   eventId: string;
   eventName: string;
@@ -30,12 +32,31 @@ export function AttendeesDialog({
   description?: string | null;
   rsvpControls?: React.ReactNode;
   subtitle?: string;
+  canNotify?: boolean;
 }) {
   const t = useTranslations("EventsPage");
   const tDiet = useTranslations("ProfilePage.Diet");
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<"loading" | "loaded" | "error">("loading");
   const [summary, setSummary] = useState<AttendeeSummary | null>(null);
+  const [notifyState, setNotifyState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+
+  const handleNotify = async () => {
+    setNotifyState("sending");
+    try {
+      const result = await notifyEventSubscribers(eventId);
+      setNotifyState(result.success ? "sent" : "error");
+    } catch {
+      setNotifyState("error");
+    }
+  };
+
+  const notifyLabel = {
+    idle: t("Notify.Button"),
+    sending: t("Notify.Sending"),
+    sent: t("Notify.Sent"),
+    error: t("Notify.Error"),
+  }[notifyState];
 
   useEffect(() => {
     if (!open) return;
@@ -60,6 +81,7 @@ export function AttendeesDialog({
     if (next) {
       setState("loading");
       setSummary(null);
+      setNotifyState("idle");
     }
     setOpen(next);
   };
@@ -81,7 +103,19 @@ export function AttendeesDialog({
 
         {rsvpControls && <div className="flex justify-center">{rsvpControls}</div>}
 
-        {(description || rsvpControls) && <div className="border-border border-t" />}
+        {canNotify && (
+          <Button
+            type="button"
+            variant="outline"
+            disabled={notifyState === "sending" || notifyState === "sent"}
+            onClick={handleNotify}
+            className="border-input h-auto w-full rounded-none bg-transparent px-[26px] py-[12px] text-[12px] tracking-[.08em] uppercase"
+          >
+            {notifyLabel}
+          </Button>
+        )}
+
+        {(description || rsvpControls || canNotify) && <div className="border-border border-t" />}
 
         {state === "loading" && (
           <p className="text-muted-foreground text-[13px]">{t("AttendeesLoading")}</p>

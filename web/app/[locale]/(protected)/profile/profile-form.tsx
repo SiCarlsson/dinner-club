@@ -2,12 +2,18 @@
 
 "use client";
 
-import { useState, useSyncExternalStore } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { useTranslations, useLocale } from "next-intl";
 import { useTheme } from "next-themes";
 import { updateProfile } from "./actions";
 import { useRouter, usePathname } from "@/i18n/navigation";
 import { createClient } from "@/utils/supabase/client";
+import {
+  isPushSupported,
+  getExistingSubscription,
+  subscribeToPush,
+  unsubscribeFromPush,
+} from "@/lib/push";
 import { DIETARY_OPTIONS, isDietaryOption } from "@/lib/dietary-options";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -50,6 +56,7 @@ export function ProfileForm({
   const tDiet = useTranslations("ProfilePage.Diet");
   const tTheme = useTranslations("ProfilePage.Theme");
   const tLang = useTranslations("ProfilePage.Language");
+  const tNotif = useTranslations("ProfilePage.Notifications");
   const router = useRouter();
   const pathname = usePathname();
   const locale = useLocale();
@@ -63,6 +70,51 @@ export function ProfileForm({
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [message, setMessage] = useState("");
   const [loggingOut, setLoggingOut] = useState(false);
+  const [pushState, setPushState] = useState<"loading" | "unsupported" | "off" | "on" | "denied">(
+    "loading",
+  );
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushError, setPushError] = useState("");
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function initPushState() {
+      if (!isPushSupported()) {
+        if (!cancelled) setPushState("unsupported");
+        return;
+      }
+      if (Notification.permission === "denied") {
+        if (!cancelled) setPushState("denied");
+        return;
+      }
+      const subscription = await getExistingSubscription();
+      if (!cancelled) setPushState(subscription ? "on" : "off");
+    }
+
+    initPushState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const handleTogglePush = async () => {
+    setPushError("");
+    setPushBusy(true);
+    try {
+      const result = pushState === "on" ? await unsubscribeFromPush() : await subscribeToPush();
+      if (result.success) {
+        setPushState(pushState === "on" ? "off" : "on");
+      } else if (Notification.permission === "denied") {
+        setPushState("denied");
+      } else {
+        setPushError(tNotif("Error"));
+      }
+    } finally {
+      setPushBusy(false);
+    }
+  };
 
   const isDirty =
     name !== initialName ||
@@ -211,6 +263,35 @@ export function ProfileForm({
             );
           })}
         </div>
+      </div>
+
+      <div className="flex flex-col gap-4">
+        <h2 className="text-muted-foreground text-[10px] tracking-[.28em] uppercase">
+          {t("Sections.Notifications")}
+        </h2>
+        <p className="text-muted-foreground text-[12px]">{tNotif("Description")}</p>
+        {pushState === "unsupported" || pushState === "denied" ? (
+          <p className="text-muted-foreground text-[12px]">
+            {pushState === "unsupported" ? tNotif("Unsupported") : tNotif("Denied")}
+          </p>
+        ) : (
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              aria-pressed={pushState === "on"}
+              disabled={pushBusy || pushState === "loading"}
+              onClick={handleTogglePush}
+              className={`cursor-pointer rounded-full border px-[15px] py-[7px] text-[12px] transition-colors disabled:opacity-50 ${
+                pushState === "on"
+                  ? "border-accent text-foreground"
+                  : "border-input text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              {pushState === "on" ? tNotif("On") : tNotif("Enable")}
+            </button>
+          </div>
+        )}
+        {pushError && <p className="text-destructive text-sm">{pushError}</p>}
       </div>
 
       <div className="flex flex-wrap items-center gap-4">
