@@ -87,7 +87,7 @@ describe("rsvps RLS", () => {
   });
 
   describe("DELETE", () => {
-    it("does not let a member delete their own RSVP (admins only)", async () => {
+    it("lets a member delete their own RSVP", async () => {
       const eventId = await seedEvent({ visibility: "published" });
       const member = await createUser({ role: "member" });
       await member.client
@@ -96,7 +96,29 @@ describe("rsvps RLS", () => {
 
       await member.client.from("rsvps").delete().eq("event_id", eventId).eq("user_id", member.id);
 
-      expect(await countRows("rsvps", "event_id", eventId)).toBe(1); // still there
+      expect(await countRows("rsvps", "event_id", eventId)).toBe(0);
+    });
+
+    it("does not let a member delete another member's RSVP", async () => {
+      const eventId = await seedEvent({ visibility: "published" });
+      const attendee = await createUser({ role: "member" });
+      const other = await createUser({ role: "member" });
+      await seedRsvp(eventId, attendee.id);
+
+      await other.client.from("rsvps").delete().eq("event_id", eventId).eq("user_id", attendee.id);
+
+      expect(await countRows("rsvps", "event_id", eventId)).toBe(1);
+    });
+
+    it("lets an admin delete any member's RSVP", async () => {
+      const eventId = await seedEvent({ visibility: "published" });
+      const attendee = await createUser({ role: "member" });
+      const admin = await createUser({ role: "admin" });
+      await seedRsvp(eventId, attendee.id);
+
+      await admin.client.from("rsvps").delete().eq("event_id", eventId).eq("user_id", attendee.id);
+
+      expect(await countRows("rsvps", "event_id", eventId)).toBe(0);
     });
   });
 });
