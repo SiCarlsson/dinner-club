@@ -11,7 +11,7 @@ CREATE TABLE public.rsvps (
   CONSTRAINT rsvps_event_id_fkey FOREIGN KEY (event_id) REFERENCES public.events(id) ON DELETE CASCADE,
   CONSTRAINT rsvps_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE,
   CONSTRAINT rsvps_event_user_unique UNIQUE (event_id, user_id),
-  CONSTRAINT check_rsvp_status CHECK (status IN ('attending', 'declined', 'maybe')),
+  CONSTRAINT check_rsvp_status CHECK (status IN ('attending', 'declined')),
   CONSTRAINT check_plus_one_name CHECK (has_plus_one = (plus_one_name IS NOT NULL))
 );
 
@@ -77,9 +77,11 @@ WITH CHECK (
   )
 );
 
-CREATE POLICY "Only admins can delete RSVPs"
+CREATE POLICY "Users can delete their own RSVPs, admins can delete any"
 ON public.rsvps FOR DELETE
 TO authenticated
 USING (
+  (select auth.uid()) = user_id
+  OR
   (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
 );

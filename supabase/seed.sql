@@ -156,7 +156,7 @@ from (
 where p.id = v.id;
 
 -- RSVPs: every event has several attendees, with a mix of members bringing a named
--- +1 and members coming solo (plus a few declined / maybe to exercise the status
+-- +1 and members coming solo (plus a few declined to exercise the status
 -- filter)
 insert into public.rsvps (event_id, user_id, status, has_plus_one, plus_one_name)
 values
@@ -196,7 +196,7 @@ values
   ('b0000000-0000-0000-0000-000000000005', 'c0000000-0000-0000-0000-000000000007', 'attending', false, null),
   ('b0000000-0000-0000-0000-000000000005', 'c0000000-0000-0000-0000-000000000008', 'attending', false, null),
   ('b0000000-0000-0000-0000-000000000005', 'c0000000-0000-0000-0000-000000000002', 'attending', false, null),
-  ('b0000000-0000-0000-0000-000000000005', 'c0000000-0000-0000-0000-000000000005', 'maybe',     false, null),
+  ('b0000000-0000-0000-0000-000000000005', 'c0000000-0000-0000-0000-000000000005', 'declined',  false, null),
 
   -- Christmas Feast (unpublished)
   ('b0000000-0000-0000-0000-000000000006', 'c0000000-0000-0000-0000-000000000001', 'attending', false, null),

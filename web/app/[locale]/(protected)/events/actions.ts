@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/utils/supabase/auth";
 import { sendPushToAllSubscribers } from "@/lib/push-server";
 
-export type RsvpStatus = "attending" | "declined" | "maybe";
+export type RsvpStatus = "attending" | "declined";
 
 export type EventRating = { drinks: number; food: number; venue: number };
 
@@ -168,6 +168,27 @@ export async function rsvpToEvent(eventId: string, status: RsvpStatus) {
 
   revalidatePath("/events");
   return { success: true as const, message: "RSVP saved" };
+}
+
+export async function removeRsvp(eventId: string) {
+  const { supabase, user } = await getCurrentUser();
+
+  if (!user) {
+    return { success: false as const, message: "Not authenticated" };
+  }
+
+  const { error } = await supabase
+    .from("rsvps")
+    .delete()
+    .eq("event_id", eventId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  revalidatePath("/events");
+  return { success: true as const, message: "RSVP removed" };
 }
 
 export async function setRsvpPlusOne(eventId: string, hasPlusOne: boolean, plusOneName: string) {

@@ -22,6 +22,7 @@ function mockSupabase({
   rsvps,
   ratings,
   upsertError,
+  deleteError,
   role,
 }: {
   events?: unknown[];
@@ -39,6 +40,7 @@ function mockSupabase({
     venue_rating: number;
   }[];
   upsertError?: { message: string } | null;
+  deleteError?: { message: string } | null;
   role?: "member" | "admin" | null;
 } = {}) {
   // getUpcomingEvents orders/limits; getPastEvents orders without a limit, so `order`
@@ -64,13 +66,18 @@ function mockSupabase({
 
   const upsert = vi.fn().mockResolvedValue({ error: upsertError ?? null });
 
+  // removeRsvp chains .delete().eq("event_id", …).eq("user_id", …)
+  const deleteEqUser = vi.fn().mockResolvedValue({ error: deleteError ?? null });
+  const deleteEqEvent = vi.fn().mockReturnValue({ eq: deleteEqUser });
+  const rsvpsDelete = vi.fn().mockReturnValue({ eq: deleteEqEvent });
+
   // getUpcomingEvents reads the caller's role to decide `canNotify`.
   const profilesSingle = vi.fn().mockResolvedValue({ data: role ? { role } : null, error: null });
   const profilesEq = vi.fn().mockReturnValue({ single: profilesSingle });
   const profilesSelect = vi.fn().mockReturnValue({ eq: profilesEq });
 
   const from = vi.fn((table) => {
-    if (table === "rsvps") return { select: rsvpsSelect, upsert };
+    if (table === "rsvps") return { select: rsvpsSelect, upsert, delete: rsvpsDelete };
     if (table === "ratings") return { select: ratingsSelect, upsert };
     if (table === "profiles") return { select: profilesSelect };
     return { select: eventsSelect };
@@ -94,6 +101,10 @@ function mockSupabase({
     ratingsEq,
     ratingsIn,
     upsert,
+    // rsvps delete chain handles
+    rsvpsDelete,
+    deleteEqEvent,
+    deleteEqUser,
   };
 }
 
@@ -249,6 +260,50 @@ describe("events gallery actions", () => {
 
       const { rsvpToEvent } = await import("./actions");
       const result = await rsvpToEvent("e1", "attending");
+
+      expect(result).toEqual({ success: false, message: "denied" });
+    });
+  });
+
+  describe("removeRsvp", () => {
+    it("returns not authenticated when there is no user", async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: mockSupabase() as never,
+        user: null,
+      });
+
+      const { removeRsvp } = await import("./actions");
+      const result = await removeRsvp("e1");
+
+      expect(result).toEqual({ success: false, message: "Not authenticated" });
+    });
+
+    it("deletes the current user's RSVP for the event", async () => {
+      const supabase = mockSupabase();
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "user-1" } as never,
+      });
+
+      const { removeRsvp } = await import("./actions");
+      const result = await removeRsvp("e1");
+
+      expect(supabase.from).toHaveBeenCalledWith("rsvps");
+      expect(supabase.rsvpsDelete).toHaveBeenCalled();
+      expect(supabase.deleteEqEvent).toHaveBeenCalledWith("event_id", "e1");
+      expect(supabase.deleteEqUser).toHaveBeenCalledWith("user_id", "user-1");
+      expect(result).toEqual({ success: true, message: "RSVP removed" });
+    });
+
+    it("returns an error message when the delete fails", async () => {
+      const supabase = mockSupabase({ deleteError: { message: "denied" } });
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "user-1" } as never,
+      });
+
+      const { removeRsvp } = await import("./actions");
+      const result = await removeRsvp("e1");
 
       expect(result).toEqual({ success: false, message: "denied" });
     });
