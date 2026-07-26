@@ -3,18 +3,20 @@
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import mockSv from "@/messages/sv.json";
-import { getUpcomingEvents, getPastEvents } from "./actions";
+import { getUpcomingEvents, getHostingEvents, getPastEvents } from "./actions";
 
 vi.mock("./actions", () => ({
   getUpcomingEvents: vi.fn(),
+  getHostingEvents: vi.fn(),
   getPastEvents: vi.fn(),
 }));
 
 vi.mock("./events-gallery", () => ({
-  EventsGallery: vi.fn(({ events, pastEvents }) => (
+  EventsGallery: vi.fn(({ events, hostingEvents, pastEvents }) => (
     <div
       data-testid="mock-events-gallery"
       data-events={events.length}
+      data-hosting-events={hostingEvents.length}
       data-past-events={pastEvents.length}
     />
   )),
@@ -61,6 +63,26 @@ describe("Events Server Page", () => {
           myPlusOneName: null,
           myRating: null,
           canNotify: false,
+          canManage: false,
+        },
+      ],
+    });
+    vi.mocked(getHostingEvents).mockResolvedValue({
+      success: true,
+      events: [
+        {
+          id: "h1",
+          name: "Hosted Dinner",
+          event_date: "2026-09-01T18:00:00.000Z",
+          rsvp_deadline: null,
+          description: null,
+          venue: null,
+          myRsvpStatus: null,
+          myHasPlusOne: false,
+          myPlusOneName: null,
+          myRating: null,
+          canNotify: true,
+          canManage: true,
         },
       ],
     });
@@ -79,6 +101,7 @@ describe("Events Server Page", () => {
           myPlusOneName: null,
           myRating: null,
           canNotify: false,
+          canManage: false,
         },
       ],
     });
@@ -89,11 +112,13 @@ describe("Events Server Page", () => {
     expect(screen.getByRole("heading", { name: mockSv.EventsPage.Title })).toBeInTheDocument();
     const gallery = screen.getByTestId("mock-events-gallery");
     expect(gallery).toHaveAttribute("data-events", "1");
+    expect(gallery).toHaveAttribute("data-hosting-events", "1");
     expect(gallery).toHaveAttribute("data-past-events", "1");
   });
 
   it("falls back to empty lists when fetching events fails", async () => {
     vi.mocked(getUpcomingEvents).mockResolvedValue({ success: false, message: "boom" });
+    vi.mocked(getHostingEvents).mockResolvedValue({ success: false, message: "boom" });
     vi.mocked(getPastEvents).mockResolvedValue({ success: false, message: "boom" });
 
     const { default: Events } = await import("./page");
@@ -101,6 +126,7 @@ describe("Events Server Page", () => {
 
     const gallery = screen.getByTestId("mock-events-gallery");
     expect(gallery).toHaveAttribute("data-events", "0");
+    expect(gallery).toHaveAttribute("data-hosting-events", "0");
     expect(gallery).toHaveAttribute("data-past-events", "0");
   });
 });

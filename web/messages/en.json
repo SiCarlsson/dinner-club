@@ -57,6 +57,7 @@
     "Decline": "Can't make it",
     "RsvpDeadline": "RSVP by {date}",
     "Empty": "No upcoming dinners yet.",
+    "YourEventsHeading": "Your events",
     "PastHeading": "Past dinners",
     "PlusOne": "+1",
     "PlusOneAria": "Add a +1",
@@ -89,7 +90,10 @@
     "RateUpdate": "Update rating",
     "RateSaving": "Saving…",
     "RateSaved": "Saved",
-    "RateStarAria": "{value} of 5"
+    "RateStarAria": "{value} of 5",
+    "Manage": {
+      "Button": "Edit event"
+    }
   },
   "ProfilePage": {
     "Title": "Profile",

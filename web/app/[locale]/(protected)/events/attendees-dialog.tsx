@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { FLOATING_SURFACE } from "@/lib/form-styles";
+import { DIALOG_CONTENT, FLOATING_SURFACE } from "@/lib/form-styles";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -15,7 +15,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { getEventAttendees, notifyEventSubscribers, type AttendeeSummary } from "./actions";
+import { ManageEventDialog } from "../admin/new-event-dialog";
+import type { EventRecord, ProfileRecord, VenueRecord } from "../admin/actions";
+import {
+  getEventAttendees,
+  getManageableEvent,
+  notifyEventSubscribers,
+  type AttendeeSummary,
+} from "./actions";
 
 export function AttendeesDialog({
   eventId,
@@ -25,6 +32,7 @@ export function AttendeesDialog({
   rsvpControls,
   subtitle,
   canNotify = false,
+  canManage = false,
 }: {
   eventId: string;
   eventName: string;
@@ -33,6 +41,7 @@ export function AttendeesDialog({
   rsvpControls?: React.ReactNode;
   subtitle?: string;
   canNotify?: boolean;
+  canManage?: boolean;
 }) {
   const t = useTranslations("EventsPage");
   const tDiet = useTranslations("ProfilePage.Diet");
@@ -40,6 +49,11 @@ export function AttendeesDialog({
   const [state, setState] = useState<"loading" | "loaded" | "error">("loading");
   const [summary, setSummary] = useState<AttendeeSummary | null>(null);
   const [notifyState, setNotifyState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [manageData, setManageData] = useState<{
+    event: EventRecord;
+    venues: VenueRecord[];
+    profiles: ProfileRecord[];
+  } | null>(null);
 
   const handleNotify = async () => {
     setNotifyState("sending");
@@ -72,16 +86,30 @@ export function AttendeesDialog({
       }
     });
 
+    if (canManage) {
+      getManageableEvent(eventId).then((result) => {
+        if (!active) return;
+        if (result.success) {
+          setManageData({
+            event: result.event,
+            venues: result.venues,
+            profiles: result.profiles,
+          });
+        }
+      });
+    }
+
     return () => {
       active = false;
     };
-  }, [open, eventId]);
+  }, [open, eventId, canManage]);
 
   const onOpenChange = (next: boolean) => {
     if (next) {
       setState("loading");
       setSummary(null);
       setNotifyState("idle");
+      setManageData(null);
     }
     setOpen(next);
   };
@@ -89,9 +117,7 @@ export function AttendeesDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger render={trigger} />
-      <DialogContent
-        className={cn(FLOATING_SURFACE, "font-ui flex max-h-[80vh] flex-col gap-5 p-7 sm:max-w-md")}
-      >
+      <DialogContent className={cn(FLOATING_SURFACE, DIALOG_CONTENT)}>
         <DialogHeader>
           <DialogTitle className="font-serif text-[20px] font-normal">{eventName}</DialogTitle>
           <DialogDescription className="text-[13px]">
@@ -102,6 +128,23 @@ export function AttendeesDialog({
         {description && <p className="text-body text-[13.5px] leading-[1.7]">{description}</p>}
 
         {rsvpControls && <div className="flex justify-center">{rsvpControls}</div>}
+
+        {canManage && manageData && (
+          <ManageEventDialog
+            venues={manageData.venues}
+            profiles={manageData.profiles}
+            event={manageData.event}
+            trigger={
+              <Button
+                type="button"
+                variant="outline"
+                className="border-input h-auto w-full rounded-none bg-transparent px-[26px] py-[12px] text-[12px] tracking-[.08em] uppercase"
+              >
+                {t("Manage.Button")}
+              </Button>
+            }
+          />
+        )}
 
         {canNotify && (
           <Button
@@ -115,7 +158,9 @@ export function AttendeesDialog({
           </Button>
         )}
 
-        {(description || rsvpControls || canNotify) && <div className="border-border border-t" />}
+        {(description || rsvpControls || canNotify || canManage) && (
+          <div className="border-border border-t" />
+        )}
 
         {state === "loading" && (
           <p className="text-muted-foreground text-[13px]">{t("AttendeesLoading")}</p>
@@ -128,7 +173,7 @@ export function AttendeesDialog({
         )}
 
         {state === "loaded" && summary && summary.memberCount > 0 && (
-          <div className="flex flex-col gap-6 overflow-y-auto">
+          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
             <p className="text-muted-foreground text-[11px] tracking-[.08em] uppercase">
               {t("AttendeesCount", {
                 total: summary.totalCount,

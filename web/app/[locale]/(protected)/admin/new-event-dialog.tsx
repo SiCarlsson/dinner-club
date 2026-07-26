@@ -20,6 +20,7 @@ import {
   FIELD_LABEL,
   BUTTON_TEXT,
   FLOATING_SURFACE,
+  DIALOG_CONTENT,
   DIALOG_DESCRIPTION,
   SCROLL_10_ITEMS,
 } from "@/lib/form-styles";
@@ -101,14 +102,22 @@ function endOfDay(date: Date) {
 
 function EventDialog({
   venues: initialVenues,
-  profiles,
+  profiles = [],
   event,
   trigger,
+  showCoHostField = true,
+  coHostReadOnly = false,
+  showAddVenue = true,
 }: {
   venues: VenueRecord[];
-  profiles: ProfileRecord[];
+  profiles?: ProfileRecord[];
   event?: EventRecord;
   trigger: React.ReactElement;
+  showCoHostField?: boolean;
+  // When read-only, the co-host is shown pre-filled but cannot be changed —
+  // co-hosts may see who hosts the dinner without being able to reassign it.
+  coHostReadOnly?: boolean;
+  showAddVenue?: boolean;
 }) {
   const initialForm = event ? formFromEvent(event) : EMPTY_FORM;
   const [open, setOpen] = useState(false);
@@ -123,10 +132,18 @@ function EventDialog({
   const dateFnsLocale = DATE_FNS_LOCALES[locale as keyof typeof DATE_FNS_LOCALES] ?? enUS;
   const t = useTranslations("AdminPage.Events.Dialog");
 
-  const resetAndClose = () => {
+  // `form` is seeded from `initialForm` on mount, but this component instance is
+  // reused across edits (e.g. after a save + router.refresh() updates `event`).
+  // Reseeding on open ensures the dialog always reflects the latest persisted
+  // values rather than the state left over from the previous edit.
+  const syncFormFromEvent = () => {
     setForm(initialForm);
     setStatus("idle");
     setErrorMessage("");
+  };
+
+  const resetAndClose = () => {
+    syncFormFromEvent();
     setOpen(false);
   };
 
@@ -147,9 +164,11 @@ function EventDialog({
       eventDate: eventDate.toISOString(),
       rsvpDeadline: endOfDay(form.rsvpDeadline).toISOString(),
       venueId: form.venueId || null,
-      coHostId: form.coHostId || null,
       description: form.description || null,
       visibility: form.published ? ("published" as const) : ("unpublished" as const),
+      // Only admins touch co_host_id; when it's read-only we omit it so the FK is
+      // left untouched (and the WITH CHECK RLS policy blocks reassignment anyway).
+      ...(showCoHostField && !coHostReadOnly && { coHostId: form.coHostId || null }),
     };
 
     const result = event ? await updateEvent(event.id, input) : await createEvent(input);
@@ -166,12 +185,17 @@ function EventDialog({
   return (
     <Dialog
       open={open}
-      onOpenChange={(nextOpen: boolean) => (nextOpen ? setOpen(true) : resetAndClose())}
+      onOpenChange={(nextOpen: boolean) => {
+        if (nextOpen) {
+          syncFormFromEvent();
+          setOpen(true);
+        } else {
+          resetAndClose();
+        }
+      }}
     >
       <DialogTrigger render={trigger} />
-      <DialogContent
-        className={cn(FLOATING_SURFACE, "font-ui flex h-[44rem] flex-col gap-6 p-7 sm:max-w-md")}
-      >
+      <DialogContent className={cn(FLOATING_SURFACE, DIALOG_CONTENT)}>
         <DialogHeader>
           <DialogTitle className="font-serif text-[20px] font-normal">
             {event ? t("EditTitle") : t("Title")}
@@ -340,56 +364,61 @@ function EventDialog({
                   ))}
                 </SelectContent>
               </Select>
-              <NewVenueDialog
-                onCreated={(venue) => {
-                  setVenues((prev) => [...prev, venue]);
-                  setForm((prev) => ({ ...prev, venueId: venue.id }));
-                  router.refresh();
-                }}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="event-co-host" className={FIELD_LABEL}>
-              {t("CoHostLabel")}
-            </Label>
-            <div className="flex items-end gap-2">
-              <Select
-                items={Object.fromEntries(
-                  profiles.map((profile) => [profile.id, profile.full_name ?? profile.id]),
-                )}
-                value={form.coHostId}
-                onValueChange={(value) =>
-                  setForm((prev) => ({ ...prev, coHostId: value as string }))
-                }
-              >
-                <SelectTrigger id="event-co-host" className={cn(FIELD_INPUT, "flex-1")}>
-                  <SelectValue placeholder={t("CoHostPlaceholder")} />
-                </SelectTrigger>
-                <SelectContent
-                  alignItemWithTrigger={false}
-                  className={cn(FLOATING_SURFACE, "font-ui", SCROLL_10_ITEMS)}
-                >
-                  {profiles.map((profile) => (
-                    <SelectItem key={profile.id} value={profile.id}>
-                      {profile.full_name ?? profile.id}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              {form.coHostId && (
-                <button
-                  type="button"
-                  aria-label={t("ClearCoHost")}
-                  onClick={() => setForm((prev) => ({ ...prev, coHostId: "" }))}
-                  className="text-muted-foreground hover:text-foreground pb-[9px] text-[13px] transition-colors"
-                >
-                  ✕
-                </button>
+              {showAddVenue && (
+                <NewVenueDialog
+                  onCreated={(venue) => {
+                    setVenues((prev) => [...prev, venue]);
+                    setForm((prev) => ({ ...prev, venueId: venue.id }));
+                    router.refresh();
+                  }}
+                />
               )}
             </div>
           </div>
+
+          {showCoHostField && (
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="event-co-host" className={FIELD_LABEL}>
+                {t("CoHostLabel")}
+              </Label>
+              <div className="flex items-end gap-2">
+                <Select
+                  items={Object.fromEntries(
+                    profiles.map((profile) => [profile.id, profile.full_name ?? profile.id]),
+                  )}
+                  value={form.coHostId}
+                  readOnly={coHostReadOnly}
+                  onValueChange={(value) =>
+                    setForm((prev) => ({ ...prev, coHostId: value as string }))
+                  }
+                >
+                  <SelectTrigger id="event-co-host" className={cn(FIELD_INPUT, "flex-1")}>
+                    <SelectValue placeholder={t("CoHostPlaceholder")} />
+                  </SelectTrigger>
+                  <SelectContent
+                    alignItemWithTrigger={false}
+                    className={cn(FLOATING_SURFACE, "font-ui", SCROLL_10_ITEMS)}
+                  >
+                    {profiles.map((profile) => (
+                      <SelectItem key={profile.id} value={profile.id}>
+                        {profile.full_name ?? profile.id}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                {!coHostReadOnly && form.coHostId && (
+                  <button
+                    type="button"
+                    aria-label={t("ClearCoHost")}
+                    onClick={() => setForm((prev) => ({ ...prev, coHostId: "" }))}
+                    className="text-muted-foreground hover:text-foreground pb-[9px] text-[13px] transition-colors"
+                  >
+                    ✕
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
 
           <div className="flex flex-col gap-2">
             <Label htmlFor="event-description" className={FIELD_LABEL}>
@@ -491,6 +520,33 @@ export function EditEventDialog({
           {tEvents("EditButton")}
         </Button>
       }
+    />
+  );
+}
+
+// Co-host-facing editor: the same rich form as the admin editor. The co-host is
+// shown pre-filled but read-only (co-hosts may see who hosts but not reassign),
+// and venue creation is hidden. Field-level parity minus delete (no delete
+// control here) and minus reassigning the co-host.
+export function ManageEventDialog({
+  venues,
+  profiles = [],
+  event,
+  trigger,
+}: {
+  venues: VenueRecord[];
+  profiles?: ProfileRecord[];
+  event: EventRecord;
+  trigger: React.ReactElement;
+}) {
+  return (
+    <EventDialog
+      venues={venues}
+      profiles={profiles}
+      event={event}
+      trigger={trigger}
+      coHostReadOnly
+      showAddVenue={false}
     />
   );
 }

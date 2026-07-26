@@ -57,6 +57,7 @@
     "Decline": "Kan inte",
     "RsvpDeadline": "Anmäl senast {date}",
     "Empty": "Inga kommande middagar än.",
+    "YourEventsHeading": "Dina middagar",
     "PastHeading": "Tidigare middagar",
     "PlusOne": "+1",
     "PlusOneAria": "Lägg till +1",
@@ -89,7 +90,10 @@
     "RateUpdate": "Uppdatera betyg",
     "RateSaving": "Sparar…",
     "RateSaved": "Sparat",
-    "RateStarAria": "{value} av 5"
+    "RateStarAria": "{value} av 5",
+    "Manage": {
+      "Button": "Redigera middag"
+    }
   },
   "ProfilePage": {
     "Title": "Profil",

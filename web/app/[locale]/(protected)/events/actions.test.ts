@@ -160,6 +160,7 @@ describe("events gallery actions", () => {
             myPlusOneName: null,
             myRating: null,
             canNotify: false,
+            canManage: false,
           },
         ],
       });
@@ -215,6 +216,100 @@ describe("events gallery actions", () => {
 
       const { getUpcomingEvents } = await import("./actions");
       const result = await getUpcomingEvents();
+
+      expect(result).toEqual({ success: false, message: "db down" });
+    });
+  });
+
+  describe("getHostingEvents", () => {
+    it("returns not authenticated when there is no user", async () => {
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: mockSupabase() as never,
+        user: null,
+      });
+
+      const { getHostingEvents } = await import("./actions");
+      const result = await getHostingEvents();
+
+      expect(result).toEqual({ success: false, message: "Not authenticated" });
+    });
+
+    it("returns the upcoming events the caller co-hosts as manageable", async () => {
+      const events = [
+        {
+          id: "h1",
+          name: "My Hosted Dinner",
+          event_date: "2026-09-01T18:00:00.000Z",
+          description: null,
+          venue: null,
+        },
+      ];
+      const supabase = mockSupabase({ events });
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "user-1" } as never,
+      });
+
+      const { getHostingEvents } = await import("./actions");
+      const result = await getHostingEvents();
+
+      expect(supabase.from).toHaveBeenCalledWith("events");
+      expect(supabase.eq).toHaveBeenCalledWith("co_host_id", "user-1");
+      expect(supabase.gte).toHaveBeenCalledWith("event_date", expect.any(String));
+      expect(supabase.order).toHaveBeenCalledWith("event_date", { ascending: true });
+      // No visibility filter and no limit — co-hosts see all of their own dinners.
+      expect(supabase.limit).not.toHaveBeenCalled();
+      expect(result).toEqual({
+        success: true,
+        events: [
+          {
+            ...events[0],
+            myRsvpStatus: null,
+            myHasPlusOne: false,
+            myPlusOneName: null,
+            myRating: null,
+            canNotify: true,
+            canManage: true,
+          },
+        ],
+      });
+    });
+
+    it("merges the caller's RSVP onto the events they host", async () => {
+      const events = [
+        {
+          id: "h1",
+          name: "My Hosted Dinner",
+          event_date: "2026-09-01T18:00:00.000Z",
+          description: null,
+          venue: null,
+        },
+      ];
+      const supabase = mockSupabase({
+        events,
+        rsvps: [{ event_id: "h1", status: "attending", has_plus_one: false, plus_one_name: null }],
+      });
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "user-1" } as never,
+      });
+
+      const { getHostingEvents } = await import("./actions");
+      const result = await getHostingEvents();
+
+      expect(supabase.in).toHaveBeenCalledWith("event_id", ["h1"]);
+      expect(result.success && result.events[0].myRsvpStatus).toBe("attending");
+    });
+
+    it("returns an error message when the query fails", async () => {
+      const supabase = mockSupabase({ eventsError: { message: "db down" } });
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "user-1" } as never,
+      });
+
+      const { getHostingEvents } = await import("./actions");
+      const result = await getHostingEvents();
 
       expect(result).toEqual({ success: false, message: "db down" });
     });
@@ -408,6 +503,7 @@ describe("events gallery actions", () => {
             myPlusOneName: null,
             myRating: null,
             canNotify: false,
+            canManage: false,
           },
         ],
       });
