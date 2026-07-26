@@ -1,9 +1,7 @@
 name: CD
 
 on:
-  workflow_run:
-    workflows: ["CI"]
-    types: [completed]
+  push:
     branches: [main]
   workflow_dispatch: # allow manual deploys from the Actions tab
 
@@ -24,17 +22,12 @@ jobs:
     name: Build, push & deploy to Cloud Run
     runs-on: ubuntu-latest
 
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.event == 'push')
-
     permissions:
       contents: read
       id-token: write # required to mint the OIDC token for Workload Identity Federation
 
     env:
-      DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+      DEPLOY_SHA: ${{ github.sha }}
 
     steps:
       - uses: actions/checkout@v4
