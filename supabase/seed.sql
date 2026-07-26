@@ -1,4 +1,5 @@
 -- supabase/seed.sql
+-- Only used for testing locally
 
 insert into public.venues (id, name, address, district, city, latitude, longitude)
 values
