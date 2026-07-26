@@ -2,11 +2,10 @@
 
 "use client";
 
-import { useEffect, useState, useSyncExternalStore } from "react";
-import { useTranslations, useLocale } from "next-intl";
-import { useTheme } from "next-themes";
+import { useEffect, useState } from "react";
+import { useTranslations } from "next-intl";
 import { updateProfile } from "./actions";
-import { useRouter, usePathname } from "@/i18n/navigation";
+import { useRouter } from "@/i18n/navigation";
 import { createClient } from "@/utils/supabase/client";
 import {
   isPushSupported,
@@ -26,17 +25,6 @@ type ProfileFormProps = {
   role: string;
 };
 
-const THEME_OPTIONS = ["light", "dark", "system"] as const;
-const LOCALE_OPTIONS = ["sv", "en"] as const;
-
-function useMounted() {
-  return useSyncExternalStore(
-    () => () => {},
-    () => true,
-    () => false,
-  );
-}
-
 function ReadOnlyField({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-2">
@@ -54,14 +42,8 @@ export function ProfileForm({
 }: ProfileFormProps) {
   const t = useTranslations("ProfilePage");
   const tDiet = useTranslations("ProfilePage.Diet");
-  const tTheme = useTranslations("ProfilePage.Theme");
-  const tLang = useTranslations("ProfilePage.Language");
   const tNotif = useTranslations("ProfilePage.Notifications");
   const router = useRouter();
-  const pathname = usePathname();
-  const locale = useLocale();
-  const { theme, setTheme } = useTheme();
-  const mounted = useMounted();
 
   const baselineDiet: string[] = initialDietaryRestrictions.filter(isDietaryOption);
 
@@ -207,58 +189,6 @@ export function ProfileForm({
                 }`}
               >
                 {tDiet(item)}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <h2 className="text-muted-foreground text-[10px] tracking-[.28em] uppercase">
-          {t("Sections.Appearance")}
-        </h2>
-        <div className="flex flex-wrap items-center gap-2">
-          {THEME_OPTIONS.map((option) => {
-            const selected = mounted && theme === option;
-            return (
-              <button
-                key={option}
-                type="button"
-                aria-pressed={selected}
-                onClick={() => setTheme(option)}
-                className={`cursor-pointer rounded-full border px-[15px] py-[7px] text-[12px] transition-colors ${
-                  selected
-                    ? "border-accent text-foreground"
-                    : "border-input text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {tTheme(option)}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-
-      <div className="flex flex-col gap-4">
-        <h2 className="text-muted-foreground text-[10px] tracking-[.28em] uppercase">
-          {t("Sections.Language")}
-        </h2>
-        <div className="flex flex-wrap items-center gap-2">
-          {LOCALE_OPTIONS.map((option) => {
-            const selected = locale === option;
-            return (
-              <button
-                key={option}
-                type="button"
-                aria-pressed={selected}
-                onClick={() => router.replace(pathname, { locale: option })}
-                className={`cursor-pointer rounded-full border px-[15px] py-[7px] text-[12px] transition-colors ${
-                  selected
-                    ? "border-accent text-foreground"
-                    : "border-input text-muted-foreground hover:text-foreground"
-                }`}
-              >
-                {tLang(option)}
               </button>
             );
           })}

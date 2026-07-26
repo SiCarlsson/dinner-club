@@ -6,7 +6,10 @@
     "Login": "Logga in",
     "Profile": "Profil",
     "Logout": "Logga ut",
-    "Menu": "Meny"
+    "Menu": "Meny",
+    "Settings": "Inställningar",
+    "Theme": "Tema",
+    "Language": "Språk"
   },
   "GuidePage": {
     "Title": "Guide",
@@ -104,8 +107,6 @@
     "Sections": {
       "Account": "Konto",
       "Diet": "Allergier",
-      "Appearance": "Utseende",
-      "Language": "Språk",
       "Notifications": "Notiser"
     },
     "Notifications": {

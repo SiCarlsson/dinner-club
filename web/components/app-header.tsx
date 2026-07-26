@@ -5,6 +5,8 @@ import { Link } from "@/i18n/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { AppHeaderMenu } from "@/components/app-header-menu";
 import { AppHeaderLogout } from "@/components/app-header-logout";
+import { AppHeaderSettings } from "@/components/app-header-settings";
+import { AppHeaderGuestMenu } from "@/components/app-header-guest-menu";
 
 export async function AppHeader() {
   const t = await getTranslations("Nav");
@@ -56,6 +58,7 @@ export async function AppHeader() {
             >
               {t("Profile")}
             </Link>
+            <AppHeaderSettings />
             <AppHeaderLogout />
             <AppHeaderMenu isAdmin={isAdmin} />
           </div>
@@ -67,12 +70,16 @@ export async function AppHeader() {
             >
               {t("Guide")}
             </Link>
-            <Link
-              href="/login"
-              className="border-foreground/25 hover:border-foreground border px-[18px] py-[8px] text-[12px] tracking-[.06em] uppercase transition-colors"
-            >
-              {t("Login")}
-            </Link>
+            <div className="hidden items-center gap-6 sm:flex sm:gap-7">
+              <AppHeaderSettings />
+              <Link
+                href="/login"
+                className="border-foreground/25 hover:border-foreground border px-[18px] py-[8px] text-[12px] tracking-[.06em] uppercase transition-colors"
+              >
+                {t("Login")}
+              </Link>
+            </div>
+            <AppHeaderGuestMenu />
           </nav>
         )}
       </div>
