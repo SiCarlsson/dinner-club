@@ -40,23 +40,6 @@ export function AppearanceControls() {
 
   return (
     <>
-      <p className={labelClass}>{t("Theme")}</p>
-      <div className="flex flex-wrap items-center gap-2">
-        {THEME_OPTIONS.map((option) => (
-          <button
-            key={option}
-            type="button"
-            aria-pressed={mounted && theme === option}
-            onClick={() => setTheme(option)}
-            className={pillClass(mounted && theme === option)}
-          >
-            {tTheme(option)}
-          </button>
-        ))}
-      </div>
-
-      <div className="bg-border my-3 h-px" />
-
       <p className={labelClass}>{t("Language")}</p>
       <div className="flex flex-wrap items-center gap-2">
         {LOCALE_OPTIONS.map((option) => (
@@ -68,6 +51,23 @@ export function AppearanceControls() {
             className={pillClass(locale === option)}
           >
             {tLang(option)}
+          </button>
+        ))}
+      </div>
+
+      <div className="bg-border my-3 h-px" />
+
+      <p className={labelClass}>{t("Theme")}</p>
+      <div className="flex flex-wrap items-center gap-2">
+        {THEME_OPTIONS.map((option) => (
+          <button
+            key={option}
+            type="button"
+            aria-pressed={mounted && theme === option}
+            onClick={() => setTheme(option)}
+            className={pillClass(mounted && theme === option)}
+          >
+            {tTheme(option)}
           </button>
         ))}
       </div>
