@@ -41,9 +41,15 @@ variable "service_name" {
 }
 
 variable "image_tag" {
-  description = "Tag of the container image to deploy from Artifact Registry"
+  description = "Tag of the container image Terraform deploys on the initial create (CI/CD manages it thereafter)"
   type        = string
   default     = "latest"
+}
+
+variable "github_repository" {
+  description = "GitHub repo allowed to deploy via Workload Identity Federation"
+  type        = string
+  default     = "SiCarlsson/dinner-club"
 }
 
 # ------------------------------------------------------------------------------

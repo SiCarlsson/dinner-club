@@ -17,6 +17,16 @@ output "container_image" {
   value       = local.container_image
 }
 
+output "github_actions_wif_provider" {
+  description = "Value for the WIF_PROVIDER GitHub Actions variable"
+  value       = google_iam_workload_identity_pool_provider.github.name
+}
+
+output "github_actions_deployer_sa" {
+  description = "Value for the DEPLOYER_SA GitHub Actions variable"
+  value       = google_service_account.deployer.email
+}
+
 output "docker_build_and_push" {
   description = "Commands to build and push the image that this service deploys"
   value       = <<-EOT
