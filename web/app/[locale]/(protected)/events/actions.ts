@@ -5,6 +5,7 @@
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/utils/supabase/auth";
 import { sendPushToAllSubscribers } from "@/lib/push-server";
+import type { EventRecord, VenueRecord } from "../admin/actions";
 
 export type RsvpStatus = "attending" | "declined";
 
@@ -22,6 +23,8 @@ export type GalleryEvent = {
   myPlusOneName: string | null;
   myRating: EventRating | null;
   canNotify: boolean;
+  // Admin or this event's co-host — may edit the dinner and notify members.
+  canManage: boolean;
 };
 
 export async function getUpcomingEvents() {
@@ -47,7 +50,7 @@ export async function getUpcomingEvents() {
 
   type RawEvent = Omit<
     GalleryEvent,
-    "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName" | "myRating" | "canNotify"
+    "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName" | "myRating" | "canNotify" | "canManage"
   > & { co_host_id: string | null };
   const events = data as unknown as RawEvent[];
 
@@ -72,13 +75,15 @@ export async function getUpcomingEvents() {
 
   const eventsWithRsvp: GalleryEvent[] = events.map(({ co_host_id, ...event }) => {
     const rsvp = rsvpByEvent.get(event.id);
+    const isHost = isAdmin || co_host_id === user.id;
     return {
       ...event,
       myRsvpStatus: (rsvp?.status as RsvpStatus | undefined) ?? null,
       myHasPlusOne: rsvp?.has_plus_one ?? false,
       myPlusOneName: rsvp?.plus_one_name ?? null,
       myRating: null,
-      canNotify: isAdmin || co_host_id === user.id,
+      canNotify: isHost,
+      canManage: isHost,
     };
   });
 
@@ -107,7 +112,7 @@ export async function getPastEvents() {
 
   const events = data as unknown as Omit<
     GalleryEvent,
-    "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName" | "myRating"
+    "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName" | "myRating" | "canManage"
   >[];
 
   const eventIds = events.map((event) => event.id);
@@ -139,10 +144,58 @@ export async function getPastEvents() {
         ? { drinks: rating.drinks_rating, food: rating.food_rating, venue: rating.venue_rating }
         : null,
       canNotify: false, // past events aren't announced
+      canManage: false, // and aren't edited from the gallery
     };
   });
 
   return { success: true as const, events: pastEvents };
+}
+
+const MANAGE_VENUE_COLUMNS = "id, name, address, city, district, latitude, longitude";
+
+// Loads the full editable record for the co-host/admin editor, plus the venue
+// list for the form's picker. Authorization mirrors notifyEventSubscribers:
+// RLS lets any member read a published event, so the explicit host check below
+// is the real gate on who may open the editor.
+export async function getManageableEvent(eventId: string) {
+  const { supabase, user } = await getCurrentUser();
+
+  if (!user) {
+    return { success: false as const, message: "Not authenticated" };
+  }
+
+  const { data: event, error } = await supabase
+    .from("events")
+    .select(
+      "id, name, event_date, rsvp_deadline, description, visibility, co_host_id, venue:venues(id, name)",
+    )
+    .eq("id", eventId)
+    .single();
+
+  if (error || !event) {
+    return { success: false as const, message: "Event not found" };
+  }
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("id", user.id)
+    .single();
+
+  const isAdmin = profile?.role === "admin";
+  const isCoHost = event.co_host_id === user.id;
+
+  if (!isAdmin && !isCoHost) {
+    return { success: false as const, message: "Not authorized" };
+  }
+
+  const { data: venues } = await supabase.from("venues").select(MANAGE_VENUE_COLUMNS).order("name");
+
+  return {
+    success: true as const,
+    event: event as unknown as EventRecord,
+    venues: (venues ?? []) as VenueRecord[],
+  };
 }
 
 export async function rsvpToEvent(eventId: string, status: RsvpStatus) {

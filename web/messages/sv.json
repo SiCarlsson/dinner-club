@@ -89,7 +89,10 @@
     "RateUpdate": "Uppdatera betyg",
     "RateSaving": "Sparar…",
     "RateSaved": "Sparat",
-    "RateStarAria": "{value} av 5"
+    "RateStarAria": "{value} av 5",
+    "Manage": {
+      "Button": "Redigera middag"
+    }
   },
   "ProfilePage": {
     "Title": "Profil",

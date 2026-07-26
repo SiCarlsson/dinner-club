@@ -89,7 +89,10 @@
     "RateUpdate": "Update rating",
     "RateSaving": "Saving…",
     "RateSaved": "Saved",
-    "RateStarAria": "{value} of 5"
+    "RateStarAria": "{value} of 5",
+    "Manage": {
+      "Button": "Edit event"
+    }
   },
   "ProfilePage": {
     "Title": "Profile",

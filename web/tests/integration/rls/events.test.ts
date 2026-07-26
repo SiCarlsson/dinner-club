@@ -112,6 +112,21 @@ describe("events RLS", () => {
 
       expect(await readColumn("events", "name", eventId)).toBe("Before");
     });
+
+    it("does not let a co-host reassign the event to someone else", async () => {
+      const coHost = await createUser({ role: "member" });
+      const other = await createUser({ role: "member" });
+      const eventId = await seedEvent({ visibility: "published", co_host_id: coHost.id });
+
+      const { error } = await coHost.client
+        .from("events")
+        .update({ co_host_id: other.id })
+        .eq("id", eventId);
+
+      // WITH CHECK rejects the new row because the co-host would no longer be the co-host.
+      expect(error).not.toBeNull();
+      expect(await readColumn("events", "co_host_id", eventId)).toBe(coHost.id);
+    });
   });
 
   describe("DELETE", () => {

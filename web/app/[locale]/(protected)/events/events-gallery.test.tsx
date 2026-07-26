@@ -41,6 +41,7 @@ function event(overrides: Partial<GalleryEvent> = {}): GalleryEvent {
     myPlusOneName: null,
     myRating: null,
     canNotify: false,
+    canManage: false,
     ...overrides,
   };
 }

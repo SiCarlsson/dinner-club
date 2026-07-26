@@ -15,7 +15,14 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { getEventAttendees, notifyEventSubscribers, type AttendeeSummary } from "./actions";
+import { ManageEventDialog } from "../admin/new-event-dialog";
+import type { EventRecord, VenueRecord } from "../admin/actions";
+import {
+  getEventAttendees,
+  getManageableEvent,
+  notifyEventSubscribers,
+  type AttendeeSummary,
+} from "./actions";
 
 export function AttendeesDialog({
   eventId,
@@ -25,6 +32,7 @@ export function AttendeesDialog({
   rsvpControls,
   subtitle,
   canNotify = false,
+  canManage = false,
 }: {
   eventId: string;
   eventName: string;
@@ -33,6 +41,7 @@ export function AttendeesDialog({
   rsvpControls?: React.ReactNode;
   subtitle?: string;
   canNotify?: boolean;
+  canManage?: boolean;
 }) {
   const t = useTranslations("EventsPage");
   const tDiet = useTranslations("ProfilePage.Diet");
@@ -40,6 +49,10 @@ export function AttendeesDialog({
   const [state, setState] = useState<"loading" | "loaded" | "error">("loading");
   const [summary, setSummary] = useState<AttendeeSummary | null>(null);
   const [notifyState, setNotifyState] = useState<"idle" | "sending" | "sent" | "error">("idle");
+  const [manageData, setManageData] = useState<{
+    event: EventRecord;
+    venues: VenueRecord[];
+  } | null>(null);
 
   const handleNotify = async () => {
     setNotifyState("sending");
@@ -72,16 +85,28 @@ export function AttendeesDialog({
       }
     });
 
+    // Hosts get an edit affordance; load the full editable record lazily so
+    // non-hosts never pay for it and the gallery payload stays lean.
+    if (canManage) {
+      getManageableEvent(eventId).then((result) => {
+        if (!active) return;
+        if (result.success) {
+          setManageData({ event: result.event, venues: result.venues });
+        }
+      });
+    }
+
     return () => {
       active = false;
     };
-  }, [open, eventId]);
+  }, [open, eventId, canManage]);
 
   const onOpenChange = (next: boolean) => {
     if (next) {
       setState("loading");
       setSummary(null);
       setNotifyState("idle");
+      setManageData(null);
     }
     setOpen(next);
   };
@@ -103,6 +128,22 @@ export function AttendeesDialog({
 
         {rsvpControls && <div className="flex justify-center">{rsvpControls}</div>}
 
+        {canManage && manageData && (
+          <ManageEventDialog
+            venues={manageData.venues}
+            event={manageData.event}
+            trigger={
+              <Button
+                type="button"
+                variant="outline"
+                className="border-input h-auto w-full rounded-none bg-transparent px-[26px] py-[12px] text-[12px] tracking-[.08em] uppercase"
+              >
+                {t("Manage.Button")}
+              </Button>
+            }
+          />
+        )}
+
         {canNotify && (
           <Button
             type="button"
@@ -115,7 +156,9 @@ export function AttendeesDialog({
           </Button>
         )}
 
-        {(description || rsvpControls || canNotify) && <div className="border-border border-t" />}
+        {(description || rsvpControls || canNotify || canManage) && (
+          <div className="border-border border-t" />
+        )}
 
         {state === "loading" && (
           <p className="text-muted-foreground text-[13px]">{t("AttendeesLoading")}</p>

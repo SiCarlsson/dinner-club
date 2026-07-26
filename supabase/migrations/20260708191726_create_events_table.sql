@@ -41,10 +41,15 @@ WITH CHECK (
   (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
 );
 
-CREATE POLICY "Admins or co-hosts can update events" 
-ON public.events FOR UPDATE 
+CREATE POLICY "Admins or co-hosts can update events"
+ON public.events FOR UPDATE
 TO authenticated
 USING (
+  (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
+  OR
+  (select auth.uid()) = co_host_id
+)
+WITH CHECK (
   (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
   OR
   (select auth.uid()) = co_host_id

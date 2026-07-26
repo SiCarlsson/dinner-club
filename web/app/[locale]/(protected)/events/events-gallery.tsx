@@ -332,6 +332,7 @@ function EventGridItem({
         rsvpControls={rsvpControls}
         subtitle={subtitle}
         canNotify={event.canNotify}
+        canManage={event.canManage}
         trigger={
           <button type="button" className="group flex w-full flex-col gap-2 text-left">
             <span className="text-muted-foreground text-[10px] tracking-[.24em] uppercase">
@@ -406,6 +407,7 @@ export function EventsGallery({
               eventId={next.id}
               eventName={next.name}
               canNotify={next.canNotify}
+              canManage={next.canManage}
               trigger={
                 <Button
                   variant="link"

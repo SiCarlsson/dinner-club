@@ -160,6 +160,7 @@ describe("events gallery actions", () => {
             myPlusOneName: null,
             myRating: null,
             canNotify: false,
+            canManage: false,
           },
         ],
       });
@@ -408,6 +409,7 @@ describe("events gallery actions", () => {
             myPlusOneName: null,
             myRating: null,
             canNotify: false,
+            canManage: false,
           },
         ],
       });
