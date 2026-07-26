@@ -323,6 +323,7 @@ function EventGridItem({
   subtitle?: string;
   deadline?: string;
 }) {
+  const coHostName = event.coHostName;
   return (
     <li className="border-border border-t py-4 first:border-t-0 first:pt-0 sm:border-t-0 sm:border-l sm:px-6 sm:py-0 sm:[&:nth-child(3n)]:pr-0 sm:[&:nth-child(3n+1)]:border-l-0 sm:[&:nth-child(3n+1)]:pl-0">
       <AttendeesDialog
@@ -342,9 +343,10 @@ function EventGridItem({
               {event.name}
             </span>
             <span className="text-muted-foreground text-[11.5px]">{venueLabel(event)}</span>
-            {deadline && (
-              <span className="text-muted-foreground text-[10px] tracking-[.14em] uppercase">
-                {deadline}
+            {(deadline || coHostName) && (
+              <span className="text-muted-foreground flex w-full items-center justify-between gap-2 text-[10px] tracking-[.14em] uppercase">
+                <span>{deadline}</span>
+                {coHostName && <span className="text-right normal-case">{coHostName}</span>}
               </span>
             )}
           </button>
@@ -400,10 +402,16 @@ export function EventsGallery({
                 {t("RsvpDeadline", { date: formatDeadline(next.rsvp_deadline, dateFnsLocale) })}
               </p>
             )}
-            <p className="text-muted-foreground flex items-center gap-2 text-[11px]">
+            <p className="text-muted-foreground flex items-center gap-2 text-[13.5px]">
               <span className="text-body">{formatDateTime(next.event_date, dateFnsLocale)}</span>
               <span aria-hidden="true">·</span>
-              <span>{venueLabel(next)}</span>
+              <span className="text-body">{venueLabel(next)}</span>
+              {next.coHostName && (
+                <>
+                  <span aria-hidden="true">·</span>
+                  <span className="text-body">{next.coHostName}</span>
+                </>
+              )}
             </p>
             <AttendeesDialog
               eventId={next.id}
