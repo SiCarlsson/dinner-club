@@ -5,7 +5,7 @@
 import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
-import { FLOATING_SURFACE } from "@/lib/form-styles";
+import { DIALOG_CONTENT, FLOATING_SURFACE } from "@/lib/form-styles";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -119,9 +119,7 @@ export function AttendeesDialog({
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogTrigger render={trigger} />
-      <DialogContent
-        className={cn(FLOATING_SURFACE, "font-ui flex max-h-[80vh] flex-col gap-5 p-7 sm:max-w-md")}
-      >
+      <DialogContent className={cn(FLOATING_SURFACE, DIALOG_CONTENT)}>
         <DialogHeader>
           <DialogTitle className="font-serif text-[20px] font-normal">{eventName}</DialogTitle>
           <DialogDescription className="text-[13px]">

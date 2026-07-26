@@ -13,6 +13,9 @@ export const FLOATING_SURFACE =
 
 export const DIALOG_DESCRIPTION = "text-[13px] leading-[1.6]";
 
+// Shared frame for the event dialogs (attendees + edit)
+export const DIALOG_CONTENT = "font-ui flex h-[44rem] max-h-[80vh] flex-col gap-6 p-7 sm:max-w-md";
+
 // Caps a select/menu list to roughly 10 rows (each ~32px) before it scrolls,
 // instead of growing to fit every option.
 export const SCROLL_10_ITEMS = "max-h-50";

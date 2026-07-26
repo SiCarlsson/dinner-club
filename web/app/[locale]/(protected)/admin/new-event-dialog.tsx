@@ -20,6 +20,7 @@ import {
   FIELD_LABEL,
   BUTTON_TEXT,
   FLOATING_SURFACE,
+  DIALOG_CONTENT,
   DIALOG_DESCRIPTION,
   SCROLL_10_ITEMS,
 } from "@/lib/form-styles";
@@ -194,9 +195,7 @@ function EventDialog({
       }}
     >
       <DialogTrigger render={trigger} />
-      <DialogContent
-        className={cn(FLOATING_SURFACE, "font-ui flex h-[44rem] flex-col gap-6 p-7 sm:max-w-md")}
-      >
+      <DialogContent className={cn(FLOATING_SURFACE, DIALOG_CONTENT)}>
         <DialogHeader>
           <DialogTitle className="font-serif text-[20px] font-normal">
             {event ? t("EditTitle") : t("Title")}
