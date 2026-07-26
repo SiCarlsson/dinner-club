@@ -4,6 +4,7 @@ import { routing } from "./i18n/routing";
 import { createServerClient } from "@supabase/ssr";
 import createIntlMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
+import { getPublicOrigin } from "@/lib/request-origin";
 
 const PROTECTED_PATHS = ["/events", "/profile", "/admin"];
 const GUEST_ONLY_PATHS = ["/login"];
@@ -44,14 +45,16 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const origin = getPublicOrigin(request);
+
   if (isProtected && !user) {
-    const redirectUrl = new URL("/login", request.url);
+    const redirectUrl = new URL("/login", origin);
     redirectUrl.searchParams.set("next", request.nextUrl.pathname);
     return NextResponse.redirect(redirectUrl);
   }
 
   if (isGuestOnly && user) {
-    return NextResponse.redirect(new URL("/", request.url));
+    return NextResponse.redirect(new URL("/", origin));
   }
 
   return response;
