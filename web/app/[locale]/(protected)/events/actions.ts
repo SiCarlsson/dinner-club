@@ -170,6 +170,27 @@ export async function rsvpToEvent(eventId: string, status: RsvpStatus) {
   return { success: true as const, message: "RSVP saved" };
 }
 
+export async function removeRsvp(eventId: string) {
+  const { supabase, user } = await getCurrentUser();
+
+  if (!user) {
+    return { success: false as const, message: "Not authenticated" };
+  }
+
+  const { error } = await supabase
+    .from("rsvps")
+    .delete()
+    .eq("event_id", eventId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  revalidatePath("/events");
+  return { success: true as const, message: "RSVP removed" };
+}
+
 export async function setRsvpPlusOne(eventId: string, hasPlusOne: boolean, plusOneName: string) {
   const { supabase, user } = await getCurrentUser();
 

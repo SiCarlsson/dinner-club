@@ -9,6 +9,7 @@ import userEvent from "@testing-library/user-event";
 import { EventsGallery } from "./events-gallery";
 import {
   rsvpToEvent,
+  removeRsvp,
   setRsvpPlusOne,
   getEventAttendees,
   rateEvent,
@@ -17,6 +18,7 @@ import {
 
 vi.mock("./actions", () => ({
   rsvpToEvent: vi.fn(),
+  removeRsvp: vi.fn(),
   setRsvpPlusOne: vi.fn(),
   getEventAttendees: vi.fn(),
   rateEvent: vi.fn(),
@@ -58,6 +60,7 @@ describe("EventsGallery Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     vi.mocked(rsvpToEvent).mockResolvedValue({ success: true, message: "RSVP saved" });
+    vi.mocked(removeRsvp).mockResolvedValue({ success: true, message: "RSVP removed" });
     vi.mocked(setRsvpPlusOne).mockResolvedValue({ success: true, message: "Plus-one saved" });
     vi.mocked(getEventAttendees).mockResolvedValue({
       success: true,
@@ -199,13 +202,36 @@ describe("EventsGallery Component", () => {
     );
   });
 
-  it("does not re-submit when the current status is clicked again", async () => {
+  it("withdraws the RSVP when the active answer is pressed again", async () => {
     const user = userEvent.setup();
     renderGallery([event({ id: "e1", myRsvpStatus: "attending" })]);
 
     await user.click(screen.getByRole("button", { name: messages.EventsPage.Attend }));
 
+    expect(removeRsvp).toHaveBeenCalledWith("e1");
     expect(rsvpToEvent).not.toHaveBeenCalled();
+    // Both answers return to the un-pressed state.
+    expect(screen.getByRole("button", { name: messages.EventsPage.Attend })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+    expect(screen.getByRole("button", { name: messages.EventsPage.Decline })).toHaveAttribute(
+      "aria-pressed",
+      "false",
+    );
+  });
+
+  it("restores the previous answer when withdrawing the RSVP fails", async () => {
+    vi.mocked(removeRsvp).mockResolvedValue({ success: false, message: "db down" });
+    const user = userEvent.setup();
+    renderGallery([event({ id: "e1", myRsvpStatus: "attending" })]);
+
+    await user.click(screen.getByRole("button", { name: messages.EventsPage.Attend }));
+
+    expect(screen.getByRole("button", { name: messages.EventsPage.Attend })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
   });
 
   it("opens an upcoming dinner's dialog with its description and RSVP controls", async () => {

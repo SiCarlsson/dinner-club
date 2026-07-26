@@ -77,9 +77,11 @@ WITH CHECK (
   )
 );
 
-CREATE POLICY "Only admins can delete RSVPs"
+CREATE POLICY "Users can delete their own RSVPs, admins can delete any"
 ON public.rsvps FOR DELETE
 TO authenticated
 USING (
+  (select auth.uid()) = user_id
+  OR
   (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
 );

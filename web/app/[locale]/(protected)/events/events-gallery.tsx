@@ -17,6 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { AttendeesDialog } from "./attendees-dialog";
 import {
   rateEvent,
+  removeRsvp,
   rsvpToEvent,
   setRsvpPlusOne,
   type EventRating,
@@ -67,11 +68,13 @@ function RsvpControls({
   const [isPending, startTransition] = useTransition();
 
   const submit = (next: RsvpStatus) => {
-    if (isPending || current === next) return;
+    if (isPending) return;
+    // Pressing the active answer again withdraws the RSVP entirely.
+    const removing = current === next;
     const previous = current;
-    setCurrent(next);
+    setCurrent(removing ? null : next);
     startTransition(async () => {
-      const result = await rsvpToEvent(eventId, next);
+      const result = removing ? await removeRsvp(eventId) : await rsvpToEvent(eventId, next);
       if (!result.success) setCurrent(previous);
     });
   };
