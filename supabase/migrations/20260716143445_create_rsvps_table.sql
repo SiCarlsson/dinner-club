@@ -11,7 +11,7 @@ CREATE TABLE public.rsvps (
   CONSTRAINT rsvps_event_id_fkey FOREIGN KEY (event_id) REFERENCES public.events(id) ON DELETE CASCADE,
   CONSTRAINT rsvps_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE,
   CONSTRAINT rsvps_event_user_unique UNIQUE (event_id, user_id),
-  CONSTRAINT check_rsvp_status CHECK (status IN ('attending', 'declined', 'maybe')),
+  CONSTRAINT check_rsvp_status CHECK (status IN ('attending', 'declined')),
   CONSTRAINT check_plus_one_name CHECK (has_plus_one = (plus_one_name IS NOT NULL))
 );
 

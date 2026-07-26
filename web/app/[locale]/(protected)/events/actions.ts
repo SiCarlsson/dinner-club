@@ -6,7 +6,7 @@ import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/utils/supabase/auth";
 import { sendPushToAllSubscribers } from "@/lib/push-server";
 
-export type RsvpStatus = "attending" | "declined" | "maybe";
+export type RsvpStatus = "attending" | "declined";
 
 export type EventRating = { drinks: number; food: number; venue: number };
 
