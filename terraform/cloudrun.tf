@@ -13,6 +13,7 @@ resource "google_project_service" "apis" {
     "run.googleapis.com",
     "artifactregistry.googleapis.com",
     "secretmanager.googleapis.com",
+    "iamcredentials.googleapis.com",
   ])
 
   service = each.value
