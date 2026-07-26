@@ -1,0 +1,75 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch: # allow manual deploys from the Actions tab
+
+concurrency:
+  group: cd-${{ github.ref }}
+  cancel-in-progress: false
+
+env:
+  GCP_PROJECT_ID: dinner-club-501314
+  GCP_REGION: europe-north2
+  SERVICE_NAME: dinner-club
+  REGISTRY: europe-north2-docker.pkg.dev
+  NEXT_PUBLIC_SUPABASE_PROJECT_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_PROJECT_URL }}
+  NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
+
+jobs:
+  deploy:
+    name: Build, push & deploy to Cloud Run
+    runs-on: ubuntu-latest
+
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push')
+
+    permissions:
+      contents: read
+      id-token: write # required to mint the OIDC token for Workload Identity Federation
+
+    env:
+      DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.DEPLOY_SHA }}
+
+      - id: auth
+        name: Authenticate to Google Cloud (keyless)
+        uses: google-github-actions/auth@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+          workload_identity_provider: ${{ vars.WIF_PROVIDER }}
+          service_account: ${{ vars.DEPLOYER_SA }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Configure Docker for Artifact Registry
+        run: gcloud auth configure-docker ${{ env.REGISTRY }} --quiet
+
+      - name: Build and push image
+        run: |
+          IMAGE="${REGISTRY}/${GCP_PROJECT_ID}/${SERVICE_NAME}/${SERVICE_NAME}"
+          docker build \
+            --build-arg NEXT_PUBLIC_SUPABASE_PROJECT_URL="${NEXT_PUBLIC_SUPABASE_PROJECT_URL}" \
+            --build-arg NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY="${NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY}" \
+            -t "${IMAGE}:${DEPLOY_SHA}" \
+            -t "${IMAGE}:latest" \
+            -f web/Dockerfile web
+          docker push "${IMAGE}:${DEPLOY_SHA}"
+          docker push "${IMAGE}:latest"
+
+      - name: Deploy to Cloud Run
+        run: |
+          gcloud run deploy "${SERVICE_NAME}" \
+            --image "${REGISTRY}/${GCP_PROJECT_ID}/${SERVICE_NAME}/${SERVICE_NAME}:${DEPLOY_SHA}" \
+            --region "${GCP_REGION}" \
+            --project "${GCP_PROJECT_ID}"

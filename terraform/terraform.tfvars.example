@@ -1,7 +1,9 @@
 # ==============================================================================
-# Supabase Infrastructure Configuration Template
+# Infrastructure Configuration Template
 # Copy this file to 'terraform.tfvars' and fill in your actual values.
 # ==============================================================================
+
+# --- Supabase ---------------------------------------------------------------
 
 # Your personal Supabase Access Token (generated from Account Settings > Access Tokens)
 supabase_access_token = "your_supabase_access_token_here"
@@ -11,3 +13,29 @@ supabase_organization_id = "your_organization_slug_here"
 
 # A strong password for the production database
 supabase_database_password = "your_database_password_here"
+
+# --- Google Cloud / Cloud Run -----------------------------------------------
+
+# ID of the existing GCP project to deploy into
+gcp_project_id = "your-gcp-project-id"
+
+# Region for Cloud Run, Artifact Registry, and Secret Manager (default: europe-north2 / Stockholm)
+# gcp_region = "europe-north2"
+
+# Image tag to deploy (must already be pushed to Artifact Registry). Defaults to "latest".
+# image_tag = "latest"
+
+# --- Application runtime config ---------------------------------------------
+# NEXT_PUBLIC_SUPABASE_* values are derived from the Supabase project automatically.
+
+# Public base URL of the app (NEXT_PUBLIC_BASE_URL). On the very first deploy you
+# won't know the Cloud Run URL yet — deploy once, read the cloud_run_url output,
+# then set this and rebuild/redeploy (or point it at your custom domain).
+app_base_url = "https://your-domain.example"
+
+# Web Push (VAPID) keys — generate with: npx web-push generate-vapid-keys
+vapid_public_key  = "your-vapid-public-key"
+vapid_private_key = "your-vapid-private-key"
+
+# VAPID contact URI — a mailto: or https: address
+vapid_subject = "mailto:you@example.com"

@@ -32,6 +32,16 @@ describe("/auth/confirm route", () => {
     expect(res.headers.get("location")).toContain("/dashboard");
   });
 
+  it("builds the redirect from x-forwarded-host/proto when behind a proxy", async () => {
+    exchangeCodeForSessionMock.mockResolvedValue({ error: null });
+    const req = new NextRequest("http://0.0.0.0:3000/auth/confirm?code=valid-code", {
+      headers: { "x-forwarded-host": "app.example.com", "x-forwarded-proto": "https" },
+    });
+    const res = await GET(req);
+
+    expect(res.headers.get("location")).toBe("https://app.example.com/");
+  });
+
   it("calls exchangeCodeForSession with the code from the query param", async () => {
     exchangeCodeForSessionMock.mockResolvedValue({ error: null });
     const req = new NextRequest("http://localhost:3000/auth/confirm?code=abc-123");
