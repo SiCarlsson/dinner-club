@@ -81,26 +81,29 @@ function RsvpControls({
 
   return (
     <div className="flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row sm:justify-center">
-      <Button
-        type="button"
-        variant={current === "attending" ? "default" : "outline"}
-        aria-pressed={current === "attending"}
-        disabled={isPending}
-        onClick={() => submit("attending")}
-        className="h-auto w-full rounded-none px-[30px] py-[13px] text-[12px] tracking-[.08em] uppercase sm:w-auto sm:py-[12px]"
-      >
-        {t("Attend")}
-      </Button>
-      <Button
-        type="button"
-        variant={current === "declined" ? "default" : "outline"}
-        aria-pressed={current === "declined"}
-        disabled={isPending}
-        onClick={() => submit("declined")}
-        className="h-auto w-full rounded-none px-[26px] py-[13px] text-[12px] tracking-[.08em] uppercase sm:w-auto sm:py-[12px]"
-      >
-        {t("Decline")}
-      </Button>
+      {/* Grid keeps the two buttons an exactly equal width regardless of label length/locale. */}
+      <div className="grid w-full grid-cols-1 gap-3 sm:w-auto sm:grid-cols-2">
+        <Button
+          type="button"
+          variant={current === "attending" ? "default" : "outline"}
+          aria-pressed={current === "attending"}
+          disabled={isPending}
+          onClick={() => submit("attending")}
+          className="h-auto w-full rounded-none px-[30px] py-[13px] text-[12px] tracking-[.08em] uppercase sm:py-[12px]"
+        >
+          {t("Attend")}
+        </Button>
+        <Button
+          type="button"
+          variant={current === "declined" ? "default" : "outline"}
+          aria-pressed={current === "declined"}
+          disabled={isPending}
+          onClick={() => submit("declined")}
+          className="h-auto w-full rounded-none px-[30px] py-[13px] text-[12px] tracking-[.08em] uppercase sm:py-[12px]"
+        >
+          {t("Decline")}
+        </Button>
+      </div>
       {current === "attending" && (
         <PlusOnePopover
           eventId={eventId}
