@@ -28,6 +28,25 @@ resource "google_artifact_registry_repository" "app" {
   format        = "DOCKER"
   description   = "Container images for the ${var.service_name} Cloud Run service"
 
+  # Always keep the N most recent images (long term). Keep policies take
+  # precedence over delete policies, so these survive regardless of age.
+  cleanup_policies {
+    id     = "keep-most-recent"
+    action = "KEEP"
+    most_recent_versions {
+      keep_count = var.artifact_keep_count
+    }
+  }
+
+  # Delete images older than the configured age
+  cleanup_policies {
+    id     = "delete-old-images"
+    action = "DELETE"
+    condition {
+      older_than = "${var.artifact_max_age_days * 24 * 60 * 60}s"
+    }
+  }
+
   depends_on = [google_project_service.apis]
 }
 
