@@ -25,6 +25,8 @@ export type GalleryEvent = {
   canNotify: boolean;
   // Admin or this event's co-host — may edit the dinner and notify members.
   canManage: boolean;
+  // Display name of the event's co-host, if one is set.
+  coHostName: string | null;
 };
 
 export async function getUpcomingEvents() {
@@ -73,6 +75,12 @@ export async function getUpcomingEvents() {
 
   const rsvpByEvent = new Map((rsvps ?? []).map((rsvp) => [rsvp.event_id, rsvp]));
 
+  const coHostIds = [...new Set(events.map((event) => event.co_host_id).filter(Boolean))];
+  const { data: coHosts } = coHostIds.length
+    ? await supabase.from("profiles").select("id, full_name").in("id", coHostIds)
+    : { data: [] };
+  const coHostNameById = new Map((coHosts ?? []).map((coHost) => [coHost.id, coHost.full_name]));
+
   const eventsWithRsvp: GalleryEvent[] = events.map(({ co_host_id, ...event }) => {
     const rsvp = rsvpByEvent.get(event.id);
     const isHost = isAdmin || co_host_id === user.id;
@@ -84,6 +92,7 @@ export async function getUpcomingEvents() {
       myRating: null,
       canNotify: isHost,
       canManage: isHost,
+      coHostName: co_host_id ? (coHostNameById.get(co_host_id) ?? null) : null,
     };
   });
 
@@ -145,6 +154,7 @@ export async function getPastEvents() {
         : null,
       canNotify: false, // past events aren't announced
       canManage: false, // and aren't edited from the gallery
+      coHostName: null,
     };
   });
 
@@ -197,6 +207,7 @@ export async function getHostingEvents() {
       myRating: null,
       canNotify: true,
       canManage: true,
+      coHostName: null,
     };
   });
 

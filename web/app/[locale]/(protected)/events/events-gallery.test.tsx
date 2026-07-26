@@ -43,6 +43,7 @@ function event(overrides: Partial<GalleryEvent> = {}): GalleryEvent {
     myRating: null,
     canNotify: false,
     canManage: false,
+    coHostName: null,
     ...overrides,
   };
 }
@@ -101,6 +102,12 @@ describe("EventsGallery Component", () => {
     expect(screen.getByText(/RSVP by 25 jul/i)).toBeInTheDocument();
   });
 
+  it("shows the co-host's name on the hero event", () => {
+    renderGallery([event({ name: "Co-hosted Dinner", coHostName: "Anna Andersson" })]);
+
+    expect(screen.getByText("Anna Andersson")).toBeInTheDocument();
+  });
+
   it("hides the RSVP deadline once the user has responded to the event", () => {
     renderGallery([
       event({
@@ -135,6 +142,21 @@ describe("EventsGallery Component", () => {
     expect(upcoming.getByText("Bar Söder")).toBeInTheDocument();
     // The hero event is not repeated inside the upcoming grid.
     expect(upcoming.queryByText("Hero Dinner")).not.toBeInTheDocument();
+  });
+
+  it("shows the co-host's name on an upcoming grid event", () => {
+    renderGallery([
+      event({ id: "1", name: "Hero Dinner" }),
+      event({
+        id: "2",
+        name: "Second Dinner",
+        event_date: "2026-09-12T18:00:00.000Z",
+        coHostName: "Anna Andersson",
+      }),
+    ]);
+
+    const upcoming = within(screen.getByRole("list"));
+    expect(upcoming.getByText("Anna Andersson")).toBeInTheDocument();
   });
 
   it("formats the eyebrow date without a trailing period in Swedish", () => {

@@ -24,6 +24,7 @@ function mockSupabase({
   upsertError,
   deleteError,
   role,
+  coHosts,
 }: {
   events?: unknown[];
   eventsError?: { message: string } | null;
@@ -42,6 +43,7 @@ function mockSupabase({
   upsertError?: { message: string } | null;
   deleteError?: { message: string } | null;
   role?: "member" | "admin" | null;
+  coHosts?: { id: string; full_name: string }[];
 } = {}) {
   // getUpcomingEvents orders/limits; getPastEvents orders without a limit, so `order`
   // must resolve on its own too. `limit` wraps the same resolved shape.
@@ -74,7 +76,9 @@ function mockSupabase({
   // getUpcomingEvents reads the caller's role to decide `canNotify`.
   const profilesSingle = vi.fn().mockResolvedValue({ data: role ? { role } : null, error: null });
   const profilesEq = vi.fn().mockReturnValue({ single: profilesSingle });
-  const profilesSelect = vi.fn().mockReturnValue({ eq: profilesEq });
+  // getUpcomingEvents also looks up co-host display names by id.
+  const profilesIn = vi.fn().mockResolvedValue({ data: coHosts ?? [], error: null });
+  const profilesSelect = vi.fn().mockReturnValue({ eq: profilesEq, in: profilesIn });
 
   const from = vi.fn((table) => {
     if (table === "rsvps") return { select: rsvpsSelect, upsert, delete: rsvpsDelete };
@@ -105,6 +109,8 @@ function mockSupabase({
     rsvpsDelete,
     deleteEqEvent,
     deleteEqUser,
+    // profiles chain handles
+    profilesIn,
   };
 }
 
@@ -161,6 +167,7 @@ describe("events gallery actions", () => {
             myRating: null,
             canNotify: false,
             canManage: false,
+            coHostName: null,
           },
         ],
       });
@@ -219,6 +226,44 @@ describe("events gallery actions", () => {
 
       expect(result).toEqual({ success: false, message: "db down" });
     });
+
+    it("resolves co-host display names onto each event", async () => {
+      const events = [
+        {
+          id: "e1",
+          name: "First",
+          event_date: "2026-08-01T18:00:00.000Z",
+          description: null,
+          venue: null,
+          co_host_id: "co-1",
+        },
+        {
+          id: "e2",
+          name: "Second",
+          event_date: "2026-08-08T18:00:00.000Z",
+          description: null,
+          venue: null,
+          co_host_id: null,
+        },
+      ];
+      const supabase = mockSupabase({
+        events,
+        coHosts: [{ id: "co-1", full_name: "Anna Andersson" }],
+      });
+      vi.mocked(getCurrentUser).mockResolvedValue({
+        supabase: supabase as never,
+        user: { id: "user-1" } as never,
+      });
+
+      const { getUpcomingEvents } = await import("./actions");
+      const result = await getUpcomingEvents();
+
+      expect(supabase.profilesIn).toHaveBeenCalledWith("id", ["co-1"]);
+      expect(result.success && result.events.map((e) => e.coHostName)).toEqual([
+        "Anna Andersson",
+        null,
+      ]);
+    });
   });
 
   describe("getHostingEvents", () => {
@@ -270,6 +315,7 @@ describe("events gallery actions", () => {
             myRating: null,
             canNotify: true,
             canManage: true,
+            coHostName: null,
           },
         ],
       });
@@ -504,6 +550,7 @@ describe("events gallery actions", () => {
             myRating: null,
             canNotify: false,
             canManage: false,
+            coHostName: null,
           },
         ],
       });
