@@ -65,10 +65,10 @@ function renderNewEventDialog() {
   );
 }
 
-function renderEditEventDialog() {
+function renderEditEventDialog(event: EventRecord = EVENT) {
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
-      <EditEventDialog venues={VENUES} profiles={PROFILES} event={EVENT} />
+      <EditEventDialog venues={VENUES} profiles={PROFILES} event={event} />
     </NextIntlClientProvider>,
   );
 }
@@ -167,6 +167,32 @@ describe("EditEventDialog Component", () => {
     expect(screen.getByText("Café Norr")).toBeInTheDocument();
     expect(screen.getByText("Alex Smith")).toBeInTheDocument();
     expect(screen.getByRole("checkbox")).toBeChecked();
+  });
+
+  it("reflects an updated event prop when reopened (no stale co-host)", async () => {
+    const user = userEvent.setup();
+    const { rerender } = renderEditEventDialog();
+
+    // Open once with the original co-host, then close.
+    await user.click(screen.getByRole("button", { name: tEvents.EditButton }));
+    expect(await screen.findByText("Alex Smith")).toBeInTheDocument();
+    await user.keyboard("{Escape}");
+
+    // Simulate a save + router.refresh() delivering a new event prop.
+    rerender(
+      <NextIntlClientProvider locale="en" messages={messages}>
+        <EditEventDialog
+          venues={VENUES}
+          profiles={PROFILES}
+          event={{ ...EVENT, co_host_id: "p2" }}
+        />
+      </NextIntlClientProvider>,
+    );
+
+    // Reopening shows the new co-host, not the stale one.
+    await user.click(screen.getByRole("button", { name: tEvents.EditButton }));
+    expect(await screen.findByText("Jamie Lee")).toBeInTheDocument();
+    expect(screen.queryByText("Alex Smith")).not.toBeInTheDocument();
   });
 
   it("allows changing the co-host and includes it in the update payload", async () => {

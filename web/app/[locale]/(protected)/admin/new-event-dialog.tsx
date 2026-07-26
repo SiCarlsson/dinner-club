@@ -105,6 +105,7 @@ function EventDialog({
   event,
   trigger,
   showCoHostField = true,
+  coHostReadOnly = false,
   showAddVenue = true,
 }: {
   venues: VenueRecord[];
@@ -112,6 +113,9 @@ function EventDialog({
   event?: EventRecord;
   trigger: React.ReactElement;
   showCoHostField?: boolean;
+  // When read-only, the co-host is shown pre-filled but cannot be changed —
+  // co-hosts may see who hosts the dinner without being able to reassign it.
+  coHostReadOnly?: boolean;
   showAddVenue?: boolean;
 }) {
   const initialForm = event ? formFromEvent(event) : EMPTY_FORM;
@@ -127,10 +131,18 @@ function EventDialog({
   const dateFnsLocale = DATE_FNS_LOCALES[locale as keyof typeof DATE_FNS_LOCALES] ?? enUS;
   const t = useTranslations("AdminPage.Events.Dialog");
 
-  const resetAndClose = () => {
+  // `form` is seeded from `initialForm` on mount, but this component instance is
+  // reused across edits (e.g. after a save + router.refresh() updates `event`).
+  // Reseeding on open ensures the dialog always reflects the latest persisted
+  // values rather than the state left over from the previous edit.
+  const syncFormFromEvent = () => {
     setForm(initialForm);
     setStatus("idle");
     setErrorMessage("");
+  };
+
+  const resetAndClose = () => {
+    syncFormFromEvent();
     setOpen(false);
   };
 
@@ -153,9 +165,9 @@ function EventDialog({
       venueId: form.venueId || null,
       description: form.description || null,
       visibility: form.published ? ("published" as const) : ("unpublished" as const),
-      // Only admins touch co_host_id; omitting it leaves the FK untouched (and the
-      // WITH CHECK RLS policy blocks a co-host from reassigning it anyway).
-      ...(showCoHostField && { coHostId: form.coHostId || null }),
+      // Only admins touch co_host_id; when it's read-only we omit it so the FK is
+      // left untouched (and the WITH CHECK RLS policy blocks reassignment anyway).
+      ...(showCoHostField && !coHostReadOnly && { coHostId: form.coHostId || null }),
     };
 
     const result = event ? await updateEvent(event.id, input) : await createEvent(input);
@@ -172,7 +184,14 @@ function EventDialog({
   return (
     <Dialog
       open={open}
-      onOpenChange={(nextOpen: boolean) => (nextOpen ? setOpen(true) : resetAndClose())}
+      onOpenChange={(nextOpen: boolean) => {
+        if (nextOpen) {
+          syncFormFromEvent();
+          setOpen(true);
+        } else {
+          resetAndClose();
+        }
+      }}
     >
       <DialogTrigger render={trigger} />
       <DialogContent
@@ -369,6 +388,7 @@ function EventDialog({
                     profiles.map((profile) => [profile.id, profile.full_name ?? profile.id]),
                   )}
                   value={form.coHostId}
+                  readOnly={coHostReadOnly}
                   onValueChange={(value) =>
                     setForm((prev) => ({ ...prev, coHostId: value as string }))
                   }
@@ -387,7 +407,7 @@ function EventDialog({
                     ))}
                   </SelectContent>
                 </Select>
-                {form.coHostId && (
+                {!coHostReadOnly && form.coHostId && (
                   <button
                     type="button"
                     aria-label={t("ClearCoHost")}
@@ -505,24 +525,28 @@ export function EditEventDialog({
   );
 }
 
-// Co-host-facing editor: the same rich form as the admin editor, but with the
-// co-host selector and venue-creation controls hidden. Field-level parity minus
-// delete (there is no delete control here) and minus reassigning the co-host.
+// Co-host-facing editor: the same rich form as the admin editor. The co-host is
+// shown pre-filled but read-only (co-hosts may see who hosts but not reassign),
+// and venue creation is hidden. Field-level parity minus delete (no delete
+// control here) and minus reassigning the co-host.
 export function ManageEventDialog({
   venues,
+  profiles = [],
   event,
   trigger,
 }: {
   venues: VenueRecord[];
+  profiles?: ProfileRecord[];
   event: EventRecord;
   trigger: React.ReactElement;
 }) {
   return (
     <EventDialog
       venues={venues}
+      profiles={profiles}
       event={event}
       trigger={trigger}
-      showCoHostField={false}
+      coHostReadOnly
       showAddVenue={false}
     />
   );

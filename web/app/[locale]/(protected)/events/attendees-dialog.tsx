@@ -16,7 +16,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { ManageEventDialog } from "../admin/new-event-dialog";
-import type { EventRecord, VenueRecord } from "../admin/actions";
+import type { EventRecord, ProfileRecord, VenueRecord } from "../admin/actions";
 import {
   getEventAttendees,
   getManageableEvent,
@@ -52,6 +52,7 @@ export function AttendeesDialog({
   const [manageData, setManageData] = useState<{
     event: EventRecord;
     venues: VenueRecord[];
+    profiles: ProfileRecord[];
   } | null>(null);
 
   const handleNotify = async () => {
@@ -91,7 +92,11 @@ export function AttendeesDialog({
       getManageableEvent(eventId).then((result) => {
         if (!active) return;
         if (result.success) {
-          setManageData({ event: result.event, venues: result.venues });
+          setManageData({
+            event: result.event,
+            venues: result.venues,
+            profiles: result.profiles,
+          });
         }
       });
     }
@@ -131,6 +136,7 @@ export function AttendeesDialog({
         {canManage && manageData && (
           <ManageEventDialog
             venues={manageData.venues}
+            profiles={manageData.profiles}
             event={manageData.event}
             trigger={
               <Button

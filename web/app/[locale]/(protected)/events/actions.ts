@@ -5,7 +5,7 @@
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/utils/supabase/auth";
 import { sendPushToAllSubscribers } from "@/lib/push-server";
-import type { EventRecord, VenueRecord } from "../admin/actions";
+import type { EventRecord, ProfileRecord, VenueRecord } from "../admin/actions";
 
 export type RsvpStatus = "attending" | "declined";
 
@@ -153,10 +153,6 @@ export async function getPastEvents() {
 
 const MANAGE_VENUE_COLUMNS = "id, name, address, city, district, latitude, longitude";
 
-// Loads the full editable record for the co-host/admin editor, plus the venue
-// list for the form's picker. Authorization mirrors notifyEventSubscribers:
-// RLS lets any member read a published event, so the explicit host check below
-// is the real gate on who may open the editor.
 export async function getManageableEvent(eventId: string) {
   const { supabase, user } = await getCurrentUser();
 
@@ -191,10 +187,23 @@ export async function getManageableEvent(eventId: string) {
 
   const { data: venues } = await supabase.from("venues").select(MANAGE_VENUE_COLUMNS).order("name");
 
+  let profiles: ProfileRecord[] = [];
+  if (event.co_host_id) {
+    const { data: coHost } = await supabase
+      .from("profiles")
+      .select("id, full_name")
+      .eq("id", event.co_host_id)
+      .single();
+    if (coHost) {
+      profiles = [coHost as ProfileRecord];
+    }
+  }
+
   return {
     success: true as const,
     event: event as unknown as EventRecord,
     venues: (venues ?? []) as VenueRecord[],
+    profiles,
   };
 }
 
