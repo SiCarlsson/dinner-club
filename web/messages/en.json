@@ -6,7 +6,10 @@
     "Login": "Log in",
     "Profile": "Profile",
     "Logout": "Log out",
-    "Menu": "Menu"
+    "Menu": "Menu",
+    "Settings": "Settings",
+    "Theme": "Theme",
+    "Language": "Language"
   },
   "GuidePage": {
     "Title": "Guide",
@@ -104,8 +107,6 @@
     "Sections": {
       "Account": "Account",
       "Diet": "Allergies",
-      "Appearance": "Appearance",
-      "Language": "Language",
       "Notifications": "Notifications"
     },
     "Notifications": {

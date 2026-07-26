@@ -1,10 +1,10 @@
-// app/components/app-header-menu.test.tsx
+// app/components/app-header-guest-menu.test.tsx
 
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi } from "vitest";
 import mockSv from "@/messages/sv.json";
-import { AppHeaderMenu } from "./app-header-menu";
+import { AppHeaderGuestMenu } from "./app-header-guest-menu";
 
 vi.mock("@/i18n/navigation", () => ({
   Link: ({ href, children, ...props }: { href: string; children: React.ReactNode }) => (
@@ -12,9 +12,16 @@ vi.mock("@/i18n/navigation", () => ({
       {children}
     </a>
   ),
+  useRouter: () => ({ replace: vi.fn() }),
+  usePathname: () => "/",
+}));
+
+vi.mock("next-themes", () => ({
+  useTheme: () => ({ theme: "system", setTheme: vi.fn() }),
 }));
 
 vi.mock("next-intl", () => ({
+  useLocale: () => "sv",
   useTranslations: (namespace?: string) => (key: string) => {
     const fullPath = namespace ? `${namespace}.${key}` : key;
     const value = fullPath.split(".").reduce<unknown>(
@@ -36,35 +43,32 @@ async function openMenu() {
   return user;
 }
 
-describe("AppHeaderMenu", () => {
+describe("AppHeaderGuestMenu", () => {
   it("renders a labelled menu trigger", () => {
-    render(<AppHeaderMenu isAdmin={false} />);
+    render(<AppHeaderGuestMenu />);
 
     expect(screen.getByRole("button", { name: mockSv.Nav.Menu })).toBeInTheDocument();
   });
 
-  it("reveals the member navigation items when opened, without an admin link", async () => {
-    render(<AppHeaderMenu isAdmin={false} />);
+  it("reveals a login link when opened", async () => {
+    render(<AppHeaderGuestMenu />);
     await openMenu();
 
-    expect(await screen.findByRole("menuitem", { name: mockSv.Nav.Dinners })).toHaveAttribute(
+    expect(await screen.findByRole("menuitem", { name: mockSv.Nav.Login })).toHaveAttribute(
       "href",
-      "/events",
+      "/login",
     );
-    expect(screen.getByRole("menuitem", { name: mockSv.Nav.Profile })).toHaveAttribute(
-      "href",
-      "/profile",
-    );
-    expect(screen.queryByRole("menuitem", { name: mockSv.Nav.Admin })).not.toBeInTheDocument();
   });
 
-  it("includes the admin link when the user is an admin", async () => {
-    render(<AppHeaderMenu isAdmin />);
+  it("exposes the theme and language controls when opened", async () => {
+    render(<AppHeaderGuestMenu />);
     await openMenu();
 
-    expect(await screen.findByRole("menuitem", { name: mockSv.Nav.Admin })).toHaveAttribute(
-      "href",
-      "/admin",
-    );
+    expect(
+      await screen.findByRole("button", { name: mockSv.ProfilePage.Theme.system }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: mockSv.ProfilePage.Language.sv }),
+    ).toBeInTheDocument();
   });
 });
