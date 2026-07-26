@@ -21,6 +21,7 @@ vi.mock("./actions", () => ({
   removeRsvp: vi.fn(),
   setRsvpPlusOne: vi.fn(),
   getEventAttendees: vi.fn(),
+  getManageableEvent: vi.fn(),
   rateEvent: vi.fn(),
 }));
 
@@ -48,11 +49,19 @@ function event(overrides: Partial<GalleryEvent> = {}): GalleryEvent {
 
 function renderGallery(
   events: GalleryEvent[],
-  { locale = "en", pastEvents = [] }: { locale?: "en" | "sv"; pastEvents?: GalleryEvent[] } = {},
+  {
+    locale = "en",
+    hostingEvents = [],
+    pastEvents = [],
+  }: {
+    locale?: "en" | "sv";
+    hostingEvents?: GalleryEvent[];
+    pastEvents?: GalleryEvent[];
+  } = {},
 ) {
   return render(
     <NextIntlClientProvider locale={locale} messages={locale === "sv" ? svMessages : messages}>
-      <EventsGallery events={events} pastEvents={pastEvents} />
+      <EventsGallery events={events} hostingEvents={hostingEvents} pastEvents={pastEvents} />
     </NextIntlClientProvider>,
   );
 }
@@ -317,6 +326,35 @@ describe("EventsGallery Component", () => {
       screen.getByRole("button", { name: messages.EventsPage.PlusOneSave }),
     ).not.toBeDisabled();
     expect(setRsvpPlusOne).not.toHaveBeenCalled();
+  });
+
+  it("lists the events the member co-hosts under their own heading", () => {
+    renderGallery([event({ id: "1", name: "Hero Dinner" })], {
+      hostingEvents: [
+        event({
+          id: "h1",
+          name: "My Hosted Dinner",
+          canManage: true,
+          canNotify: true,
+        }),
+      ],
+    });
+
+    expect(screen.getByText(messages.EventsPage.YourEventsHeading)).toBeInTheDocument();
+    expect(screen.getByText("My Hosted Dinner")).toBeInTheDocument();
+  });
+
+  it("opens a hosted event's dialog with RSVP controls so the co-host can still attend", async () => {
+    const user = userEvent.setup();
+    renderGallery([event({ id: "1", name: "Hero Dinner" })], {
+      hostingEvents: [event({ id: "h1", name: "My Hosted Dinner" })],
+    });
+
+    await user.click(screen.getByRole("button", { name: /My Hosted Dinner/ }));
+
+    const dialog = within(await screen.findByRole("dialog"));
+    expect(dialog.getByRole("button", { name: messages.EventsPage.Attend })).toBeInTheDocument();
+    expect(dialog.getByRole("button", { name: messages.EventsPage.Decline })).toBeInTheDocument();
   });
 
   it("lists past dinners under their own heading", () => {

@@ -356,9 +356,11 @@ function EventGridItem({
 
 export function EventsGallery({
   events,
+  hostingEvents = [],
   pastEvents = [],
 }: {
   events: GalleryEvent[];
+  hostingEvents?: GalleryEvent[];
   pastEvents?: GalleryEvent[];
 }) {
   const t = useTranslations("EventsPage");
@@ -451,11 +453,49 @@ export function EventsGallery({
         </>
       )}
 
-      {pastEvents.length > 0 && (
+      {hostingEvents.length > 0 && (
         <section
           className={cn(
             "border-border pt-10 md:pt-[52px]",
             events.length > 0 && "mt-10 border-t md:mt-[52px]",
+          )}
+        >
+          <h2 className="text-foreground mb-6 text-[12px] font-medium tracking-[.2em] uppercase md:mb-8">
+            {t("YourEventsHeading")}
+          </h2>
+          <ul className="grid grid-cols-1 sm:grid-cols-3 sm:gap-y-10">
+            {hostingEvents.map((event) => (
+              <EventGridItem
+                key={event.id}
+                event={event}
+                dateFnsLocale={dateFnsLocale}
+                venueLabel={venueLabel}
+                deadline={
+                  event.rsvp_deadline && !event.myRsvpStatus
+                    ? t("RsvpDeadline", {
+                        date: formatDeadline(event.rsvp_deadline, dateFnsLocale),
+                      })
+                    : undefined
+                }
+                rsvpControls={
+                  <RsvpControls
+                    eventId={event.id}
+                    status={event.myRsvpStatus}
+                    hasPlusOne={event.myHasPlusOne}
+                    plusOneName={event.myPlusOneName}
+                  />
+                }
+              />
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {pastEvents.length > 0 && (
+        <section
+          className={cn(
+            "border-border pt-10 md:pt-[52px]",
+            (events.length > 0 || hostingEvents.length > 0) && "mt-10 border-t md:mt-[52px]",
           )}
         >
           <h2 className="text-foreground mb-6 text-[12px] font-medium tracking-[.2em] uppercase md:mb-8">

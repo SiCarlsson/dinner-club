@@ -151,6 +151,58 @@ export async function getPastEvents() {
   return { success: true as const, events: pastEvents };
 }
 
+export async function getHostingEvents() {
+  const { supabase, user } = await getCurrentUser();
+
+  if (!user) {
+    return { success: false as const, message: "Not authenticated" };
+  }
+
+  const { data, error } = await supabase
+    .from("events")
+    .select(
+      "id, name, event_date, rsvp_deadline, description, venue:venues(id, name, address, district)",
+    )
+    .eq("co_host_id", user.id)
+    .gte("event_date", new Date().toISOString())
+    .order("event_date", { ascending: true });
+
+  if (error) {
+    return { success: false as const, message: error.message };
+  }
+
+  const events = data as unknown as Omit<
+    GalleryEvent,
+    "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName" | "myRating" | "canNotify" | "canManage"
+  >[];
+
+  const { data: rsvps } = await supabase
+    .from("rsvps")
+    .select("event_id, status, has_plus_one, plus_one_name")
+    .eq("user_id", user.id)
+    .in(
+      "event_id",
+      events.map((event) => event.id),
+    );
+
+  const rsvpByEvent = new Map((rsvps ?? []).map((rsvp) => [rsvp.event_id, rsvp]));
+
+  const hostingEvents: GalleryEvent[] = events.map((event) => {
+    const rsvp = rsvpByEvent.get(event.id);
+    return {
+      ...event,
+      myRsvpStatus: (rsvp?.status as RsvpStatus | undefined) ?? null,
+      myHasPlusOne: rsvp?.has_plus_one ?? false,
+      myPlusOneName: rsvp?.plus_one_name ?? null,
+      myRating: null,
+      canNotify: true,
+      canManage: true,
+    };
+  });
+
+  return { success: true as const, events: hostingEvents };
+}
+
 const MANAGE_VENUE_COLUMNS = "id, name, address, city, district, latitude, longitude";
 
 export async function getManageableEvent(eventId: string) {
