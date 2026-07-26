@@ -25,6 +25,10 @@ gcp_project_id = "your-gcp-project-id"
 # Image tag to deploy (must already be pushed to Artifact Registry). Defaults to "latest".
 # image_tag = "latest"
 
+# --- GitHub -----------------------------------------------------------------
+# Can be derived by running "gh auth token"
+# github_token = "ghp_..."
+
 # --- Application runtime config ---------------------------------------------
 # NEXT_PUBLIC_SUPABASE_* values are derived from the Supabase project automatically.
 

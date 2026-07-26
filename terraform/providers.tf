@@ -9,6 +9,11 @@ terraform {
       source  = "hashicorp/google"
       version = "~> 7.39"
     }
+
+    github = {
+      source  = "integrations/github"
+      version = "~> 6.0"
+    }
   }
 }
 
@@ -19,4 +24,10 @@ provider "supabase" {
 provider "google" {
   project = var.gcp_project_id
   region  = var.gcp_region
+}
+
+# Manages the repo's Actions variables consumed by cd.yml
+provider "github" {
+  owner = local.github_owner
+  token = var.github_token
 }

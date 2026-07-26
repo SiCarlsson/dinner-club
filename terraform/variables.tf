@@ -47,9 +47,16 @@ variable "image_tag" {
 }
 
 variable "github_repository" {
-  description = "GitHub repo allowed to deploy via Workload Identity Federation"
+  description = "GitHub repo (owner/name) allowed to deploy via Workload Identity Federation and whose Actions variables Terraform manages"
   type        = string
   default     = "SiCarlsson/dinner-club"
+}
+
+variable "github_token" {
+  description = "GitHub token for managing Actions variables. Leave null to use the GITHUB_TOKEN env var (e.g. `export GITHUB_TOKEN=$(gh auth token)`)"
+  type        = string
+  sensitive   = true
+  default     = null
 }
 
 # ------------------------------------------------------------------------------
