@@ -4,7 +4,6 @@ import { getTranslations } from "next-intl/server";
 import { Link } from "@/i18n/navigation";
 import { createClient } from "@/utils/supabase/server";
 import { AppHeaderMenu } from "@/components/app-header-menu";
-import { AppHeaderLogout } from "@/components/app-header-logout";
 import { AppHeaderSettings } from "@/components/app-header-settings";
 import { AppHeaderGuestMenu } from "@/components/app-header-guest-menu";
 
@@ -58,8 +57,7 @@ export async function AppHeader() {
             >
               {t("Profile")}
             </Link>
-            <AppHeaderSettings />
-            <AppHeaderLogout />
+            <AppHeaderSettings showLogout />
             <AppHeaderMenu isAdmin={isAdmin} />
           </div>
         ) : (

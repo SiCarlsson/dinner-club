@@ -4,13 +4,11 @@
 
 import { Menu } from "lucide-react";
 import { useTranslations } from "next-intl";
-import { Link, useRouter } from "@/i18n/navigation";
-import { createClient } from "@/utils/supabase/client";
+import { Link } from "@/i18n/navigation";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
@@ -19,14 +17,6 @@ const itemClass =
 
 export function AppHeaderMenu({ isAdmin }: { isAdmin: boolean }) {
   const t = useTranslations("Nav");
-  const router = useRouter();
-
-  const handleLogout = async () => {
-    const supabase = createClient();
-    await supabase.auth.signOut();
-    router.push("/");
-    router.refresh();
-  };
 
   return (
     <DropdownMenu>
@@ -55,10 +45,6 @@ export function AppHeaderMenu({ isAdmin }: { isAdmin: boolean }) {
           className={itemClass}
           render={<Link href="/profile">{t("Profile")}</Link>}
         />
-        <DropdownMenuSeparator />
-        <DropdownMenuItem className={itemClass} onClick={handleLogout}>
-          {t("Logout")}
-        </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );

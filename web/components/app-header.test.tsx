@@ -68,7 +68,7 @@ describe("AppHeader", () => {
     expect(loginLink).toHaveAttribute("href", "/login");
     expect(screen.queryByText(mockSv.Nav.Admin)).not.toBeInTheDocument();
     expect(screen.queryByText(mockSv.Nav.Dinners)).not.toBeInTheDocument();
-    expect(screen.queryByRole("button", { name: mockSv.Nav.Menu })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: mockSv.Nav.Settings })).toBeInTheDocument();
   });
 
   it("points the logo at the home page when unauthenticated", async () => {
@@ -79,7 +79,7 @@ describe("AppHeader", () => {
     expect(screen.getByRole("link", { name: /CaLí/ })).toHaveAttribute("href", "/");
   });
 
-  it("shows a dinners link, a profile link, a logout button, and a home logo for a member", async () => {
+  it("shows a dinners link, a profile link, a settings menu, and a home logo for a member", async () => {
     mockGetUser.mockResolvedValue({
       data: { user: { id: "u1", email: "member@example.com" } },
     });
@@ -96,7 +96,7 @@ describe("AppHeader", () => {
       "href",
       "/profile",
     );
-    expect(screen.getByRole("button", { name: mockSv.Nav.Logout })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: mockSv.Nav.Settings })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: mockSv.Nav.Login })).not.toBeInTheDocument();
     expect(screen.queryByRole("link", { name: mockSv.Nav.Admin })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: mockSv.Nav.Menu })).toBeInTheDocument();
