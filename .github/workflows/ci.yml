@@ -16,7 +16,7 @@ defaults:
     working-directory: web
 
 env:
-  NODE_VERSION: "26"
+  NODE_VERSION: "24"
   PNPM_VERSION: "11.13.1"
   SUPABASE_CLI_VERSION: "2.109.1"
 
@@ -75,7 +75,14 @@ jobs:
 
       - name: Start Supabase (applies migrations + seed)
         working-directory: ${{ github.workspace }}
-        run: supabase start
+        run: |
+          # Tear down any half-started stack and retry once before failing.
+          supabase start || {
+            echo "::warning::supabase start failed; cleaning up and retrying"
+            supabase stop --no-backup || true
+            docker rm -f $(docker ps -aq --filter "name=supabase_") 2>/dev/null || true
+            supabase start
+          }
 
       - name: Integration tests
         run: pnpm test:integration
@@ -114,7 +121,14 @@ jobs:
 
       - name: Start Supabase (applies migrations + seed)
         working-directory: ${{ github.workspace }}
-        run: supabase start
+        run: |
+          # Tear down any half-started stack and retry once before failing.
+          supabase start || {
+            echo "::warning::supabase start failed; cleaning up and retrying"
+            supabase stop --no-backup || true
+            docker rm -f $(docker ps -aq --filter "name=supabase_") 2>/dev/null || true
+            supabase start
+          }
 
       - name: Export Supabase env for the app
         working-directory: ${{ github.workspace }}
