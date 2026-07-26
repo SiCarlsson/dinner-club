@@ -46,6 +46,18 @@ variable "image_tag" {
   default     = "latest"
 }
 
+variable "artifact_keep_count" {
+  description = "Number of most-recent images to always keep in Artifact Registry, regardless of age"
+  type        = number
+  default     = 2
+}
+
+variable "artifact_max_age_days" {
+  description = "Delete Artifact Registry images older than this many days (beyond the kept most-recent images)"
+  type        = number
+  default     = 7
+}
+
 variable "github_repository" {
   description = "GitHub repo (owner/name) allowed to deploy via Workload Identity Federation and whose Actions variables Terraform manages"
   type        = string

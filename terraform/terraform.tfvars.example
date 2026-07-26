@@ -25,6 +25,11 @@ gcp_project_id = "your-gcp-project-id"
 # Image tag to deploy (must already be pushed to Artifact Registry). Defaults to "latest".
 # image_tag = "latest"
 
+# Artifact Registry cleanup policy. Always keep this many most-recent images (default: 2),
+# and delete anything older than this many days beyond them (default: 7).
+# artifact_keep_count   = 2
+# artifact_max_age_days = 7
+
 # --- GitHub -----------------------------------------------------------------
 # Can be derived by running "gh auth token"
 # github_token = "ghp_..."
