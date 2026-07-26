@@ -86,8 +86,6 @@ export function AttendeesDialog({
       }
     });
 
-    // Hosts get an edit affordance; load the full editable record lazily so
-    // non-hosts never pay for it and the gallery payload stays lean.
     if (canManage) {
       getManageableEvent(eventId).then((result) => {
         if (!active) return;
@@ -175,7 +173,7 @@ export function AttendeesDialog({
         )}
 
         {state === "loaded" && summary && summary.memberCount > 0 && (
-          <div className="flex flex-col gap-6 overflow-y-auto">
+          <div className="flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto">
             <p className="text-muted-foreground text-[11px] tracking-[.08em] uppercase">
               {t("AttendeesCount", {
                 total: summary.totalCount,
