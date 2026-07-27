@@ -23,10 +23,8 @@ export type GalleryEvent = {
   myPlusOneName: string | null;
   myRating: EventRating | null;
   canNotify: boolean;
-  // Admin or this event's co-host — may edit the dinner and notify members.
   canManage: boolean;
-  // Display name of the event's co-host, if one is set.
-  coHostName: string | null;
+  hostName: string | null;
 };
 
 export async function getUpcomingEvents() {
@@ -39,7 +37,7 @@ export async function getUpcomingEvents() {
   const { data, error } = await supabase
     .from("events")
     .select(
-      "id, name, event_date, rsvp_deadline, description, co_host_id, venue:venues(id, name, address, district)",
+      "id, name, event_date, rsvp_deadline, description, host_id, venue:venues(id, name, address, district)",
     )
     .eq("visibility", "published")
     .gte("event_date", new Date().toISOString())
@@ -53,7 +51,7 @@ export async function getUpcomingEvents() {
   type RawEvent = Omit<
     GalleryEvent,
     "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName" | "myRating" | "canNotify" | "canManage"
-  > & { co_host_id: string | null };
+  > & { host_id: string | null };
   const events = data as unknown as RawEvent[];
 
   const { data: profile } = await supabase
@@ -75,15 +73,15 @@ export async function getUpcomingEvents() {
 
   const rsvpByEvent = new Map((rsvps ?? []).map((rsvp) => [rsvp.event_id, rsvp]));
 
-  const coHostIds = [...new Set(events.map((event) => event.co_host_id).filter(Boolean))];
-  const { data: coHosts } = coHostIds.length
-    ? await supabase.from("profiles").select("id, full_name").in("id", coHostIds)
+  const hostIds = [...new Set(events.map((event) => event.host_id).filter(Boolean))];
+  const { data: hosts } = hostIds.length
+    ? await supabase.from("profiles").select("id, full_name").in("id", hostIds)
     : { data: [] };
-  const coHostNameById = new Map((coHosts ?? []).map((coHost) => [coHost.id, coHost.full_name]));
+  const hostNameById = new Map((hosts ?? []).map((host) => [host.id, host.full_name]));
 
-  const eventsWithRsvp: GalleryEvent[] = events.map(({ co_host_id, ...event }) => {
+  const eventsWithRsvp: GalleryEvent[] = events.map(({ host_id, ...event }) => {
     const rsvp = rsvpByEvent.get(event.id);
-    const isHost = isAdmin || co_host_id === user.id;
+    const isHost = isAdmin || host_id === user.id;
     return {
       ...event,
       myRsvpStatus: (rsvp?.status as RsvpStatus | undefined) ?? null,
@@ -92,7 +90,7 @@ export async function getUpcomingEvents() {
       myRating: null,
       canNotify: isHost,
       canManage: isHost,
-      coHostName: co_host_id ? (coHostNameById.get(co_host_id) ?? null) : null,
+      hostName: host_id ? (hostNameById.get(host_id) ?? null) : null,
     };
   });
 
@@ -154,7 +152,7 @@ export async function getPastEvents() {
         : null,
       canNotify: false, // past events aren't announced
       canManage: false, // and aren't edited from the gallery
-      coHostName: null,
+      hostName: null,
     };
   });
 
@@ -173,7 +171,7 @@ export async function getHostingEvents() {
     .select(
       "id, name, event_date, rsvp_deadline, description, venue:venues(id, name, address, district)",
     )
-    .eq("co_host_id", user.id)
+    .eq("host_id", user.id)
     .gte("event_date", new Date().toISOString())
     .order("event_date", { ascending: true });
 
@@ -207,7 +205,7 @@ export async function getHostingEvents() {
       myRating: null,
       canNotify: true,
       canManage: true,
-      coHostName: null,
+      hostName: null,
     };
   });
 
@@ -226,7 +224,7 @@ export async function getManageableEvent(eventId: string) {
   const { data: event, error } = await supabase
     .from("events")
     .select(
-      "id, name, event_date, rsvp_deadline, description, visibility, co_host_id, venue:venues(id, name)",
+      "id, name, event_date, rsvp_deadline, description, visibility, host_id, venue:venues(id, name)",
     )
     .eq("id", eventId)
     .single();
@@ -242,23 +240,23 @@ export async function getManageableEvent(eventId: string) {
     .single();
 
   const isAdmin = profile?.role === "admin";
-  const isCoHost = event.co_host_id === user.id;
+  const isHost = event.host_id === user.id;
 
-  if (!isAdmin && !isCoHost) {
+  if (!isAdmin && !isHost) {
     return { success: false as const, message: "Not authorized" };
   }
 
   const { data: venues } = await supabase.from("venues").select(MANAGE_VENUE_COLUMNS).order("name");
 
   let profiles: ProfileRecord[] = [];
-  if (event.co_host_id) {
-    const { data: coHost } = await supabase
+  if (event.host_id) {
+    const { data: host } = await supabase
       .from("profiles")
       .select("id, full_name")
-      .eq("id", event.co_host_id)
+      .eq("id", event.host_id)
       .single();
-    if (coHost) {
-      profiles = [coHost as ProfileRecord];
+    if (host) {
+      profiles = [host as ProfileRecord];
     }
   }
 
@@ -467,11 +465,11 @@ export async function notifyEventSubscribers(eventId: string) {
     return { success: false as const, message: "Not authenticated" };
   }
 
-  // RLS lets members read published events; the explicit role/co-host check
+  // RLS lets members read published events; the explicit role/host check
   // below is the real gate on who may send.
   const { data: event, error } = await supabase
     .from("events")
-    .select("id, name, event_date, co_host_id")
+    .select("id, name, event_date, host_id")
     .eq("id", eventId)
     .single();
 
@@ -486,9 +484,9 @@ export async function notifyEventSubscribers(eventId: string) {
     .single();
 
   const isAdmin = profile?.role === "admin";
-  const isCoHost = event.co_host_id === user.id;
+  const isHost = event.host_id === user.id;
 
-  if (!isAdmin && !isCoHost) {
+  if (!isAdmin && !isHost) {
     return { success: false as const, message: "Not authorized" };
   }
 

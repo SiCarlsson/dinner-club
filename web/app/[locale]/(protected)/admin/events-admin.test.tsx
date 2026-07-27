@@ -74,7 +74,7 @@ describe("EventsAdmin Component", () => {
         rsvp_deadline: null,
         description: null,
         visibility: "published",
-        co_host_id: null,
+        host_id: null,
         venue: { id: "v1", name: "Café Norr" },
       },
       {
@@ -84,7 +84,7 @@ describe("EventsAdmin Component", () => {
         rsvp_deadline: null,
         description: null,
         visibility: "unpublished",
-        co_host_id: null,
+        host_id: null,
         venue: null,
       },
     ];
@@ -117,7 +117,7 @@ describe("EventsAdmin Component", () => {
         rsvp_deadline: null,
         description: null,
         visibility: "published",
-        co_host_id: null,
+        host_id: null,
         venue: null,
       },
       {
@@ -127,7 +127,7 @@ describe("EventsAdmin Component", () => {
         rsvp_deadline: null,
         description: null,
         visibility: "published",
-        co_host_id: null,
+        host_id: null,
         venue: null,
       },
     ];
@@ -155,7 +155,7 @@ describe("EventsAdmin Component", () => {
         rsvp_deadline: null,
         description: null,
         visibility: "published",
-        co_host_id: null,
+        host_id: null,
         venue: null,
       },
     ];
@@ -176,7 +176,7 @@ describe("EventsAdmin Component", () => {
         rsvp_deadline: null,
         description: null,
         visibility: "published",
-        co_host_id: null,
+        host_id: null,
         venue: null,
       },
       {
@@ -186,7 +186,7 @@ describe("EventsAdmin Component", () => {
         rsvp_deadline: null,
         description: null,
         visibility: "unpublished",
-        co_host_id: null,
+        host_id: null,
         venue: null,
       },
     ];

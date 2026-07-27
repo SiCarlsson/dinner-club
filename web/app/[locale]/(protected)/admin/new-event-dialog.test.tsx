@@ -53,7 +53,7 @@ const EVENT: EventRecord = {
   rsvp_deadline: "2026-07-25T21:59:00.000Z",
   description: "Bring a friend",
   visibility: "published",
-  co_host_id: "p1",
+  host_id: "p1",
   venue: { id: "v1", name: "Café Norr" },
 };
 
@@ -100,7 +100,7 @@ describe("NewEventDialog Component", () => {
     expect(descriptionInput.value).toBe("");
 
     expect(screen.getByText(t.DatePlaceholder)).toBeInTheDocument();
-    expect(screen.getByText(t.CoHostPlaceholder)).toBeInTheDocument();
+    expect(screen.getByText(t.HostPlaceholder)).toBeInTheDocument();
     expect(screen.getByRole("checkbox")).not.toBeChecked();
   });
 
@@ -125,16 +125,16 @@ describe("NewEventDialog Component", () => {
     expect(screen.getByRole("button", { name: t.SaveButton })).toBeDisabled();
   });
 
-  it("lets the admin pick a co-host from the profiles list", async () => {
+  it("lets the admin pick a host from the profiles list", async () => {
     const user = userEvent.setup();
     renderNewEventDialog();
 
     await user.click(screen.getByRole("button", { name: tEvents.AddButton }));
-    await user.click(await screen.findByText(t.CoHostPlaceholder));
+    await user.click(await screen.findByText(t.HostPlaceholder));
     await user.click(await screen.findByText("Jamie Lee"));
 
     expect(screen.getAllByText("Jamie Lee").length).toBeGreaterThan(0);
-    expect(screen.queryByText(t.CoHostPlaceholder)).not.toBeInTheDocument();
+    expect(screen.queryByText(t.HostPlaceholder)).not.toBeInTheDocument();
   });
 });
 
@@ -169,11 +169,11 @@ describe("EditEventDialog Component", () => {
     expect(screen.getByRole("checkbox")).toBeChecked();
   });
 
-  it("reflects an updated event prop when reopened (no stale co-host)", async () => {
+  it("reflects an updated event prop when reopened (no stale host)", async () => {
     const user = userEvent.setup();
     const { rerender } = renderEditEventDialog();
 
-    // Open once with the original co-host, then close.
+    // Open once with the original host, then close.
     await user.click(screen.getByRole("button", { name: tEvents.EditButton }));
     expect(await screen.findByText("Alex Smith")).toBeInTheDocument();
     await user.keyboard("{Escape}");
@@ -181,21 +181,17 @@ describe("EditEventDialog Component", () => {
     // Simulate a save + router.refresh() delivering a new event prop.
     rerender(
       <NextIntlClientProvider locale="en" messages={messages}>
-        <EditEventDialog
-          venues={VENUES}
-          profiles={PROFILES}
-          event={{ ...EVENT, co_host_id: "p2" }}
-        />
+        <EditEventDialog venues={VENUES} profiles={PROFILES} event={{ ...EVENT, host_id: "p2" }} />
       </NextIntlClientProvider>,
     );
 
-    // Reopening shows the new co-host, not the stale one.
+    // Reopening shows the new host, not the stale one.
     await user.click(screen.getByRole("button", { name: tEvents.EditButton }));
     expect(await screen.findByText("Jamie Lee")).toBeInTheDocument();
     expect(screen.queryByText("Alex Smith")).not.toBeInTheDocument();
   });
 
-  it("allows changing the co-host and includes it in the update payload", async () => {
+  it("allows changing the host and includes it in the update payload", async () => {
     vi.mocked(updateEvent).mockResolvedValue({ success: true, message: "Event updated" });
     const user = userEvent.setup();
     renderEditEventDialog();
@@ -208,12 +204,12 @@ describe("EditEventDialog Component", () => {
     await vi.waitFor(() => {
       expect(updateEvent).toHaveBeenCalledWith(
         "event-1",
-        expect.objectContaining({ coHostId: "p2" }),
+        expect.objectContaining({ hostId: "p2" }),
       );
     });
   });
 
-  it("allows clearing the co-host and sends null in the update payload", async () => {
+  it("allows clearing the host and sends null in the update payload", async () => {
     vi.mocked(updateEvent).mockResolvedValue({ success: true, message: "Event updated" });
     const user = userEvent.setup();
     renderEditEventDialog();
@@ -221,15 +217,15 @@ describe("EditEventDialog Component", () => {
     await user.click(screen.getByRole("button", { name: tEvents.EditButton }));
     await screen.findByText("Alex Smith");
 
-    await user.click(screen.getByRole("button", { name: t.ClearCoHost }));
-    expect(screen.getByText(t.CoHostPlaceholder)).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: t.ClearHost }));
+    expect(screen.getByText(t.HostPlaceholder)).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: t.SaveButton }));
 
     await vi.waitFor(() => {
       expect(updateEvent).toHaveBeenCalledWith(
         "event-1",
-        expect.objectContaining({ coHostId: null }),
+        expect.objectContaining({ hostId: null }),
       );
     });
   });
