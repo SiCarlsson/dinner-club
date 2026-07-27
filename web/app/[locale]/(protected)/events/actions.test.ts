@@ -24,7 +24,7 @@ function mockSupabase({
   upsertError,
   deleteError,
   role,
-  coHosts,
+  hosts,
 }: {
   events?: unknown[];
   eventsError?: { message: string } | null;
@@ -43,7 +43,7 @@ function mockSupabase({
   upsertError?: { message: string } | null;
   deleteError?: { message: string } | null;
   role?: "member" | "admin" | null;
-  coHosts?: { id: string; full_name: string }[];
+  hosts?: { id: string; full_name: string }[];
 } = {}) {
   // getUpcomingEvents orders/limits; getPastEvents orders without a limit, so `order`
   // must resolve on its own too. `limit` wraps the same resolved shape.
@@ -76,8 +76,8 @@ function mockSupabase({
   // getUpcomingEvents reads the caller's role to decide `canNotify`.
   const profilesSingle = vi.fn().mockResolvedValue({ data: role ? { role } : null, error: null });
   const profilesEq = vi.fn().mockReturnValue({ single: profilesSingle });
-  // getUpcomingEvents also looks up co-host display names by id.
-  const profilesIn = vi.fn().mockResolvedValue({ data: coHosts ?? [], error: null });
+  // getUpcomingEvents also looks up host display names by id.
+  const profilesIn = vi.fn().mockResolvedValue({ data: hosts ?? [], error: null });
   const profilesSelect = vi.fn().mockReturnValue({ eq: profilesEq, in: profilesIn });
 
   const from = vi.fn((table) => {
@@ -167,7 +167,7 @@ describe("events gallery actions", () => {
             myRating: null,
             canNotify: false,
             canManage: false,
-            coHostName: null,
+            hostName: null,
           },
         ],
       });
@@ -227,7 +227,7 @@ describe("events gallery actions", () => {
       expect(result).toEqual({ success: false, message: "db down" });
     });
 
-    it("resolves co-host display names onto each event", async () => {
+    it("resolves host display names onto each event", async () => {
       const events = [
         {
           id: "e1",
@@ -235,7 +235,7 @@ describe("events gallery actions", () => {
           event_date: "2026-08-01T18:00:00.000Z",
           description: null,
           venue: null,
-          co_host_id: "co-1",
+          host_id: "co-1",
         },
         {
           id: "e2",
@@ -243,12 +243,12 @@ describe("events gallery actions", () => {
           event_date: "2026-08-08T18:00:00.000Z",
           description: null,
           venue: null,
-          co_host_id: null,
+          host_id: null,
         },
       ];
       const supabase = mockSupabase({
         events,
-        coHosts: [{ id: "co-1", full_name: "Anna Andersson" }],
+        hosts: [{ id: "co-1", full_name: "Anna Andersson" }],
       });
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: supabase as never,
@@ -259,7 +259,7 @@ describe("events gallery actions", () => {
       const result = await getUpcomingEvents();
 
       expect(supabase.profilesIn).toHaveBeenCalledWith("id", ["co-1"]);
-      expect(result.success && result.events.map((e) => e.coHostName)).toEqual([
+      expect(result.success && result.events.map((e) => e.hostName)).toEqual([
         "Anna Andersson",
         null,
       ]);
@@ -279,7 +279,7 @@ describe("events gallery actions", () => {
       expect(result).toEqual({ success: false, message: "Not authenticated" });
     });
 
-    it("returns the upcoming events the caller co-hosts as manageable", async () => {
+    it("returns the upcoming events the caller hosts as manageable", async () => {
       const events = [
         {
           id: "h1",
@@ -299,10 +299,10 @@ describe("events gallery actions", () => {
       const result = await getHostingEvents();
 
       expect(supabase.from).toHaveBeenCalledWith("events");
-      expect(supabase.eq).toHaveBeenCalledWith("co_host_id", "user-1");
+      expect(supabase.eq).toHaveBeenCalledWith("host_id", "user-1");
       expect(supabase.gte).toHaveBeenCalledWith("event_date", expect.any(String));
       expect(supabase.order).toHaveBeenCalledWith("event_date", { ascending: true });
-      // No visibility filter and no limit — co-hosts see all of their own dinners.
+      // No visibility filter and no limit — hosts see all of their own dinners.
       expect(supabase.limit).not.toHaveBeenCalled();
       expect(result).toEqual({
         success: true,
@@ -315,7 +315,7 @@ describe("events gallery actions", () => {
             myRating: null,
             canNotify: true,
             canManage: true,
-            coHostName: null,
+            hostName: null,
           },
         ],
       });
@@ -550,7 +550,7 @@ describe("events gallery actions", () => {
             myRating: null,
             canNotify: false,
             canManage: false,
-            coHostName: null,
+            hostName: null,
           },
         ],
       });
@@ -754,7 +754,7 @@ describe("events gallery actions", () => {
       eventError = null,
       role = null,
     }: {
-      event?: { id: string; name: string; event_date: string; co_host_id: string | null } | null;
+      event?: { id: string; name: string; event_date: string; host_id: string | null } | null;
       eventError?: { message: string } | null;
       role?: "member" | "admin" | null;
     } = {}) {
@@ -778,7 +778,7 @@ describe("events gallery actions", () => {
       id: "e1",
       name: "Autumn Dinner",
       event_date: "2026-09-05T17:00:00.000Z",
-      co_host_id: null,
+      host_id: null,
     };
 
     it("returns not authenticated when there is no user", async () => {
@@ -807,10 +807,10 @@ describe("events gallery actions", () => {
       expect(sendPushToAllSubscribers).not.toHaveBeenCalled();
     });
 
-    it("rejects a member who is neither admin nor the co-host", async () => {
+    it("rejects a member who is neither admin nor the host", async () => {
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: notifySupabase({
-          event: { ...event, co_host_id: "someone-else" },
+          event: { ...event, host_id: "someone-else" },
           role: "member",
         }) as never,
         user: { id: "user-1" } as never,
@@ -839,10 +839,10 @@ describe("events gallery actions", () => {
       expect(result).toEqual({ success: true, sent: 3 });
     });
 
-    it("lets the event's co-host send even without the admin role", async () => {
+    it("lets the event's host send even without the admin role", async () => {
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: notifySupabase({
-          event: { ...event, co_host_id: "user-1" },
+          event: { ...event, host_id: "user-1" },
           role: "member",
         }) as never,
         user: { id: "user-1" } as never,

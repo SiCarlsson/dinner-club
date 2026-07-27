@@ -64,7 +64,7 @@ describe("Events Server Page", () => {
           myRating: null,
           canNotify: false,
           canManage: false,
-          coHostName: null,
+          hostName: null,
         },
       ],
     });
@@ -84,7 +84,7 @@ describe("Events Server Page", () => {
           myRating: null,
           canNotify: true,
           canManage: true,
-          coHostName: null,
+          hostName: null,
         },
       ],
     });
@@ -104,7 +104,7 @@ describe("Events Server Page", () => {
           myRating: null,
           canNotify: false,
           canManage: false,
-          coHostName: null,
+          hostName: null,
         },
       ],
     });

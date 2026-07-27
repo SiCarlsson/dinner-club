@@ -32,18 +32,18 @@ describe("events RLS", () => {
       expect(data).toHaveLength(1);
     });
 
-    it("a co-host sees their own unpublished event", async () => {
-      const coHost = await createUser({ role: "member" });
-      const unpublishedId = await seedEvent({ visibility: "unpublished", co_host_id: coHost.id });
+    it("a host sees their own unpublished event", async () => {
+      const host = await createUser({ role: "member" });
+      const unpublishedId = await seedEvent({ visibility: "unpublished", host_id: host.id });
 
-      const { data } = await coHost.client.from("events").select("id").eq("id", unpublishedId);
+      const { data } = await host.client.from("events").select("id").eq("id", unpublishedId);
       expect(data).toHaveLength(1);
     });
 
-    it("a member is NOT a co-host of someone else's unpublished event", async () => {
-      const coHost = await createUser({ role: "member" });
+    it("a member is NOT a host of someone else's unpublished event", async () => {
+      const host = await createUser({ role: "member" });
       const other = await createUser({ role: "member" });
-      const unpublishedId = await seedEvent({ visibility: "unpublished", co_host_id: coHost.id });
+      const unpublishedId = await seedEvent({ visibility: "unpublished", host_id: host.id });
 
       const { data } = await other.client.from("events").select("id").eq("id", unpublishedId);
       expect(data).toHaveLength(0);
@@ -87,15 +87,15 @@ describe("events RLS", () => {
   });
 
   describe("UPDATE", () => {
-    it("lets a co-host update their event", async () => {
-      const coHost = await createUser({ role: "member" });
+    it("lets a host update their event", async () => {
+      const host = await createUser({ role: "member" });
       const eventId = await seedEvent({
         visibility: "published",
-        co_host_id: coHost.id,
+        host_id: host.id,
         name: "Before",
       });
 
-      const { error } = await coHost.client
+      const { error } = await host.client
         .from("events")
         .update({ name: "After" })
         .eq("id", eventId);
@@ -113,28 +113,28 @@ describe("events RLS", () => {
       expect(await readColumn("events", "name", eventId)).toBe("Before");
     });
 
-    it("does not let a co-host reassign the event to someone else", async () => {
-      const coHost = await createUser({ role: "member" });
+    it("does not let a host reassign the event to someone else", async () => {
+      const host = await createUser({ role: "member" });
       const other = await createUser({ role: "member" });
-      const eventId = await seedEvent({ visibility: "published", co_host_id: coHost.id });
+      const eventId = await seedEvent({ visibility: "published", host_id: host.id });
 
-      const { error } = await coHost.client
+      const { error } = await host.client
         .from("events")
-        .update({ co_host_id: other.id })
+        .update({ host_id: other.id })
         .eq("id", eventId);
 
-      // WITH CHECK rejects the new row because the co-host would no longer be the co-host.
+      // WITH CHECK rejects the new row because the host would no longer be the host.
       expect(error).not.toBeNull();
-      expect(await readColumn("events", "co_host_id", eventId)).toBe(coHost.id);
+      expect(await readColumn("events", "host_id", eventId)).toBe(host.id);
     });
   });
 
   describe("DELETE", () => {
-    it("does not let a co-host delete their event (admins only)", async () => {
-      const coHost = await createUser({ role: "member" });
-      const eventId = await seedEvent({ visibility: "published", co_host_id: coHost.id });
+    it("does not let a host delete their event (admins only)", async () => {
+      const host = await createUser({ role: "member" });
+      const eventId = await seedEvent({ visibility: "published", host_id: host.id });
 
-      await coHost.client.from("events").delete().eq("id", eventId);
+      await host.client.from("events").delete().eq("id", eventId);
 
       expect(await countRows("events", "id", eventId)).toBe(1);
     });

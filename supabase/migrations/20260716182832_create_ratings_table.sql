@@ -32,7 +32,7 @@ USING (
       OR
       (SELECT role FROM public.profiles WHERE id = (select auth.uid())) = 'admin'
       OR
-      (select auth.uid()) = e.co_host_id
+      (select auth.uid()) = e.host_id
     )
   )
 );

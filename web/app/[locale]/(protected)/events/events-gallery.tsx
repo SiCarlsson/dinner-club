@@ -326,7 +326,7 @@ function EventGridItem({
   subtitle?: string;
   deadline?: string;
 }) {
-  const coHostName = event.coHostName;
+  const hostName = event.hostName;
   return (
     <li className="border-border border-t py-4 first:border-t-0 first:pt-0 sm:border-t-0 sm:border-l sm:px-6 sm:py-0 sm:[&:nth-child(3n)]:pr-0 sm:[&:nth-child(3n+1)]:border-l-0 sm:[&:nth-child(3n+1)]:pl-0">
       <AttendeesDialog
@@ -346,10 +346,10 @@ function EventGridItem({
               {event.name}
             </span>
             <span className="text-muted-foreground text-[11.5px]">{venueLabel(event)}</span>
-            {(deadline || coHostName) && (
+            {(deadline || hostName) && (
               <span className="text-muted-foreground flex w-full items-center justify-between gap-2 text-[10px] tracking-[.14em] uppercase">
                 <span>{deadline}</span>
-                {coHostName && <span className="text-right normal-case">{coHostName}</span>}
+                {hostName && <span className="text-right normal-case">{hostName}</span>}
               </span>
             )}
           </button>
@@ -409,10 +409,10 @@ export function EventsGallery({
               <span className="text-body">{formatDateTime(next.event_date, dateFnsLocale)}</span>
               <span aria-hidden="true">·</span>
               <span className="text-body">{venueLabel(next)}</span>
-              {next.coHostName && (
+              {next.hostName && (
                 <>
                   <span aria-hidden="true">·</span>
-                  <span className="text-body">{next.coHostName}</span>
+                  <span className="text-body">{next.hostName}</span>
                 </>
               )}
             </p>

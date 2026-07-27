@@ -64,7 +64,7 @@ type FormState = {
   time: string;
   rsvpDeadline: Date | undefined;
   venueId: string;
-  coHostId: string;
+  hostId: string;
   description: string;
   published: boolean;
 };
@@ -75,7 +75,7 @@ const EMPTY_FORM: FormState = {
   time: "18:00",
   rsvpDeadline: undefined,
   venueId: "",
-  coHostId: "",
+  hostId: "",
   description: "",
   published: false,
 };
@@ -88,7 +88,7 @@ function formFromEvent(event: EventRecord): FormState {
     time: format(eventDate, "HH:mm"),
     rsvpDeadline: event.rsvp_deadline ? new Date(event.rsvp_deadline) : undefined,
     venueId: event.venue?.id ?? "",
-    coHostId: event.co_host_id ?? "",
+    hostId: event.host_id ?? "",
     description: event.description ?? "",
     published: event.visibility === "published",
   };
@@ -105,18 +105,18 @@ function EventDialog({
   profiles = [],
   event,
   trigger,
-  showCoHostField = true,
-  coHostReadOnly = false,
+  showHostField = true,
+  hostReadOnly = false,
   showAddVenue = true,
 }: {
   venues: VenueRecord[];
   profiles?: ProfileRecord[];
   event?: EventRecord;
   trigger: React.ReactElement;
-  showCoHostField?: boolean;
-  // When read-only, the co-host is shown pre-filled but cannot be changed —
-  // co-hosts may see who hosts the dinner without being able to reassign it.
-  coHostReadOnly?: boolean;
+  showHostField?: boolean;
+  // When read-only, the host is shown pre-filled but cannot be changed —
+  // a host may see who is assigned without being able to reassign the dinner.
+  hostReadOnly?: boolean;
   showAddVenue?: boolean;
 }) {
   const initialForm = event ? formFromEvent(event) : EMPTY_FORM;
@@ -166,9 +166,9 @@ function EventDialog({
       venueId: form.venueId || null,
       description: form.description || null,
       visibility: form.published ? ("published" as const) : ("unpublished" as const),
-      // Only admins touch co_host_id; when it's read-only we omit it so the FK is
+      // Only admins touch host_id; when it's read-only we omit it so the FK is
       // left untouched (and the WITH CHECK RLS policy blocks reassignment anyway).
-      ...(showCoHostField && !coHostReadOnly && { coHostId: form.coHostId || null }),
+      ...(showHostField && !hostReadOnly && { hostId: form.hostId || null }),
     };
 
     const result = event ? await updateEvent(event.id, input) : await createEvent(input);
@@ -376,24 +376,24 @@ function EventDialog({
             </div>
           </div>
 
-          {showCoHostField && (
+          {showHostField && (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="event-co-host" className={FIELD_LABEL}>
-                {t("CoHostLabel")}
+              <Label htmlFor="event-host" className={FIELD_LABEL}>
+                {t("HostLabel")}
               </Label>
               <div className="flex items-end gap-2">
                 <Select
                   items={Object.fromEntries(
                     profiles.map((profile) => [profile.id, profile.full_name ?? profile.id]),
                   )}
-                  value={form.coHostId}
-                  readOnly={coHostReadOnly}
+                  value={form.hostId}
+                  readOnly={hostReadOnly}
                   onValueChange={(value) =>
-                    setForm((prev) => ({ ...prev, coHostId: value as string }))
+                    setForm((prev) => ({ ...prev, hostId: value as string }))
                   }
                 >
-                  <SelectTrigger id="event-co-host" className={cn(FIELD_INPUT, "flex-1")}>
-                    <SelectValue placeholder={t("CoHostPlaceholder")} />
+                  <SelectTrigger id="event-host" className={cn(FIELD_INPUT, "flex-1")}>
+                    <SelectValue placeholder={t("HostPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent
                     alignItemWithTrigger={false}
@@ -406,11 +406,11 @@ function EventDialog({
                     ))}
                   </SelectContent>
                 </Select>
-                {!coHostReadOnly && form.coHostId && (
+                {!hostReadOnly && form.hostId && (
                   <button
                     type="button"
-                    aria-label={t("ClearCoHost")}
-                    onClick={() => setForm((prev) => ({ ...prev, coHostId: "" }))}
+                    aria-label={t("ClearHost")}
+                    onClick={() => setForm((prev) => ({ ...prev, hostId: "" }))}
                     className="text-muted-foreground hover:text-foreground pb-[9px] text-[13px] transition-colors"
                   >
                     ✕
@@ -524,10 +524,10 @@ export function EditEventDialog({
   );
 }
 
-// Co-host-facing editor: the same rich form as the admin editor. The co-host is
-// shown pre-filled but read-only (co-hosts may see who hosts but not reassign),
-// and venue creation is hidden. Field-level parity minus delete (no delete
-// control here) and minus reassigning the co-host.
+// Host-facing editor: the same rich form as the admin editor. The host is
+// shown pre-filled but read-only (a host may see who is assigned but not
+// reassign), and venue creation is hidden. Field-level parity minus delete
+// (no delete control here) and minus reassigning the host.
 export function ManageEventDialog({
   venues,
   profiles = [],
@@ -545,7 +545,7 @@ export function ManageEventDialog({
       profiles={profiles}
       event={event}
       trigger={trigger}
-      coHostReadOnly
+      hostReadOnly
       showAddVenue={false}
     />
   );

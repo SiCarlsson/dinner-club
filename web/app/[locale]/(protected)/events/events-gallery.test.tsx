@@ -43,7 +43,7 @@ function event(overrides: Partial<GalleryEvent> = {}): GalleryEvent {
     myRating: null,
     canNotify: false,
     canManage: false,
-    coHostName: null,
+    hostName: null,
     ...overrides,
   };
 }
@@ -102,8 +102,8 @@ describe("EventsGallery Component", () => {
     expect(screen.getByText(/RSVP by 25 jul/i)).toBeInTheDocument();
   });
 
-  it("shows the co-host's name on the hero event", () => {
-    renderGallery([event({ name: "Co-hosted Dinner", coHostName: "Anna Andersson" })]);
+  it("shows the host's name on the hero event", () => {
+    renderGallery([event({ name: "Hosted Dinner", hostName: "Anna Andersson" })]);
 
     expect(screen.getByText("Anna Andersson")).toBeInTheDocument();
   });
@@ -144,14 +144,14 @@ describe("EventsGallery Component", () => {
     expect(upcoming.queryByText("Hero Dinner")).not.toBeInTheDocument();
   });
 
-  it("shows the co-host's name on an upcoming grid event", () => {
+  it("shows the host's name on an upcoming grid event", () => {
     renderGallery([
       event({ id: "1", name: "Hero Dinner" }),
       event({
         id: "2",
         name: "Second Dinner",
         event_date: "2026-09-12T18:00:00.000Z",
-        coHostName: "Anna Andersson",
+        hostName: "Anna Andersson",
       }),
     ]);
 
@@ -350,7 +350,7 @@ describe("EventsGallery Component", () => {
     expect(setRsvpPlusOne).not.toHaveBeenCalled();
   });
 
-  it("lists the events the member co-hosts under their own heading", () => {
+  it("lists the events the member hosts under their own heading", () => {
     renderGallery([event({ id: "1", name: "Hero Dinner" })], {
       hostingEvents: [
         event({
@@ -366,7 +366,7 @@ describe("EventsGallery Component", () => {
     expect(screen.getByText("My Hosted Dinner")).toBeInTheDocument();
   });
 
-  it("opens a hosted event's dialog with RSVP controls so the co-host can still attend", async () => {
+  it("opens a hosted event's dialog with RSVP controls so the host can still attend", async () => {
     const user = userEvent.setup();
     renderGallery([event({ id: "1", name: "Hero Dinner" })], {
       hostingEvents: [event({ id: "h1", name: "My Hosted Dinner" })],

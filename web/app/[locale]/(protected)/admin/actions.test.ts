@@ -336,7 +336,7 @@ describe("admin actions", () => {
         rsvp_deadline: null,
         description: "Fun night",
         visibility: "published",
-        co_host_id: null,
+        host_id: null,
         created_by: "admin-1",
       });
       expect(result).toEqual({ success: true, message: "Event created" });
@@ -378,10 +378,10 @@ describe("admin actions", () => {
       expect(result).toEqual({ success: false, message: "insert failed" });
     });
 
-    it("rejects a co-host who is not an admin", async () => {
+    it("rejects a host who is not an admin", async () => {
       vi.mocked(getUserWithRole).mockResolvedValue({
         supabase: mockSupabase() as never,
-        user: { id: "co-host-1" } as never,
+        user: { id: "host-1" } as never,
         role: "member",
       });
 
@@ -390,7 +390,7 @@ describe("admin actions", () => {
         name: "Dinner",
         eventDate: "2026-08-01T18:00:00.000Z",
         venueId: null,
-        coHostId: "co-host-1",
+        hostId: "host-1",
       });
 
       expect(result).toEqual({ success: false, message: "Not authorized" });
@@ -443,25 +443,25 @@ describe("admin actions", () => {
       expect(result).toEqual({ success: false, message: "update failed" });
     });
 
-    it("allows a non-admin co-host to update the event (enforced by RLS, not app code)", async () => {
+    it("allows a non-admin host to update the event (enforced by RLS, not app code)", async () => {
       const supabase = mockSupabase();
       supabase.eq.mockResolvedValue({ error: null });
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: supabase as never,
-        user: { id: "co-host-1" } as never,
+        user: { id: "host-1" } as never,
       });
 
       const { updateEvent } = await import("./actions");
-      const result = await updateEvent("event-1", { description: "Updated by co-host" });
+      const result = await updateEvent("event-1", { description: "Updated by host" });
 
       expect(getUserWithRole).not.toHaveBeenCalled();
       expect(supabase.update).toHaveBeenCalledWith(
-        expect.objectContaining({ description: "Updated by co-host" }),
+        expect.objectContaining({ description: "Updated by host" }),
       );
       expect(result).toEqual({ success: true, message: "Event updated" });
     });
 
-    it("surfaces the database's rejection when a non-admin, non-co-host member attempts an update", async () => {
+    it("surfaces the database's rejection when a non-admin, non-host member attempts an update", async () => {
       const supabase = mockSupabase();
       supabase.eq.mockResolvedValue({
         error: { message: "new row violates row-level security policy" },
@@ -527,10 +527,10 @@ describe("admin actions", () => {
       expect(result).toEqual({ success: false, message: "delete failed" });
     });
 
-    it("rejects a co-host who is not an admin", async () => {
+    it("rejects a host who is not an admin", async () => {
       vi.mocked(getUserWithRole).mockResolvedValue({
         supabase: mockSupabase() as never,
-        user: { id: "co-host-1" } as never,
+        user: { id: "host-1" } as never,
         role: "member",
       });
 

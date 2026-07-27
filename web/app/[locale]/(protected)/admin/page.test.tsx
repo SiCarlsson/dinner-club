@@ -84,7 +84,7 @@ describe("Admin Server Page", () => {
           rsvp_deadline: null,
           description: null,
           visibility: "published",
-          co_host_id: null,
+          host_id: null,
           venue: null,
         },
       ],
