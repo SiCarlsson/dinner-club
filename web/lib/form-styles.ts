@@ -13,7 +13,7 @@ export const FLOATING_SURFACE =
 
 export const DIALOG_DESCRIPTION = "text-[13px] leading-[1.6]";
 
-// Shared frame for the event dialogs (attendees + edit)
+// Shared frame for the dinner dialogs (attendees + edit)
 export const DIALOG_CONTENT =
   "font-ui flex h-dvh max-w-none flex-col gap-6 p-7 sm:h-[44rem] sm:max-h-[80vh] sm:max-w-md";
 

@@ -1,16 +1,16 @@
 // web/tests/integration/rls/ratings.test.ts
 
 import { afterAll, beforeEach, describe, expect, it } from "vitest";
-import { countRows, createUser, resetDb, seedEvent, seedRsvp } from "../helpers/db";
+import { countRows, createUser, resetDb, seedDinner, seedRsvp } from "../helpers/db";
 
 const PAST = new Date(Date.now() - 24 * 3600 * 1000).toISOString();
 const FUTURE = new Date(Date.now() + 24 * 3600 * 1000).toISOString();
 
-/** A valid, in-the-past event the given user is attending. */
-async function pastEventAttendedBy(userId: string): Promise<string> {
-  const eventId = await seedEvent({ visibility: "published", event_date: PAST });
-  await seedRsvp(eventId, userId);
-  return eventId;
+/** A valid, in-the-past dinner the given user is attending. */
+async function pastDinnerAttendedBy(userId: string): Promise<string> {
+  const dinnerId = await seedDinner({ visibility: "published", dinner_date: PAST });
+  await seedRsvp(dinnerId, userId);
+  return dinnerId;
 }
 
 const VALID_SCORES = { drinks_rating: 5, food_rating: 4, venue_rating: 3 };
@@ -25,45 +25,45 @@ describe("ratings RLS", () => {
   });
 
   describe("INSERT", () => {
-    it("lets an attendee rate a past event they attended", async () => {
+    it("lets an attendee rate a past dinner they attended", async () => {
       const member = await createUser({ role: "member" });
-      const eventId = await pastEventAttendedBy(member.id);
+      const dinnerId = await pastDinnerAttendedBy(member.id);
 
       const { error } = await member.client
         .from("ratings")
-        .insert({ event_id: eventId, user_id: member.id, ...VALID_SCORES });
+        .insert({ dinner_id: dinnerId, user_id: member.id, ...VALID_SCORES });
       expect(error).toBeNull();
     });
 
-    it("rejects rating a future event", async () => {
+    it("rejects rating a future dinner", async () => {
       const member = await createUser({ role: "member" });
-      const eventId = await seedEvent({ visibility: "published", event_date: FUTURE });
-      await seedRsvp(eventId, member.id);
+      const dinnerId = await seedDinner({ visibility: "published", dinner_date: FUTURE });
+      await seedRsvp(dinnerId, member.id);
 
       const { error } = await member.client
         .from("ratings")
-        .insert({ event_id: eventId, user_id: member.id, ...VALID_SCORES });
+        .insert({ dinner_id: dinnerId, user_id: member.id, ...VALID_SCORES });
       expect(error).not.toBeNull();
     });
 
-    it("rejects rating an event the member did not attend", async () => {
+    it("rejects rating an dinner the member did not attend", async () => {
       const member = await createUser({ role: "member" });
-      const eventId = await seedEvent({ visibility: "published", event_date: PAST }); // no RSVP
+      const dinnerId = await seedDinner({ visibility: "published", dinner_date: PAST }); // no RSVP
 
       const { error } = await member.client
         .from("ratings")
-        .insert({ event_id: eventId, user_id: member.id, ...VALID_SCORES });
+        .insert({ dinner_id: dinnerId, user_id: member.id, ...VALID_SCORES });
       expect(error).not.toBeNull();
     });
 
     it("rejects rating on behalf of another user", async () => {
       const member = await createUser({ role: "member" });
       const other = await createUser({ role: "member" });
-      const eventId = await pastEventAttendedBy(other.id);
+      const dinnerId = await pastDinnerAttendedBy(other.id);
 
       const { error } = await member.client
         .from("ratings")
-        .insert({ event_id: eventId, user_id: other.id, ...VALID_SCORES });
+        .insert({ dinner_id: dinnerId, user_id: other.id, ...VALID_SCORES });
       expect(error).not.toBeNull();
     });
   });
@@ -71,15 +71,15 @@ describe("ratings RLS", () => {
   describe("UPDATE", () => {
     it("lets a member update their own rating", async () => {
       const member = await createUser({ role: "member" });
-      const eventId = await pastEventAttendedBy(member.id);
+      const dinnerId = await pastDinnerAttendedBy(member.id);
       await member.client
         .from("ratings")
-        .insert({ event_id: eventId, user_id: member.id, ...VALID_SCORES });
+        .insert({ dinner_id: dinnerId, user_id: member.id, ...VALID_SCORES });
 
       const { error } = await member.client
         .from("ratings")
         .update({ food_rating: 1 })
-        .eq("event_id", eventId)
+        .eq("dinner_id", dinnerId)
         .eq("user_id", member.id);
       expect(error).toBeNull();
     });
@@ -88,14 +88,18 @@ describe("ratings RLS", () => {
   describe("DELETE", () => {
     it("does not let a member delete their own rating (admins only)", async () => {
       const member = await createUser({ role: "member" });
-      const eventId = await pastEventAttendedBy(member.id);
+      const dinnerId = await pastDinnerAttendedBy(member.id);
       await member.client
         .from("ratings")
-        .insert({ event_id: eventId, user_id: member.id, ...VALID_SCORES });
+        .insert({ dinner_id: dinnerId, user_id: member.id, ...VALID_SCORES });
 
-      await member.client.from("ratings").delete().eq("event_id", eventId).eq("user_id", member.id);
+      await member.client
+        .from("ratings")
+        .delete()
+        .eq("dinner_id", dinnerId)
+        .eq("user_id", member.id);
 
-      expect(await countRows("ratings", "event_id", eventId)).toBe(1); // still there
+      expect(await countRows("ratings", "dinner_id", dinnerId)).toBe(1); // still there
     });
   });
 });

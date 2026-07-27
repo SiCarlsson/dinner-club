@@ -4,7 +4,7 @@ export default function manifest(): MetadataRoute.Manifest {
   return {
     name: "CaLí Dinner Club",
     short_name: "CaLí Dinner Club",
-    description: "Dinner club platform that arranges events and rates restaurants together.",
+    description: "Dinner club platform that arranges dinners and rates restaurants together.",
     start_url: "/",
     display: "standalone",
     background_color: "#191712",

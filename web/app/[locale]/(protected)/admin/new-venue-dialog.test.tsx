@@ -13,7 +13,7 @@ vi.mock("./actions", () => ({
   updateVenue: vi.fn(),
 }));
 
-const t = messages.AdminPage.Events.Dialog.NewVenue;
+const t = messages.AdminPage.Dinners.Dialog.NewVenue;
 
 function venue(overrides: Partial<VenueRecord> = {}): VenueRecord {
   return {

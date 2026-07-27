@@ -22,7 +22,7 @@ export default async function Home() {
   const { user } = await getCurrentUser();
 
   if (user) {
-    redirect("/events");
+    redirect("/dinners");
   }
 
   const t = await getTranslations("LandingPage");

@@ -78,14 +78,14 @@ describe("Landing page", () => {
     vi.mocked(getVenueRatings).mockResolvedValue({ success: true, venues: [] });
   });
 
-  it("redirects logged-in visitors to the events page", async () => {
+  it("redirects logged-in visitors to the dinners page", async () => {
     vi.mocked(getCurrentUser).mockResolvedValue({
       user: { id: "u1" },
     } as unknown as Awaited<ReturnType<typeof getCurrentUser>>);
 
     const { default: Home } = await import("./page");
-    await expect(Home()).rejects.toThrow("NEXT_REDIRECT:/events");
-    expect(redirect).toHaveBeenCalledWith("/events");
+    await expect(Home()).rejects.toThrow("NEXT_REDIRECT:/dinners");
+    expect(redirect).toHaveBeenCalledWith("/dinners");
   });
 
   it("renders the hero, tenets and calls to action", async () => {

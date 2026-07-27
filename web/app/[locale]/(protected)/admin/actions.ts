@@ -5,10 +5,10 @@
 import { revalidatePath } from "next/cache";
 import { getCurrentUser, getUserWithRole } from "@/utils/supabase/auth";
 
-export type EventRecord = {
+export type DinnerRecord = {
   id: string;
   name: string;
-  event_date: string;
+  dinner_date: string;
   rsvp_deadline: string | null;
   description: string | null;
   visibility: "published" | "unpublished";
@@ -16,9 +16,9 @@ export type EventRecord = {
   venue: { id: string; name: string } | null;
 };
 
-type EventInput = {
+type DinnerInput = {
   name: string;
-  eventDate: string;
+  dinnerDate: string;
   venueId: string | null;
   rsvpDeadline?: string | null;
   description?: string | null;
@@ -26,7 +26,7 @@ type EventInput = {
   hostId?: string | null;
 };
 
-export async function getEvents() {
+export async function getDinners() {
   const { supabase, user } = await getCurrentUser();
 
   if (!user) {
@@ -34,17 +34,17 @@ export async function getEvents() {
   }
 
   const { data, error } = await supabase
-    .from("events")
+    .from("dinners")
     .select(
-      "id, name, event_date, rsvp_deadline, description, visibility, host_id, venue:venues(id, name)",
+      "id, name, dinner_date, rsvp_deadline, description, visibility, host_id, venue:venues(id, name)",
     )
-    .order("event_date", { ascending: false });
+    .order("dinner_date", { ascending: false });
 
   if (error) {
     return { success: false as const, message: error.message };
   }
 
-  return { success: true as const, events: data as unknown as EventRecord[] };
+  return { success: true as const, dinners: data as unknown as DinnerRecord[] };
 }
 
 export type ProfileRecord = {
@@ -183,16 +183,16 @@ export async function deleteVenue(id: string) {
   return { success: true as const };
 }
 
-export async function createEvent(input: EventInput) {
+export async function createDinner(input: DinnerInput) {
   const { supabase, user, role } = await getUserWithRole();
 
   if (!user || role !== "admin") {
     return { success: false, message: "Not authorized" };
   }
 
-  const { error } = await supabase.from("events").insert({
+  const { error } = await supabase.from("dinners").insert({
     name: input.name,
-    event_date: input.eventDate,
+    dinner_date: input.dinnerDate,
     venue_id: input.venueId,
     rsvp_deadline: input.rsvpDeadline ?? null,
     description: input.description ?? null,
@@ -206,10 +206,10 @@ export async function createEvent(input: EventInput) {
   }
 
   revalidatePath("/admin");
-  return { success: true, message: "Event created" };
+  return { success: true, message: "Dinner created" };
 }
 
-export async function updateEvent(id: string, input: Partial<EventInput>) {
+export async function updateDinner(id: string, input: Partial<DinnerInput>) {
   const { supabase, user } = await getCurrentUser();
 
   if (!user) {
@@ -217,10 +217,10 @@ export async function updateEvent(id: string, input: Partial<EventInput>) {
   }
 
   const { error } = await supabase
-    .from("events")
+    .from("dinners")
     .update({
       ...(input.name !== undefined && { name: input.name }),
-      ...(input.eventDate !== undefined && { event_date: input.eventDate }),
+      ...(input.dinnerDate !== undefined && { dinner_date: input.dinnerDate }),
       ...(input.venueId !== undefined && { venue_id: input.venueId }),
       ...(input.rsvpDeadline !== undefined && { rsvp_deadline: input.rsvpDeadline }),
       ...(input.description !== undefined && { description: input.description }),
@@ -235,24 +235,24 @@ export async function updateEvent(id: string, input: Partial<EventInput>) {
   }
 
   revalidatePath("/admin");
-  return { success: true, message: "Event updated" };
+  return { success: true, message: "Dinner updated" };
 }
 
-export async function deleteEvent(id: string) {
+export async function deleteDinner(id: string) {
   const { supabase, user, role } = await getUserWithRole();
 
   if (!user || role !== "admin") {
     return { success: false, message: "Not authorized" };
   }
 
-  const { error } = await supabase.from("events").delete().eq("id", id);
+  const { error } = await supabase.from("dinners").delete().eq("id", id);
 
   if (error) {
     return { success: false, message: error.message };
   }
 
   revalidatePath("/admin");
-  return { success: true, message: "Event deleted" };
+  return { success: true, message: "Dinner deleted" };
 }
 
 export type InvitationRecord = {

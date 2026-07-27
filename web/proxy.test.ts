@@ -80,9 +80,9 @@ describe("proxy", () => {
       expect(res.status).toBe(200);
     });
 
-    it("redirects to /login when accessing /events without a session", async () => {
+    it("redirects to /login when accessing /dinners without a session", async () => {
       getUserMock.mockResolvedValue({ data: { user: null } });
-      const req = new NextRequest("http://localhost:3000/sv/events");
+      const req = new NextRequest("http://localhost:3000/sv/dinners");
       const res = await proxy(req);
 
       expect(res.status).toBe(307);

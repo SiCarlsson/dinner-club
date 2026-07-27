@@ -27,7 +27,7 @@ vi.mock("@/utils/supabase/admin", () => ({
   createAdminClient: () => ({ from: mockFrom }),
 }));
 
-const payload = { title: "New event", body: "Dinner on Friday", url: "/events" };
+const payload = { title: "New dinner", body: "Dinner on Friday", url: "/dinners" };
 
 const mockSelect = vi.fn();
 const mockIn = vi.fn();

@@ -1,15 +1,15 @@
-// app/[locale]/(protected)/admin/new-event-dialog.test.tsx
+// app/[locale]/(protected)/admin/new-dinner-dialog.test.tsx
 
 import messages from "@/messages/en.json";
 import { NextIntlClientProvider } from "next-intl";
 import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { NewEventDialog, EditEventDialog } from "./new-event-dialog";
+import { NewDinnerDialog, EditDinnerDialog } from "./new-dinner-dialog";
 import {
-  createEvent,
-  updateEvent,
-  type EventRecord,
+  createDinner,
+  updateDinner,
+  type DinnerRecord,
   type ProfileRecord,
   type VenueRecord,
 } from "./actions";
@@ -19,16 +19,16 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("./actions", () => ({
-  createEvent: vi.fn(),
-  updateEvent: vi.fn(),
+  createDinner: vi.fn(),
+  updateDinner: vi.fn(),
 }));
 
 vi.mock("./new-venue-dialog", () => ({
   NewVenueDialog: vi.fn(() => <button>Mock New Venue</button>),
 }));
 
-const t = messages.AdminPage.Events.Dialog;
-const tEvents = messages.AdminPage.Events;
+const t = messages.AdminPage.Dinners.Dialog;
+const tDinners = messages.AdminPage.Dinners;
 
 const VENUES: VenueRecord[] = [
   {
@@ -46,10 +46,10 @@ const PROFILES: ProfileRecord[] = [
   { id: "p2", full_name: "Jamie Lee" },
 ];
 
-const EVENT: EventRecord = {
-  id: "event-1",
+const DINNER: DinnerRecord = {
+  id: "dinner-1",
   name: "Summer dinner",
-  event_date: "2026-08-01T18:30:00.000Z",
+  dinner_date: "2026-08-01T18:30:00.000Z",
   rsvp_deadline: "2026-07-25T21:59:00.000Z",
   description: "Bring a friend",
   visibility: "published",
@@ -57,38 +57,38 @@ const EVENT: EventRecord = {
   venue: { id: "v1", name: "Café Norr" },
 };
 
-function renderNewEventDialog() {
+function renderNewDinnerDialog() {
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
-      <NewEventDialog venues={VENUES} profiles={PROFILES} />
+      <NewDinnerDialog venues={VENUES} profiles={PROFILES} />
     </NextIntlClientProvider>,
   );
 }
 
-function renderEditEventDialog(event: EventRecord = EVENT) {
+function renderEditDinnerDialog(dinner: DinnerRecord = DINNER) {
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
-      <EditEventDialog venues={VENUES} profiles={PROFILES} event={event} />
+      <EditDinnerDialog venues={VENUES} profiles={PROFILES} dinner={dinner} />
     </NextIntlClientProvider>,
   );
 }
 
-describe("NewEventDialog Component", () => {
+describe("NewDinnerDialog Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("shows the New event trigger button", () => {
-    renderNewEventDialog();
+  it("shows the New dinner trigger button", () => {
+    renderNewDinnerDialog();
 
-    expect(screen.getByRole("button", { name: tEvents.AddButton })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: tDinners.AddButton })).toBeInTheDocument();
   });
 
   it("opens a blank create form with the create title", async () => {
     const user = userEvent.setup();
-    renderNewEventDialog();
+    renderNewDinnerDialog();
 
-    await user.click(screen.getByRole("button", { name: tEvents.AddButton }));
+    await user.click(screen.getByRole("button", { name: tDinners.AddButton }));
 
     expect(await screen.findByRole("heading", { name: t.Title })).toBeInTheDocument();
     expect(screen.getByText(t.Description)).toBeInTheDocument();
@@ -104,22 +104,22 @@ describe("NewEventDialog Component", () => {
     expect(screen.getByRole("checkbox")).not.toBeChecked();
   });
 
-  it("does not call createEvent when submitted without a date", async () => {
+  it("does not call createDinner when submitted without a date", async () => {
     const user = userEvent.setup();
-    renderNewEventDialog();
+    renderNewDinnerDialog();
 
-    await user.click(screen.getByRole("button", { name: tEvents.AddButton }));
+    await user.click(screen.getByRole("button", { name: tDinners.AddButton }));
     await user.type(await screen.findByLabelText(t.NameLabel), "Autumn dinner");
     await user.click(screen.getByRole("button", { name: t.SaveButton }));
 
-    expect(createEvent).not.toHaveBeenCalled();
+    expect(createDinner).not.toHaveBeenCalled();
   });
 
   it("keeps Save disabled until a date and an RSVP deadline are chosen", async () => {
     const user = userEvent.setup();
-    renderNewEventDialog();
+    renderNewDinnerDialog();
 
-    await user.click(screen.getByRole("button", { name: tEvents.AddButton }));
+    await user.click(screen.getByRole("button", { name: tDinners.AddButton }));
     await user.type(await screen.findByLabelText(t.NameLabel), "Autumn dinner");
 
     expect(screen.getByRole("button", { name: t.SaveButton })).toBeDisabled();
@@ -127,9 +127,9 @@ describe("NewEventDialog Component", () => {
 
   it("lets the admin pick a host from the profiles list", async () => {
     const user = userEvent.setup();
-    renderNewEventDialog();
+    renderNewDinnerDialog();
 
-    await user.click(screen.getByRole("button", { name: tEvents.AddButton }));
+    await user.click(screen.getByRole("button", { name: tDinners.AddButton }));
     await user.click(await screen.findByText(t.HostPlaceholder));
     await user.click(await screen.findByText("Jamie Lee"));
 
@@ -138,22 +138,22 @@ describe("NewEventDialog Component", () => {
   });
 });
 
-describe("EditEventDialog Component", () => {
+describe("EditDinnerDialog Component", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
   it("shows the Edit trigger button", () => {
-    renderEditEventDialog();
+    renderEditDinnerDialog();
 
-    expect(screen.getByRole("button", { name: tEvents.EditButton })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: tDinners.EditButton })).toBeInTheDocument();
   });
 
-  it("opens pre-filled with the event's values and the edit title", async () => {
+  it("opens pre-filled with the dinner's values and the edit title", async () => {
     const user = userEvent.setup();
-    renderEditEventDialog();
+    renderEditDinnerDialog();
 
-    await user.click(screen.getByRole("button", { name: tEvents.EditButton }));
+    await user.click(screen.getByRole("button", { name: tDinners.EditButton }));
 
     expect(await screen.findByRole("heading", { name: t.EditTitle })).toBeInTheDocument();
     expect(screen.getByText(t.EditDescription)).toBeInTheDocument();
@@ -169,52 +169,56 @@ describe("EditEventDialog Component", () => {
     expect(screen.getByRole("checkbox")).toBeChecked();
   });
 
-  it("reflects an updated event prop when reopened (no stale host)", async () => {
+  it("reflects an updated dinner prop when reopened (no stale host)", async () => {
     const user = userEvent.setup();
-    const { rerender } = renderEditEventDialog();
+    const { rerender } = renderEditDinnerDialog();
 
     // Open once with the original host, then close.
-    await user.click(screen.getByRole("button", { name: tEvents.EditButton }));
+    await user.click(screen.getByRole("button", { name: tDinners.EditButton }));
     expect(await screen.findByText("Alex Smith")).toBeInTheDocument();
     await user.keyboard("{Escape}");
 
-    // Simulate a save + router.refresh() delivering a new event prop.
+    // Simulate a save + router.refresh() delivering a new dinner prop.
     rerender(
       <NextIntlClientProvider locale="en" messages={messages}>
-        <EditEventDialog venues={VENUES} profiles={PROFILES} event={{ ...EVENT, host_id: "p2" }} />
+        <EditDinnerDialog
+          venues={VENUES}
+          profiles={PROFILES}
+          dinner={{ ...DINNER, host_id: "p2" }}
+        />
       </NextIntlClientProvider>,
     );
 
     // Reopening shows the new host, not the stale one.
-    await user.click(screen.getByRole("button", { name: tEvents.EditButton }));
+    await user.click(screen.getByRole("button", { name: tDinners.EditButton }));
     expect(await screen.findByText("Jamie Lee")).toBeInTheDocument();
     expect(screen.queryByText("Alex Smith")).not.toBeInTheDocument();
   });
 
   it("allows changing the host and includes it in the update payload", async () => {
-    vi.mocked(updateEvent).mockResolvedValue({ success: true, message: "Event updated" });
+    vi.mocked(updateDinner).mockResolvedValue({ success: true, message: "Dinner updated" });
     const user = userEvent.setup();
-    renderEditEventDialog();
+    renderEditDinnerDialog();
 
-    await user.click(screen.getByRole("button", { name: tEvents.EditButton }));
+    await user.click(screen.getByRole("button", { name: tDinners.EditButton }));
     await user.click(await screen.findByText("Alex Smith"));
     await user.click(await screen.findByText("Jamie Lee"));
     await user.click(screen.getByRole("button", { name: t.SaveButton }));
 
     await vi.waitFor(() => {
-      expect(updateEvent).toHaveBeenCalledWith(
-        "event-1",
+      expect(updateDinner).toHaveBeenCalledWith(
+        "dinner-1",
         expect.objectContaining({ hostId: "p2" }),
       );
     });
   });
 
   it("allows clearing the host and sends null in the update payload", async () => {
-    vi.mocked(updateEvent).mockResolvedValue({ success: true, message: "Event updated" });
+    vi.mocked(updateDinner).mockResolvedValue({ success: true, message: "Dinner updated" });
     const user = userEvent.setup();
-    renderEditEventDialog();
+    renderEditDinnerDialog();
 
-    await user.click(screen.getByRole("button", { name: tEvents.EditButton }));
+    await user.click(screen.getByRole("button", { name: tDinners.EditButton }));
     await screen.findByText("Alex Smith");
 
     await user.click(screen.getByRole("button", { name: t.ClearHost }));
@@ -223,8 +227,8 @@ describe("EditEventDialog Component", () => {
     await user.click(screen.getByRole("button", { name: t.SaveButton }));
 
     await vi.waitFor(() => {
-      expect(updateEvent).toHaveBeenCalledWith(
-        "event-1",
+      expect(updateDinner).toHaveBeenCalledWith(
+        "dinner-1",
         expect.objectContaining({ hostId: null }),
       );
     });
@@ -232,9 +236,9 @@ describe("EditEventDialog Component", () => {
 
   it("disables Save when the RSVP deadline is cleared", async () => {
     const user = userEvent.setup();
-    renderEditEventDialog();
+    renderEditDinnerDialog();
 
-    await user.click(screen.getByRole("button", { name: tEvents.EditButton }));
+    await user.click(screen.getByRole("button", { name: tDinners.EditButton }));
     await screen.findByText("Alex Smith");
 
     expect(screen.getByRole("button", { name: t.SaveButton })).toBeEnabled();
@@ -244,23 +248,23 @@ describe("EditEventDialog Component", () => {
     expect(screen.getByRole("button", { name: t.SaveButton })).toBeDisabled();
   });
 
-  it("calls updateEvent with the event id when the form is submitted", async () => {
-    vi.mocked(updateEvent).mockResolvedValue({ success: true, message: "Event updated" });
+  it("calls updateDinner with the dinner id when the form is submitted", async () => {
+    vi.mocked(updateDinner).mockResolvedValue({ success: true, message: "Dinner updated" });
     const user = userEvent.setup();
-    renderEditEventDialog();
+    renderEditDinnerDialog();
 
-    await user.click(screen.getByRole("button", { name: tEvents.EditButton }));
+    await user.click(screen.getByRole("button", { name: tDinners.EditButton }));
     const nameInput = await screen.findByLabelText(t.NameLabel);
     await user.clear(nameInput);
     await user.type(nameInput, "Renamed dinner");
     await user.click(screen.getByRole("button", { name: t.SaveButton }));
 
     await vi.waitFor(() => {
-      expect(updateEvent).toHaveBeenCalledWith(
-        "event-1",
+      expect(updateDinner).toHaveBeenCalledWith(
+        "dinner-1",
         expect.objectContaining({ name: "Renamed dinner", venueId: "v1" }),
       );
     });
-    expect(createEvent).not.toHaveBeenCalled();
+    expect(createDinner).not.toHaveBeenCalled();
   });
 });

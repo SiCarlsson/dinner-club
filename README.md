@@ -1,13 +1,13 @@
 # 🍽️ The Dinner Club
 
-**The Dinner Club** – a lightweight, mobile-first web application built with Node.js and Supabase to coordinate events, track scores, and rank our dining group's culinary experiences in Stockholm.
+**The Dinner Club** – a lightweight, mobile-first web application built with Node.js and Supabase to coordinate dinners, track scores, and rank our dining group's culinary experiences in Stockholm.
 
 ---
 
 ## ✨ Features
 
 * **Exclusive Access:** Strict, invitation-only registration paired with Supabase Auth.
-* **Event Management:** Mobile-optimized calendar supporting RSVPs, plus-ones (+1).
+* **Dinner Management:** Mobile-optimized calendar supporting RSVPs, plus-ones (+1).
 * **Curated Ratings:** Separate 1–5 scoring for Food and Drinks.
 * **Public Leaderboard:** A public ranking page displaying aggregated club analytics.
 

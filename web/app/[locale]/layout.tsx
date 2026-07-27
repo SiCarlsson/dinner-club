@@ -34,7 +34,7 @@ const archivo = Archivo({
 
 export const metadata: Metadata = {
   title: "CaLí Dinner Club",
-  description: "Dinner club platform that arranges events and rates restaurants together.",
+  description: "Dinner club platform that arranges dinners and rates restaurants together.",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

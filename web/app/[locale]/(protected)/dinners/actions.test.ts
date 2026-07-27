@@ -1,4 +1,4 @@
-// app/[locale]/(protected)/events/actions.test.ts
+// app/[locale]/(protected)/dinners/actions.test.ts
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { getCurrentUser } from "@/utils/supabase/auth";
@@ -17,8 +17,8 @@ vi.mock("@/lib/push-server", () => ({
 }));
 
 function mockSupabase({
-  events,
-  eventsError,
+  dinners,
+  dinnersError,
   rsvps,
   ratings,
   upsertError,
@@ -26,16 +26,16 @@ function mockSupabase({
   role,
   hosts,
 }: {
-  events?: unknown[];
-  eventsError?: { message: string } | null;
+  dinners?: unknown[];
+  dinnersError?: { message: string } | null;
   rsvps?: {
-    event_id: string;
+    dinner_id: string;
     status: string;
     has_plus_one?: boolean;
     plus_one_name?: string | null;
   }[];
   ratings?: {
-    event_id: string;
+    dinner_id: string;
     drinks_rating: number;
     food_rating: number;
     venue_rating: number;
@@ -45,18 +45,18 @@ function mockSupabase({
   role?: "member" | "admin" | null;
   hosts?: { id: string; full_name: string }[];
 } = {}) {
-  // getUpcomingEvents orders/limits; getPastEvents orders without a limit, so `order`
+  // getUpcomingDinners orders/limits; getPastDinners orders without a limit, so `order`
   // must resolve on its own too. `limit` wraps the same resolved shape.
-  const eventsResult = { data: events ?? [], error: eventsError ?? null };
-  const limit = vi.fn().mockResolvedValue(eventsResult);
+  const dinnersResult = { data: dinners ?? [], error: dinnersError ?? null };
+  const limit = vi.fn().mockResolvedValue(dinnersResult);
   const order = vi.fn().mockReturnValue({
     limit,
-    then: (r: unknown) => Promise.resolve(eventsResult).then(r as never),
+    then: (r: unknown) => Promise.resolve(dinnersResult).then(r as never),
   });
   const gte = vi.fn().mockReturnValue({ order });
   const lt = vi.fn().mockReturnValue({ order });
-  const eventsEq = vi.fn().mockReturnValue({ gte, lt });
-  const eventsSelect = vi.fn().mockReturnValue({ eq: eventsEq });
+  const dinnersEq = vi.fn().mockReturnValue({ gte, lt });
+  const dinnersSelect = vi.fn().mockReturnValue({ eq: dinnersEq });
 
   const rsvpsIn = vi.fn().mockResolvedValue({ data: rsvps ?? [], error: null });
   const rsvpsEq = vi.fn().mockReturnValue({ in: rsvpsIn });
@@ -68,15 +68,15 @@ function mockSupabase({
 
   const upsert = vi.fn().mockResolvedValue({ error: upsertError ?? null });
 
-  // removeRsvp chains .delete().eq("event_id", …).eq("user_id", …)
+  // removeRsvp chains .delete().eq("dinner_id", …).eq("user_id", …)
   const deleteEqUser = vi.fn().mockResolvedValue({ error: deleteError ?? null });
-  const deleteEqEvent = vi.fn().mockReturnValue({ eq: deleteEqUser });
-  const rsvpsDelete = vi.fn().mockReturnValue({ eq: deleteEqEvent });
+  const deleteEqDinner = vi.fn().mockReturnValue({ eq: deleteEqUser });
+  const rsvpsDelete = vi.fn().mockReturnValue({ eq: deleteEqDinner });
 
-  // getUpcomingEvents reads the caller's role to decide `canNotify`.
+  // getUpcomingDinners reads the caller's role to decide `canNotify`.
   const profilesSingle = vi.fn().mockResolvedValue({ data: role ? { role } : null, error: null });
   const profilesEq = vi.fn().mockReturnValue({ single: profilesSingle });
-  // getUpcomingEvents also looks up host display names by id.
+  // getUpcomingDinners also looks up host display names by id.
   const profilesIn = vi.fn().mockResolvedValue({ data: hosts ?? [], error: null });
   const profilesSelect = vi.fn().mockReturnValue({ eq: profilesEq, in: profilesIn });
 
@@ -84,14 +84,14 @@ function mockSupabase({
     if (table === "rsvps") return { select: rsvpsSelect, upsert, delete: rsvpsDelete };
     if (table === "ratings") return { select: ratingsSelect, upsert };
     if (table === "profiles") return { select: profilesSelect };
-    return { select: eventsSelect };
+    return { select: dinnersSelect };
   });
 
   return {
     from,
-    // events chain handles
-    select: eventsSelect,
-    eq: eventsEq,
+    // dinners chain handles
+    select: dinnersSelect,
+    eq: dinnersEq,
     gte,
     lt,
     order,
@@ -107,60 +107,60 @@ function mockSupabase({
     upsert,
     // rsvps delete chain handles
     rsvpsDelete,
-    deleteEqEvent,
+    deleteEqDinner,
     deleteEqUser,
     // profiles chain handles
     profilesIn,
   };
 }
 
-describe("events gallery actions", () => {
+describe("dinners gallery actions", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  describe("getUpcomingEvents", () => {
+  describe("getUpcomingDinners", () => {
     it("returns not authenticated when there is no user", async () => {
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: mockSupabase() as never,
         user: null,
       });
 
-      const { getUpcomingEvents } = await import("./actions");
-      const result = await getUpcomingEvents();
+      const { getUpcomingDinners } = await import("./actions");
+      const result = await getUpcomingDinners();
 
       expect(result).toEqual({ success: false, message: "Not authenticated" });
     });
 
-    it("returns only published, upcoming events ordered by date ascending", async () => {
-      const events = [
+    it("returns only published, upcoming dinners ordered by date ascending", async () => {
+      const dinners = [
         {
           id: "1",
           name: "Summer Dinner",
-          event_date: "2026-08-01T18:00:00.000Z",
+          dinner_date: "2026-08-01T18:00:00.000Z",
           description: "A warm evening",
           venue: { id: "v1", name: "Café Norr", address: null, district: null },
         },
       ];
-      const supabase = mockSupabase({ events });
+      const supabase = mockSupabase({ dinners });
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: supabase as never,
         user: { id: "user-1" } as never,
       });
 
-      const { getUpcomingEvents } = await import("./actions");
-      const result = await getUpcomingEvents();
+      const { getUpcomingDinners } = await import("./actions");
+      const result = await getUpcomingDinners();
 
-      expect(supabase.from).toHaveBeenCalledWith("events");
+      expect(supabase.from).toHaveBeenCalledWith("dinners");
       expect(supabase.eq).toHaveBeenCalledWith("visibility", "published");
-      expect(supabase.gte).toHaveBeenCalledWith("event_date", expect.any(String));
-      expect(supabase.order).toHaveBeenCalledWith("event_date", { ascending: true });
+      expect(supabase.gte).toHaveBeenCalledWith("dinner_date", expect.any(String));
+      expect(supabase.order).toHaveBeenCalledWith("dinner_date", { ascending: true });
       expect(supabase.limit).toHaveBeenCalledWith(4);
       expect(result).toEqual({
         success: true,
-        events: [
+        dinners: [
           {
-            ...events[0],
+            ...dinners[0],
             myRsvpStatus: null,
             myHasPlusOne: false,
             myPlusOneName: null,
@@ -173,41 +173,43 @@ describe("events gallery actions", () => {
       });
     });
 
-    it("merges the current user's RSVP status onto each event", async () => {
-      const events = [
+    it("merges the current user's RSVP status onto each dinner", async () => {
+      const dinners = [
         {
           id: "e1",
           name: "First",
-          event_date: "2026-08-01T18:00:00.000Z",
+          dinner_date: "2026-08-01T18:00:00.000Z",
           description: null,
           venue: null,
         },
         {
           id: "e2",
           name: "Second",
-          event_date: "2026-08-08T18:00:00.000Z",
+          dinner_date: "2026-08-08T18:00:00.000Z",
           description: null,
           venue: null,
         },
       ];
       const supabase = mockSupabase({
-        events,
-        rsvps: [{ event_id: "e1", status: "attending", has_plus_one: true, plus_one_name: "Alex" }],
+        dinners,
+        rsvps: [
+          { dinner_id: "e1", status: "attending", has_plus_one: true, plus_one_name: "Alex" },
+        ],
       });
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: supabase as never,
         user: { id: "user-1" } as never,
       });
 
-      const { getUpcomingEvents } = await import("./actions");
-      const result = await getUpcomingEvents();
+      const { getUpcomingDinners } = await import("./actions");
+      const result = await getUpcomingDinners();
 
       expect(supabase.from).toHaveBeenCalledWith("rsvps");
       expect(supabase.rsvpsEq).toHaveBeenCalledWith("user_id", "user-1");
-      expect(supabase.in).toHaveBeenCalledWith("event_id", ["e1", "e2"]);
+      expect(supabase.in).toHaveBeenCalledWith("dinner_id", ["e1", "e2"]);
       expect(
         result.success &&
-          result.events.map((e) => [e.myRsvpStatus, e.myHasPlusOne, e.myPlusOneName]),
+          result.dinners.map((e) => [e.myRsvpStatus, e.myHasPlusOne, e.myPlusOneName]),
       ).toEqual([
         ["attending", true, "Alex"],
         [null, false, null],
@@ -215,24 +217,24 @@ describe("events gallery actions", () => {
     });
 
     it("returns an error message when the query fails", async () => {
-      const supabase = mockSupabase({ eventsError: { message: "db down" } });
+      const supabase = mockSupabase({ dinnersError: { message: "db down" } });
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: supabase as never,
         user: { id: "user-1" } as never,
       });
 
-      const { getUpcomingEvents } = await import("./actions");
-      const result = await getUpcomingEvents();
+      const { getUpcomingDinners } = await import("./actions");
+      const result = await getUpcomingDinners();
 
       expect(result).toEqual({ success: false, message: "db down" });
     });
 
-    it("resolves host display names onto each event", async () => {
-      const events = [
+    it("resolves host display names onto each dinner", async () => {
+      const dinners = [
         {
           id: "e1",
           name: "First",
-          event_date: "2026-08-01T18:00:00.000Z",
+          dinner_date: "2026-08-01T18:00:00.000Z",
           description: null,
           venue: null,
           host_id: "co-1",
@@ -240,14 +242,14 @@ describe("events gallery actions", () => {
         {
           id: "e2",
           name: "Second",
-          event_date: "2026-08-08T18:00:00.000Z",
+          dinner_date: "2026-08-08T18:00:00.000Z",
           description: null,
           venue: null,
           host_id: null,
         },
       ];
       const supabase = mockSupabase({
-        events,
+        dinners,
         hosts: [{ id: "co-1", full_name: "Anna Andersson" }],
       });
       vi.mocked(getCurrentUser).mockResolvedValue({
@@ -255,60 +257,60 @@ describe("events gallery actions", () => {
         user: { id: "user-1" } as never,
       });
 
-      const { getUpcomingEvents } = await import("./actions");
-      const result = await getUpcomingEvents();
+      const { getUpcomingDinners } = await import("./actions");
+      const result = await getUpcomingDinners();
 
       expect(supabase.profilesIn).toHaveBeenCalledWith("id", ["co-1"]);
-      expect(result.success && result.events.map((e) => e.hostName)).toEqual([
+      expect(result.success && result.dinners.map((e) => e.hostName)).toEqual([
         "Anna Andersson",
         null,
       ]);
     });
   });
 
-  describe("getHostingEvents", () => {
+  describe("getHostingDinners", () => {
     it("returns not authenticated when there is no user", async () => {
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: mockSupabase() as never,
         user: null,
       });
 
-      const { getHostingEvents } = await import("./actions");
-      const result = await getHostingEvents();
+      const { getHostingDinners } = await import("./actions");
+      const result = await getHostingDinners();
 
       expect(result).toEqual({ success: false, message: "Not authenticated" });
     });
 
-    it("returns the upcoming events the caller hosts as manageable", async () => {
-      const events = [
+    it("returns the upcoming dinners the caller hosts as manageable", async () => {
+      const dinners = [
         {
           id: "h1",
           name: "My Hosted Dinner",
-          event_date: "2026-09-01T18:00:00.000Z",
+          dinner_date: "2026-09-01T18:00:00.000Z",
           description: null,
           venue: null,
         },
       ];
-      const supabase = mockSupabase({ events });
+      const supabase = mockSupabase({ dinners });
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: supabase as never,
         user: { id: "user-1" } as never,
       });
 
-      const { getHostingEvents } = await import("./actions");
-      const result = await getHostingEvents();
+      const { getHostingDinners } = await import("./actions");
+      const result = await getHostingDinners();
 
-      expect(supabase.from).toHaveBeenCalledWith("events");
+      expect(supabase.from).toHaveBeenCalledWith("dinners");
       expect(supabase.eq).toHaveBeenCalledWith("host_id", "user-1");
-      expect(supabase.gte).toHaveBeenCalledWith("event_date", expect.any(String));
-      expect(supabase.order).toHaveBeenCalledWith("event_date", { ascending: true });
+      expect(supabase.gte).toHaveBeenCalledWith("dinner_date", expect.any(String));
+      expect(supabase.order).toHaveBeenCalledWith("dinner_date", { ascending: true });
       // No visibility filter and no limit — hosts see all of their own dinners.
       expect(supabase.limit).not.toHaveBeenCalled();
       expect(result).toEqual({
         success: true,
-        events: [
+        dinners: [
           {
-            ...events[0],
+            ...dinners[0],
             myRsvpStatus: null,
             myHasPlusOne: false,
             myPlusOneName: null,
@@ -321,73 +323,73 @@ describe("events gallery actions", () => {
       });
     });
 
-    it("merges the caller's RSVP onto the events they host", async () => {
-      const events = [
+    it("merges the caller's RSVP onto the dinners they host", async () => {
+      const dinners = [
         {
           id: "h1",
           name: "My Hosted Dinner",
-          event_date: "2026-09-01T18:00:00.000Z",
+          dinner_date: "2026-09-01T18:00:00.000Z",
           description: null,
           venue: null,
         },
       ];
       const supabase = mockSupabase({
-        events,
-        rsvps: [{ event_id: "h1", status: "attending", has_plus_one: false, plus_one_name: null }],
+        dinners,
+        rsvps: [{ dinner_id: "h1", status: "attending", has_plus_one: false, plus_one_name: null }],
       });
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: supabase as never,
         user: { id: "user-1" } as never,
       });
 
-      const { getHostingEvents } = await import("./actions");
-      const result = await getHostingEvents();
+      const { getHostingDinners } = await import("./actions");
+      const result = await getHostingDinners();
 
-      expect(supabase.in).toHaveBeenCalledWith("event_id", ["h1"]);
-      expect(result.success && result.events[0].myRsvpStatus).toBe("attending");
+      expect(supabase.in).toHaveBeenCalledWith("dinner_id", ["h1"]);
+      expect(result.success && result.dinners[0].myRsvpStatus).toBe("attending");
     });
 
     it("returns an error message when the query fails", async () => {
-      const supabase = mockSupabase({ eventsError: { message: "db down" } });
+      const supabase = mockSupabase({ dinnersError: { message: "db down" } });
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: supabase as never,
         user: { id: "user-1" } as never,
       });
 
-      const { getHostingEvents } = await import("./actions");
-      const result = await getHostingEvents();
+      const { getHostingDinners } = await import("./actions");
+      const result = await getHostingDinners();
 
       expect(result).toEqual({ success: false, message: "db down" });
     });
   });
 
-  describe("rsvpToEvent", () => {
+  describe("rsvpToDinner", () => {
     it("returns not authenticated when there is no user", async () => {
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: mockSupabase() as never,
         user: null,
       });
 
-      const { rsvpToEvent } = await import("./actions");
-      const result = await rsvpToEvent("e1", "attending");
+      const { rsvpToDinner } = await import("./actions");
+      const result = await rsvpToDinner("e1", "attending");
 
       expect(result).toEqual({ success: false, message: "Not authenticated" });
     });
 
-    it("upserts the RSVP on the (event_id, user_id) conflict target", async () => {
+    it("upserts the RSVP on the (dinner_id, user_id) conflict target", async () => {
       const supabase = mockSupabase();
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: supabase as never,
         user: { id: "user-1" } as never,
       });
 
-      const { rsvpToEvent } = await import("./actions");
-      const result = await rsvpToEvent("e1", "declined");
+      const { rsvpToDinner } = await import("./actions");
+      const result = await rsvpToDinner("e1", "declined");
 
       expect(supabase.from).toHaveBeenCalledWith("rsvps");
       expect(supabase.upsert).toHaveBeenCalledWith(
-        expect.objectContaining({ event_id: "e1", user_id: "user-1", status: "declined" }),
-        { onConflict: "event_id,user_id" },
+        expect.objectContaining({ dinner_id: "e1", user_id: "user-1", status: "declined" }),
+        { onConflict: "dinner_id,user_id" },
       );
       expect(result).toEqual({ success: true, message: "RSVP saved" });
     });
@@ -399,8 +401,8 @@ describe("events gallery actions", () => {
         user: { id: "user-1" } as never,
       });
 
-      const { rsvpToEvent } = await import("./actions");
-      const result = await rsvpToEvent("e1", "attending");
+      const { rsvpToDinner } = await import("./actions");
+      const result = await rsvpToDinner("e1", "attending");
 
       expect(result).toEqual({ success: false, message: "denied" });
     });
@@ -419,7 +421,7 @@ describe("events gallery actions", () => {
       expect(result).toEqual({ success: false, message: "Not authenticated" });
     });
 
-    it("deletes the current user's RSVP for the event", async () => {
+    it("deletes the current user's RSVP for the dinner", async () => {
       const supabase = mockSupabase();
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: supabase as never,
@@ -431,7 +433,7 @@ describe("events gallery actions", () => {
 
       expect(supabase.from).toHaveBeenCalledWith("rsvps");
       expect(supabase.rsvpsDelete).toHaveBeenCalled();
-      expect(supabase.deleteEqEvent).toHaveBeenCalledWith("event_id", "e1");
+      expect(supabase.deleteEqDinner).toHaveBeenCalledWith("dinner_id", "e1");
       expect(supabase.deleteEqUser).toHaveBeenCalledWith("user_id", "user-1");
       expect(result).toEqual({ success: true, message: "RSVP removed" });
     });
@@ -475,12 +477,12 @@ describe("events gallery actions", () => {
 
       expect(supabase.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
-          event_id: "e1",
+          dinner_id: "e1",
           user_id: "user-1",
           has_plus_one: true,
           plus_one_name: "Alex",
         }),
-        { onConflict: "event_id,user_id" },
+        { onConflict: "dinner_id,user_id" },
       );
       expect(result).toEqual({ success: true, message: "Plus-one saved" });
     });
@@ -511,39 +513,39 @@ describe("events gallery actions", () => {
 
       expect(supabase.upsert).toHaveBeenCalledWith(
         expect.objectContaining({ has_plus_one: false, plus_one_name: null }),
-        { onConflict: "event_id,user_id" },
+        { onConflict: "dinner_id,user_id" },
       );
     });
   });
 
-  describe("getPastEvents", () => {
-    it("returns only published, past events ordered by date descending", async () => {
-      const events = [
+  describe("getPastDinners", () => {
+    it("returns only published, past dinners ordered by date descending", async () => {
+      const dinners = [
         {
           id: "p1",
           name: "Spring Dinner",
-          event_date: "2026-03-01T18:00:00.000Z",
+          dinner_date: "2026-03-01T18:00:00.000Z",
           description: null,
           venue: null,
         },
       ];
-      const supabase = mockSupabase({ events });
+      const supabase = mockSupabase({ dinners });
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: supabase as never,
         user: { id: "user-1" } as never,
       });
 
-      const { getPastEvents } = await import("./actions");
-      const result = await getPastEvents();
+      const { getPastDinners } = await import("./actions");
+      const result = await getPastDinners();
 
       expect(supabase.eq).toHaveBeenCalledWith("visibility", "published");
-      expect(supabase.lt).toHaveBeenCalledWith("event_date", expect.any(String));
-      expect(supabase.order).toHaveBeenCalledWith("event_date", { ascending: false });
+      expect(supabase.lt).toHaveBeenCalledWith("dinner_date", expect.any(String));
+      expect(supabase.order).toHaveBeenCalledWith("dinner_date", { ascending: false });
       expect(result).toEqual({
         success: true,
-        events: [
+        dinners: [
           {
-            ...events[0],
+            ...dinners[0],
             myRsvpStatus: null,
             myHasPlusOne: false,
             myPlusOneName: null,
@@ -556,33 +558,33 @@ describe("events gallery actions", () => {
       });
     });
 
-    it("merges the user's attendance and existing rating onto each event", async () => {
-      const events = [
+    it("merges the user's attendance and existing rating onto each dinner", async () => {
+      const dinners = [
         {
           id: "p1",
           name: "Spring Dinner",
-          event_date: "2026-03-01T18:00:00.000Z",
+          dinner_date: "2026-03-01T18:00:00.000Z",
           description: null,
           venue: null,
         },
       ];
       const supabase = mockSupabase({
-        events,
-        rsvps: [{ event_id: "p1", status: "attending" }],
-        ratings: [{ event_id: "p1", drinks_rating: 4, food_rating: 5, venue_rating: 3 }],
+        dinners,
+        rsvps: [{ dinner_id: "p1", status: "attending" }],
+        ratings: [{ dinner_id: "p1", drinks_rating: 4, food_rating: 5, venue_rating: 3 }],
       });
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: supabase as never,
         user: { id: "user-1" } as never,
       });
 
-      const { getPastEvents } = await import("./actions");
-      const result = await getPastEvents();
+      const { getPastDinners } = await import("./actions");
+      const result = await getPastDinners();
 
       expect(supabase.from).toHaveBeenCalledWith("ratings");
       expect(supabase.ratingsEq).toHaveBeenCalledWith("user_id", "user-1");
-      expect(result.success && result.events[0].myRsvpStatus).toBe("attending");
-      expect(result.success && result.events[0].myRating).toEqual({
+      expect(result.success && result.dinners[0].myRsvpStatus).toBe("attending");
+      expect(result.success && result.dinners[0].myRating).toEqual({
         drinks: 4,
         food: 5,
         venue: 3,
@@ -590,39 +592,39 @@ describe("events gallery actions", () => {
     });
   });
 
-  describe("rateEvent", () => {
+  describe("rateDinner", () => {
     it("returns not authenticated when there is no user", async () => {
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: mockSupabase() as never,
         user: null,
       });
 
-      const { rateEvent } = await import("./actions");
-      const result = await rateEvent("e1", { drinks: 4, food: 5, venue: 3 });
+      const { rateDinner } = await import("./actions");
+      const result = await rateDinner("e1", { drinks: 4, food: 5, venue: 3 });
 
       expect(result).toEqual({ success: false, message: "Not authenticated" });
     });
 
-    it("upserts the three sub-scores on the (event_id, user_id) conflict target", async () => {
+    it("upserts the three sub-scores on the (dinner_id, user_id) conflict target", async () => {
       const supabase = mockSupabase();
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: supabase as never,
         user: { id: "user-1" } as never,
       });
 
-      const { rateEvent } = await import("./actions");
-      const result = await rateEvent("e1", { drinks: 4, food: 5, venue: 3 });
+      const { rateDinner } = await import("./actions");
+      const result = await rateDinner("e1", { drinks: 4, food: 5, venue: 3 });
 
       expect(supabase.from).toHaveBeenCalledWith("ratings");
       expect(supabase.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
-          event_id: "e1",
+          dinner_id: "e1",
           user_id: "user-1",
           drinks_rating: 4,
           food_rating: 5,
           venue_rating: 3,
         }),
-        { onConflict: "event_id,user_id" },
+        { onConflict: "dinner_id,user_id" },
       );
       expect(result).toEqual({ success: true, message: "Rating saved" });
     });
@@ -634,14 +636,14 @@ describe("events gallery actions", () => {
         user: { id: "user-1" } as never,
       });
 
-      const { rateEvent } = await import("./actions");
-      const result = await rateEvent("e1", { drinks: 1, food: 1, venue: 1 });
+      const { rateDinner } = await import("./actions");
+      const result = await rateDinner("e1", { drinks: 1, food: 1, venue: 1 });
 
       expect(result).toEqual({ success: false, message: "denied" });
     });
   });
 
-  describe("getEventAttendees", () => {
+  describe("getDinnerAttendees", () => {
     function attendeeSupabase({
       rsvps = [],
       rsvpsError = null,
@@ -656,8 +658,8 @@ describe("events gallery actions", () => {
       profiles?: { id: string; full_name: string | null; dietary_restrictions: string[] }[];
     } = {}) {
       const eqStatus = vi.fn().mockResolvedValue({ data: rsvps, error: rsvpsError });
-      const eqEvent = vi.fn().mockReturnValue({ eq: eqStatus });
-      const rsvpsSelect = vi.fn().mockReturnValue({ eq: eqEvent });
+      const eqDinner = vi.fn().mockReturnValue({ eq: eqStatus });
+      const rsvpsSelect = vi.fn().mockReturnValue({ eq: eqDinner });
 
       const profilesIn = vi.fn().mockResolvedValue({ data: profiles, error: null });
       const profilesSelect = vi.fn().mockReturnValue({ in: profilesIn });
@@ -666,7 +668,7 @@ describe("events gallery actions", () => {
         table === "profiles" ? { select: profilesSelect } : { select: rsvpsSelect },
       );
 
-      return { from, rsvpsSelect, eqEvent, eqStatus, profilesIn };
+      return { from, rsvpsSelect, eqDinner, eqStatus, profilesIn };
     }
 
     it("returns not authenticated when there is no user", async () => {
@@ -675,8 +677,8 @@ describe("events gallery actions", () => {
         user: null,
       });
 
-      const { getEventAttendees } = await import("./actions");
-      const result = await getEventAttendees("e1");
+      const { getDinnerAttendees } = await import("./actions");
+      const result = await getDinnerAttendees("e1");
 
       expect(result).toEqual({ success: false, message: "Not authenticated" });
     });
@@ -697,10 +699,10 @@ describe("events gallery actions", () => {
         user: { id: "u1" } as never,
       });
 
-      const { getEventAttendees } = await import("./actions");
-      const result = await getEventAttendees("e1");
+      const { getDinnerAttendees } = await import("./actions");
+      const result = await getDinnerAttendees("e1");
 
-      expect(supabase.eqEvent).toHaveBeenCalledWith("event_id", "e1");
+      expect(supabase.eqDinner).toHaveBeenCalledWith("dinner_id", "e1");
       expect(supabase.eqStatus).toHaveBeenCalledWith("status", "attending");
       expect(supabase.profilesIn).toHaveBeenCalledWith("id", ["u1", "u2"]);
       expect(result.success && result.summary).toEqual({
@@ -727,8 +729,8 @@ describe("events gallery actions", () => {
         user: { id: "u1" } as never,
       });
 
-      const { getEventAttendees } = await import("./actions");
-      const result = await getEventAttendees("e1");
+      const { getDinnerAttendees } = await import("./actions");
+      const result = await getDinnerAttendees("e1");
 
       expect(supabase.profilesIn).not.toHaveBeenCalled();
       expect(result.success && result.summary.totalCount).toBe(0);
@@ -741,26 +743,26 @@ describe("events gallery actions", () => {
         user: { id: "u1" } as never,
       });
 
-      const { getEventAttendees } = await import("./actions");
-      const result = await getEventAttendees("e1");
+      const { getDinnerAttendees } = await import("./actions");
+      const result = await getDinnerAttendees("e1");
 
       expect(result).toEqual({ success: false, message: "db down" });
     });
   });
 
-  describe("notifyEventSubscribers", () => {
+  describe("notifyDinnerSubscribers", () => {
     function notifySupabase({
-      event,
-      eventError = null,
+      dinner,
+      dinnerError = null,
       role = null,
     }: {
-      event?: { id: string; name: string; event_date: string; host_id: string | null } | null;
-      eventError?: { message: string } | null;
+      dinner?: { id: string; name: string; dinner_date: string; host_id: string | null } | null;
+      dinnerError?: { message: string } | null;
       role?: "member" | "admin" | null;
     } = {}) {
-      const eventsSingle = vi.fn().mockResolvedValue({ data: event ?? null, error: eventError });
-      const eventsEq = vi.fn().mockReturnValue({ single: eventsSingle });
-      const eventsSelect = vi.fn().mockReturnValue({ eq: eventsEq });
+      const dinnersSingle = vi.fn().mockResolvedValue({ data: dinner ?? null, error: dinnerError });
+      const dinnersEq = vi.fn().mockReturnValue({ single: dinnersSingle });
+      const dinnersSelect = vi.fn().mockReturnValue({ eq: dinnersEq });
 
       const profilesSingle = vi
         .fn()
@@ -769,15 +771,15 @@ describe("events gallery actions", () => {
       const profilesSelect = vi.fn().mockReturnValue({ eq: profilesEq });
 
       const from = vi.fn((table: string) =>
-        table === "profiles" ? { select: profilesSelect } : { select: eventsSelect },
+        table === "profiles" ? { select: profilesSelect } : { select: dinnersSelect },
       );
-      return { from, eventsEq };
+      return { from, dinnersEq };
     }
 
-    const event = {
+    const dinner = {
       id: "e1",
       name: "Autumn Dinner",
-      event_date: "2026-09-05T17:00:00.000Z",
+      dinner_date: "2026-09-05T17:00:00.000Z",
       host_id: null,
     };
 
@@ -787,37 +789,37 @@ describe("events gallery actions", () => {
         user: null,
       });
 
-      const { notifyEventSubscribers } = await import("./actions");
-      const result = await notifyEventSubscribers("e1");
+      const { notifyDinnerSubscribers } = await import("./actions");
+      const result = await notifyDinnerSubscribers("e1");
 
       expect(result).toEqual({ success: false, message: "Not authenticated" });
       expect(sendPushToAllSubscribers).not.toHaveBeenCalled();
     });
 
-    it("returns event not found when the event is missing", async () => {
+    it("returns dinner not found when the dinner is missing", async () => {
       vi.mocked(getCurrentUser).mockResolvedValue({
-        supabase: notifySupabase({ event: null }) as never,
+        supabase: notifySupabase({ dinner: null }) as never,
         user: { id: "user-1" } as never,
       });
 
-      const { notifyEventSubscribers } = await import("./actions");
-      const result = await notifyEventSubscribers("e1");
+      const { notifyDinnerSubscribers } = await import("./actions");
+      const result = await notifyDinnerSubscribers("e1");
 
-      expect(result).toEqual({ success: false, message: "Event not found" });
+      expect(result).toEqual({ success: false, message: "Dinner not found" });
       expect(sendPushToAllSubscribers).not.toHaveBeenCalled();
     });
 
     it("rejects a member who is neither admin nor the host", async () => {
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: notifySupabase({
-          event: { ...event, host_id: "someone-else" },
+          dinner: { ...dinner, host_id: "someone-else" },
           role: "member",
         }) as never,
         user: { id: "user-1" } as never,
       });
 
-      const { notifyEventSubscribers } = await import("./actions");
-      const result = await notifyEventSubscribers("e1");
+      const { notifyDinnerSubscribers } = await import("./actions");
+      const result = await notifyDinnerSubscribers("e1");
 
       expect(result).toEqual({ success: false, message: "Not authorized" });
       expect(sendPushToAllSubscribers).not.toHaveBeenCalled();
@@ -825,32 +827,32 @@ describe("events gallery actions", () => {
 
     it("lets an admin send and reports how many devices were reached", async () => {
       vi.mocked(getCurrentUser).mockResolvedValue({
-        supabase: notifySupabase({ event, role: "admin" }) as never,
+        supabase: notifySupabase({ dinner, role: "admin" }) as never,
         user: { id: "user-1" } as never,
       });
       vi.mocked(sendPushToAllSubscribers).mockResolvedValue({ success: true, sent: 3, removed: 1 });
 
-      const { notifyEventSubscribers } = await import("./actions");
-      const result = await notifyEventSubscribers("e1");
+      const { notifyDinnerSubscribers } = await import("./actions");
+      const result = await notifyDinnerSubscribers("e1");
 
       expect(sendPushToAllSubscribers).toHaveBeenCalledWith(
-        expect.objectContaining({ title: "Autumn Dinner", url: "/events", tag: "event-e1" }),
+        expect.objectContaining({ title: "Autumn Dinner", url: "/dinners", tag: "dinner-e1" }),
       );
       expect(result).toEqual({ success: true, sent: 3 });
     });
 
-    it("lets the event's host send even without the admin role", async () => {
+    it("lets the dinner's host send even without the admin role", async () => {
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: notifySupabase({
-          event: { ...event, host_id: "user-1" },
+          dinner: { ...dinner, host_id: "user-1" },
           role: "member",
         }) as never,
         user: { id: "user-1" } as never,
       });
       vi.mocked(sendPushToAllSubscribers).mockResolvedValue({ success: true, sent: 1, removed: 0 });
 
-      const { notifyEventSubscribers } = await import("./actions");
-      const result = await notifyEventSubscribers("e1");
+      const { notifyDinnerSubscribers } = await import("./actions");
+      const result = await notifyDinnerSubscribers("e1");
 
       expect(sendPushToAllSubscribers).toHaveBeenCalled();
       expect(result).toEqual({ success: true, sent: 1 });
@@ -858,7 +860,7 @@ describe("events gallery actions", () => {
 
     it("surfaces a send failure", async () => {
       vi.mocked(getCurrentUser).mockResolvedValue({
-        supabase: notifySupabase({ event, role: "admin" }) as never,
+        supabase: notifySupabase({ dinner, role: "admin" }) as never,
         user: { id: "user-1" } as never,
       });
       vi.mocked(sendPushToAllSubscribers).mockResolvedValue({
@@ -868,8 +870,8 @@ describe("events gallery actions", () => {
         message: "push service down",
       });
 
-      const { notifyEventSubscribers } = await import("./actions");
-      const result = await notifyEventSubscribers("e1");
+      const { notifyDinnerSubscribers } = await import("./actions");
+      const result = await notifyDinnerSubscribers("e1");
 
       expect(result).toEqual({ success: false, message: "push service down" });
     });

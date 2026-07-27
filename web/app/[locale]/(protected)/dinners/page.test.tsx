@@ -1,23 +1,23 @@
-// app/[locale]/(protected)/events/page.test.tsx
+// app/[locale]/(protected)/dinners/page.test.tsx
 
 import { render, screen } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import mockSv from "@/messages/sv.json";
-import { getUpcomingEvents, getHostingEvents, getPastEvents } from "./actions";
+import { getUpcomingDinners, getHostingDinners, getPastDinners } from "./actions";
 
 vi.mock("./actions", () => ({
-  getUpcomingEvents: vi.fn(),
-  getHostingEvents: vi.fn(),
-  getPastEvents: vi.fn(),
+  getUpcomingDinners: vi.fn(),
+  getHostingDinners: vi.fn(),
+  getPastDinners: vi.fn(),
 }));
 
-vi.mock("./events-gallery", () => ({
-  EventsGallery: vi.fn(({ events, hostingEvents, pastEvents }) => (
+vi.mock("./dinners-gallery", () => ({
+  DinnersGallery: vi.fn(({ dinners, hostingDinners, pastDinners }) => (
     <div
-      data-testid="mock-events-gallery"
-      data-events={events.length}
-      data-hosting-events={hostingEvents.length}
-      data-past-events={pastEvents.length}
+      data-testid="mock-dinners-gallery"
+      data-dinners={dinners.length}
+      data-hosting-dinners={hostingDinners.length}
+      data-past-dinners={pastDinners.length}
     />
   )),
 }));
@@ -42,19 +42,19 @@ vi.mock("next-intl/server", () => ({
   }),
 }));
 
-describe("Events Server Page", () => {
+describe("Dinners Server Page", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
 
-  it("renders the title and passes loaded events to the gallery", async () => {
-    vi.mocked(getUpcomingEvents).mockResolvedValue({
+  it("renders the title and passes loaded dinners to the gallery", async () => {
+    vi.mocked(getUpcomingDinners).mockResolvedValue({
       success: true,
-      events: [
+      dinners: [
         {
           id: "1",
           name: "Dinner",
-          event_date: "2026-08-01T18:00:00.000Z",
+          dinner_date: "2026-08-01T18:00:00.000Z",
           rsvp_deadline: null,
           description: null,
           venue: null,
@@ -68,13 +68,13 @@ describe("Events Server Page", () => {
         },
       ],
     });
-    vi.mocked(getHostingEvents).mockResolvedValue({
+    vi.mocked(getHostingDinners).mockResolvedValue({
       success: true,
-      events: [
+      dinners: [
         {
           id: "h1",
           name: "Hosted Dinner",
-          event_date: "2026-09-01T18:00:00.000Z",
+          dinner_date: "2026-09-01T18:00:00.000Z",
           rsvp_deadline: null,
           description: null,
           venue: null,
@@ -88,13 +88,13 @@ describe("Events Server Page", () => {
         },
       ],
     });
-    vi.mocked(getPastEvents).mockResolvedValue({
+    vi.mocked(getPastDinners).mockResolvedValue({
       success: true,
-      events: [
+      dinners: [
         {
           id: "p1",
           name: "Past Dinner",
-          event_date: "2026-03-01T18:00:00.000Z",
+          dinner_date: "2026-03-01T18:00:00.000Z",
           rsvp_deadline: null,
           description: null,
           venue: null,
@@ -109,27 +109,27 @@ describe("Events Server Page", () => {
       ],
     });
 
-    const { default: Events } = await import("./page");
-    render(await Events());
+    const { default: Dinners } = await import("./page");
+    render(await Dinners());
 
-    expect(screen.getByRole("heading", { name: mockSv.EventsPage.Title })).toBeInTheDocument();
-    const gallery = screen.getByTestId("mock-events-gallery");
-    expect(gallery).toHaveAttribute("data-events", "1");
-    expect(gallery).toHaveAttribute("data-hosting-events", "1");
-    expect(gallery).toHaveAttribute("data-past-events", "1");
+    expect(screen.getByRole("heading", { name: mockSv.DinnersPage.Title })).toBeInTheDocument();
+    const gallery = screen.getByTestId("mock-dinners-gallery");
+    expect(gallery).toHaveAttribute("data-dinners", "1");
+    expect(gallery).toHaveAttribute("data-hosting-dinners", "1");
+    expect(gallery).toHaveAttribute("data-past-dinners", "1");
   });
 
-  it("falls back to empty lists when fetching events fails", async () => {
-    vi.mocked(getUpcomingEvents).mockResolvedValue({ success: false, message: "boom" });
-    vi.mocked(getHostingEvents).mockResolvedValue({ success: false, message: "boom" });
-    vi.mocked(getPastEvents).mockResolvedValue({ success: false, message: "boom" });
+  it("falls back to empty lists when fetching dinners fails", async () => {
+    vi.mocked(getUpcomingDinners).mockResolvedValue({ success: false, message: "boom" });
+    vi.mocked(getHostingDinners).mockResolvedValue({ success: false, message: "boom" });
+    vi.mocked(getPastDinners).mockResolvedValue({ success: false, message: "boom" });
 
-    const { default: Events } = await import("./page");
-    render(await Events());
+    const { default: Dinners } = await import("./page");
+    render(await Dinners());
 
-    const gallery = screen.getByTestId("mock-events-gallery");
-    expect(gallery).toHaveAttribute("data-events", "0");
-    expect(gallery).toHaveAttribute("data-hosting-events", "0");
-    expect(gallery).toHaveAttribute("data-past-events", "0");
+    const gallery = screen.getByTestId("mock-dinners-gallery");
+    expect(gallery).toHaveAttribute("data-dinners", "0");
+    expect(gallery).toHaveAttribute("data-hosting-dinners", "0");
+    expect(gallery).toHaveAttribute("data-past-dinners", "0");
   });
 });

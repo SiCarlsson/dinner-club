@@ -32,7 +32,7 @@ AS $$
     v.district,
     v.city
   FROM public.ratings r
-  JOIN public.events e ON e.id = r.event_id
+  JOIN public.dinners e ON e.id = r.dinner_id
   JOIN public.venues v ON v.id = e.venue_id
   WHERE e.visibility = 'published'
   GROUP BY v.id;

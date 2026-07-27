@@ -2,25 +2,25 @@
 
 import { expect, test } from "@playwright/test";
 import { ADMIN_STATE, MEMBER_STATE } from "./helpers/auth";
-import { clearPushSubscriptions, deleteEvent, seedEvent } from "./helpers/db";
+import { clearPushSubscriptions, deleteDinner, seedDinner } from "./helpers/db";
 
-let eventId: string;
+let dinnerId: string;
 
 test.beforeAll(async () => {
-  eventId = await seedEvent({ name: `E2E Notify Dinner ${Date.now()}` });
+  dinnerId = await seedDinner({ name: `E2E Notify Dinner ${Date.now()}` });
 });
 
 test.afterAll(async () => {
-  await deleteEvent(eventId);
+  await deleteDinner(dinnerId);
 });
 
 test.describe("admin", () => {
   test.use({ storageState: ADMIN_STATE });
 
-  test("can notify subscribers from the event dialog", async ({ page }) => {
+  test("can notify subscribers from the dinner dialog", async ({ page }) => {
     await clearPushSubscriptions();
 
-    await page.goto("/en/events");
+    await page.goto("/en/dinners");
     await page.getByRole("button", { name: "See who's coming" }).first().click();
 
     const dialog = page.getByRole("dialog");
@@ -37,7 +37,7 @@ test.describe("member", () => {
   test.use({ storageState: MEMBER_STATE });
 
   test("does not see the notify button", async ({ page }) => {
-    await page.goto("/en/events");
+    await page.goto("/en/dinners");
     await page.getByRole("button", { name: "See who's coming" }).first().click();
 
     const dialog = page.getByRole("dialog");

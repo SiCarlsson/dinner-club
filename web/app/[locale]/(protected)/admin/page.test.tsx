@@ -5,24 +5,24 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import mockSv from "@/messages/sv.json";
 import { createClient } from "@/utils/supabase/server";
-import { getEvents, getVenues, getProfiles, getInvitations } from "./actions";
+import { getDinners, getVenues, getProfiles, getInvitations } from "./actions";
 
 vi.mock("@/utils/supabase/server", () => ({
   createClient: vi.fn(),
 }));
 
 vi.mock("./actions", () => ({
-  getEvents: vi.fn(),
+  getDinners: vi.fn(),
   getVenues: vi.fn(),
   getProfiles: vi.fn(),
   getInvitations: vi.fn(),
 }));
 
-vi.mock("./events-admin", () => ({
-  EventsAdmin: vi.fn(({ events, venues, profiles }) => (
+vi.mock("./dinners-admin", () => ({
+  DinnersAdmin: vi.fn(({ dinners, venues, profiles }) => (
     <div
-      data-testid="mock-events-admin"
-      data-events={events.length}
+      data-testid="mock-dinners-admin"
+      data-dinners={dinners.length}
       data-venues={venues.length}
       data-profiles={profiles.length}
     />
@@ -73,14 +73,14 @@ describe("Admin Server Page", () => {
     mockSingle.mockResolvedValue({ data: { full_name: "Alex Smith" } });
   });
 
-  it("renders the title and tabs, passing loaded events and venues down", async () => {
-    vi.mocked(getEvents).mockResolvedValue({
+  it("renders the title and tabs, passing loaded dinners and venues down", async () => {
+    vi.mocked(getDinners).mockResolvedValue({
       success: true,
-      events: [
+      dinners: [
         {
           id: "1",
           name: "Dinner",
-          event_date: "2026-08-01T18:00:00.000Z",
+          dinner_date: "2026-08-01T18:00:00.000Z",
           rsvp_deadline: null,
           description: null,
           visibility: "published",
@@ -113,21 +113,21 @@ describe("Admin Server Page", () => {
     render(PageComponent);
 
     expect(screen.getByRole("heading", { name: mockSv.AdminPage.Title })).toBeInTheDocument();
-    expect(screen.getByText(mockSv.AdminPage.Tabs.Events)).toBeInTheDocument();
+    expect(screen.getByText(mockSv.AdminPage.Tabs.Dinners)).toBeInTheDocument();
     expect(screen.getByText(mockSv.AdminPage.Tabs.Whitelist)).toBeInTheDocument();
 
-    const eventsAdmin = screen.getByTestId("mock-events-admin");
-    expect(eventsAdmin).toHaveAttribute("data-events", "1");
-    expect(eventsAdmin).toHaveAttribute("data-venues", "1");
-    expect(eventsAdmin).toHaveAttribute("data-profiles", "1");
+    const dinnersAdmin = screen.getByTestId("mock-dinners-admin");
+    expect(dinnersAdmin).toHaveAttribute("data-dinners", "1");
+    expect(dinnersAdmin).toHaveAttribute("data-venues", "1");
+    expect(dinnersAdmin).toHaveAttribute("data-profiles", "1");
 
     const user = userEvent.setup();
     await user.click(screen.getByText(mockSv.AdminPage.Tabs.Whitelist));
     expect(await screen.findByTestId("mock-whitelist-admin")).toBeInTheDocument();
   });
 
-  it("falls back to empty lists when fetching events or venues fails", async () => {
-    vi.mocked(getEvents).mockResolvedValue({ success: false, message: "boom" });
+  it("falls back to empty lists when fetching dinners or venues fails", async () => {
+    vi.mocked(getDinners).mockResolvedValue({ success: false, message: "boom" });
     vi.mocked(getVenues).mockResolvedValue({ success: false, message: "boom" });
     vi.mocked(getProfiles).mockResolvedValue({ success: false, message: "boom" });
 
@@ -135,9 +135,9 @@ describe("Admin Server Page", () => {
     const PageComponent = await Admin();
     render(PageComponent);
 
-    const eventsAdmin = screen.getByTestId("mock-events-admin");
-    expect(eventsAdmin).toHaveAttribute("data-events", "0");
-    expect(eventsAdmin).toHaveAttribute("data-venues", "0");
-    expect(eventsAdmin).toHaveAttribute("data-profiles", "0");
+    const dinnersAdmin = screen.getByTestId("mock-dinners-admin");
+    expect(dinnersAdmin).toHaveAttribute("data-dinners", "0");
+    expect(dinnersAdmin).toHaveAttribute("data-venues", "0");
+    expect(dinnersAdmin).toHaveAttribute("data-profiles", "0");
   });
 });

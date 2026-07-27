@@ -4,28 +4,28 @@
 
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-import { EventsAdmin } from "./events-admin";
+import { DinnersAdmin } from "./dinners-admin";
 import { VenuesAdmin } from "./venues-admin";
 import { WhitelistAdmin } from "./whitelist-admin";
-import type { EventRecord, InvitationRecord, ProfileRecord, VenueRecord } from "./actions";
+import type { DinnerRecord, InvitationRecord, ProfileRecord, VenueRecord } from "./actions";
 
-const TABS = ["events", "venues", "whitelist"] as const;
+const TABS = ["dinners", "venues", "whitelist"] as const;
 type Tab = (typeof TABS)[number];
 
 export function AdminTabs({
-  events,
+  dinners,
   venues,
   profiles,
   invitations,
   tabLabels,
 }: {
-  events: EventRecord[];
+  dinners: DinnerRecord[];
   venues: VenueRecord[];
   profiles: ProfileRecord[];
   invitations: InvitationRecord[];
   tabLabels: Record<Tab, string>;
 }) {
-  const [tab, setTab] = useState<Tab>("events");
+  const [tab, setTab] = useState<Tab>("dinners");
 
   return (
     <div>
@@ -49,7 +49,9 @@ export function AdminTabs({
         ))}
       </div>
       <div className="pt-10">
-        {tab === "events" && <EventsAdmin events={events} venues={venues} profiles={profiles} />}
+        {tab === "dinners" && (
+          <DinnersAdmin dinners={dinners} venues={venues} profiles={profiles} />
+        )}
         {tab === "venues" && <VenuesAdmin venues={venues} />}
         {tab === "whitelist" && <WhitelistAdmin invitations={invitations} />}
       </div>

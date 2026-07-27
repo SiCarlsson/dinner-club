@@ -14,7 +14,7 @@ const { pushMock, refreshMock, signOutMock } = vi.hoisted(() => ({
 
 vi.mock("@/i18n/navigation", () => ({
   useRouter: () => ({ push: pushMock, refresh: refreshMock, replace: vi.fn() }),
-  usePathname: () => "/events",
+  usePathname: () => "/dinners",
 }));
 
 vi.mock("@/utils/supabase/client", () => ({

@@ -1,4 +1,4 @@
-// app/[locale]/(protected)/admin/delete-event-button.tsx
+// app/[locale]/(protected)/admin/delete-dinner-button.tsx
 
 "use client";
 
@@ -17,18 +17,18 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { deleteEvent, type EventRecord } from "./actions";
+import { deleteDinner, type DinnerRecord } from "./actions";
 import { BUTTON_TEXT, FLOATING_SURFACE, DIALOG_DESCRIPTION } from "@/lib/form-styles";
 import { cn } from "@/lib/utils";
 
-export function DeleteEventButton({ event }: { event: EventRecord }) {
+export function DeleteDinnerButton({ dinner }: { dinner: DinnerRecord }) {
   const [deleting, setDeleting] = useState(false);
   const router = useRouter();
-  const t = useTranslations("AdminPage.Events");
+  const t = useTranslations("AdminPage.Dinners");
 
   const handleDelete = async () => {
     setDeleting(true);
-    const result = await deleteEvent(event.id);
+    const result = await deleteDinner(dinner.id);
 
     if (result.success) {
       router.refresh();

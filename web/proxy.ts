@@ -6,7 +6,7 @@ import createIntlMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 import { getPublicOrigin } from "@/lib/request-origin";
 
-const PROTECTED_PATHS = ["/events", "/profile", "/admin"];
+const PROTECTED_PATHS = ["/dinners", "/profile", "/admin"];
 const GUEST_ONLY_PATHS = ["/login"];
 
 const handleI18nRouting = createIntlMiddleware(routing);

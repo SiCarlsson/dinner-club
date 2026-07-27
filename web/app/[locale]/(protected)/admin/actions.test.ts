@@ -30,23 +30,23 @@ describe("admin actions", () => {
     vi.clearAllMocks();
   });
 
-  describe("getEvents", () => {
+  describe("getDinners", () => {
     it("returns not authenticated when there is no user", async () => {
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: mockSupabase() as never,
         user: null,
       });
 
-      const { getEvents } = await import("./actions");
-      const result = await getEvents();
+      const { getDinners } = await import("./actions");
+      const result = await getDinners();
 
       expect(result).toEqual({ success: false, message: "Not authenticated" });
     });
 
-    it("returns events for an authenticated user", async () => {
+    it("returns dinners for an authenticated user", async () => {
       const supabase = mockSupabase();
       supabase.order.mockResolvedValue({
-        data: [{ id: "1", name: "Dinner", event_date: "2026-08-01", venue: null }],
+        data: [{ id: "1", name: "Dinner", dinner_date: "2026-08-01", venue: null }],
         error: null,
       });
       vi.mocked(getCurrentUser).mockResolvedValue({
@@ -54,13 +54,13 @@ describe("admin actions", () => {
         user: { id: "user-1" } as never,
       });
 
-      const { getEvents } = await import("./actions");
-      const result = await getEvents();
+      const { getDinners } = await import("./actions");
+      const result = await getDinners();
 
-      expect(supabase.from).toHaveBeenCalledWith("events");
+      expect(supabase.from).toHaveBeenCalledWith("dinners");
       expect(result).toEqual({
         success: true,
-        events: [{ id: "1", name: "Dinner", event_date: "2026-08-01", venue: null }],
+        dinners: [{ id: "1", name: "Dinner", dinner_date: "2026-08-01", venue: null }],
       });
     });
 
@@ -72,8 +72,8 @@ describe("admin actions", () => {
         user: { id: "user-1" } as never,
       });
 
-      const { getEvents } = await import("./actions");
-      const result = await getEvents();
+      const { getDinners } = await import("./actions");
+      const result = await getDinners();
 
       expect(result).toEqual({ success: false, message: "db down" });
     });
@@ -293,7 +293,7 @@ describe("admin actions", () => {
     });
   });
 
-  describe("createEvent", () => {
+  describe("createDinner", () => {
     it("rejects when the user is not an admin", async () => {
       vi.mocked(getUserWithRole).mockResolvedValue({
         supabase: mockSupabase() as never,
@@ -301,17 +301,17 @@ describe("admin actions", () => {
         role: "member",
       });
 
-      const { createEvent } = await import("./actions");
-      const result = await createEvent({
+      const { createDinner } = await import("./actions");
+      const result = await createDinner({
         name: "Dinner",
-        eventDate: "2026-08-01T18:00:00.000Z",
+        dinnerDate: "2026-08-01T18:00:00.000Z",
         venueId: null,
       });
 
       expect(result).toEqual({ success: false, message: "Not authorized" });
     });
 
-    it("inserts an event with the creating admin as created_by", async () => {
+    it("inserts an dinner with the creating admin as created_by", async () => {
       const supabase = mockSupabase();
       supabase.insert.mockReturnValue({ error: null });
       vi.mocked(getUserWithRole).mockResolvedValue({
@@ -320,10 +320,10 @@ describe("admin actions", () => {
         role: "admin",
       });
 
-      const { createEvent } = await import("./actions");
-      const result = await createEvent({
+      const { createDinner } = await import("./actions");
+      const result = await createDinner({
         name: "Dinner",
-        eventDate: "2026-08-01T18:00:00.000Z",
+        dinnerDate: "2026-08-01T18:00:00.000Z",
         venueId: "venue-1",
         description: "Fun night",
         visibility: "published",
@@ -331,7 +331,7 @@ describe("admin actions", () => {
 
       expect(supabase.insert).toHaveBeenCalledWith({
         name: "Dinner",
-        event_date: "2026-08-01T18:00:00.000Z",
+        dinner_date: "2026-08-01T18:00:00.000Z",
         venue_id: "venue-1",
         rsvp_deadline: null,
         description: "Fun night",
@@ -339,7 +339,7 @@ describe("admin actions", () => {
         host_id: null,
         created_by: "admin-1",
       });
-      expect(result).toEqual({ success: true, message: "Event created" });
+      expect(result).toEqual({ success: true, message: "Dinner created" });
     });
 
     it("defaults visibility to unpublished", async () => {
@@ -351,8 +351,8 @@ describe("admin actions", () => {
         role: "admin",
       });
 
-      const { createEvent } = await import("./actions");
-      await createEvent({ name: "Dinner", eventDate: "2026-08-01T18:00:00.000Z", venueId: null });
+      const { createDinner } = await import("./actions");
+      await createDinner({ name: "Dinner", dinnerDate: "2026-08-01T18:00:00.000Z", venueId: null });
 
       expect(supabase.insert).toHaveBeenCalledWith(
         expect.objectContaining({ visibility: "unpublished" }),
@@ -368,10 +368,10 @@ describe("admin actions", () => {
         role: "admin",
       });
 
-      const { createEvent } = await import("./actions");
-      const result = await createEvent({
+      const { createDinner } = await import("./actions");
+      const result = await createDinner({
         name: "Dinner",
-        eventDate: "2026-08-01T18:00:00.000Z",
+        dinnerDate: "2026-08-01T18:00:00.000Z",
         venueId: null,
       });
 
@@ -385,10 +385,10 @@ describe("admin actions", () => {
         role: "member",
       });
 
-      const { createEvent } = await import("./actions");
-      const result = await createEvent({
+      const { createDinner } = await import("./actions");
+      const result = await createDinner({
         name: "Dinner",
-        eventDate: "2026-08-01T18:00:00.000Z",
+        dinnerDate: "2026-08-01T18:00:00.000Z",
         venueId: null,
         hostId: "host-1",
       });
@@ -397,15 +397,15 @@ describe("admin actions", () => {
     });
   });
 
-  describe("updateEvent", () => {
+  describe("updateDinner", () => {
     it("rejects when there is no authenticated user", async () => {
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: mockSupabase() as never,
         user: null,
       });
 
-      const { updateEvent } = await import("./actions");
-      const result = await updateEvent("event-1", { name: "New name" });
+      const { updateDinner } = await import("./actions");
+      const result = await updateDinner("dinner-1", { name: "New name" });
 
       expect(result).toEqual({ success: false, message: "Not authorized" });
     });
@@ -418,15 +418,15 @@ describe("admin actions", () => {
         user: { id: "admin-1" } as never,
       });
 
-      const { updateEvent } = await import("./actions");
-      const result = await updateEvent("event-1", { name: "New name" });
+      const { updateDinner } = await import("./actions");
+      const result = await updateDinner("dinner-1", { name: "New name" });
 
       expect(supabase.update).toHaveBeenCalledWith(expect.objectContaining({ name: "New name" }));
       const updatePayload = supabase.update.mock.calls[0][0];
-      expect(updatePayload).not.toHaveProperty("event_date");
+      expect(updatePayload).not.toHaveProperty("dinner_date");
       expect(updatePayload).not.toHaveProperty("venue_id");
-      expect(supabase.eq).toHaveBeenCalledWith("id", "event-1");
-      expect(result).toEqual({ success: true, message: "Event updated" });
+      expect(supabase.eq).toHaveBeenCalledWith("id", "dinner-1");
+      expect(result).toEqual({ success: true, message: "Dinner updated" });
     });
 
     it("returns an error message when the update fails", async () => {
@@ -437,13 +437,13 @@ describe("admin actions", () => {
         user: { id: "admin-1" } as never,
       });
 
-      const { updateEvent } = await import("./actions");
-      const result = await updateEvent("event-1", { name: "New name" });
+      const { updateDinner } = await import("./actions");
+      const result = await updateDinner("dinner-1", { name: "New name" });
 
       expect(result).toEqual({ success: false, message: "update failed" });
     });
 
-    it("allows a non-admin host to update the event (enforced by RLS, not app code)", async () => {
+    it("allows a non-admin host to update the dinner (enforced by RLS, not app code)", async () => {
       const supabase = mockSupabase();
       supabase.eq.mockResolvedValue({ error: null });
       vi.mocked(getCurrentUser).mockResolvedValue({
@@ -451,14 +451,14 @@ describe("admin actions", () => {
         user: { id: "host-1" } as never,
       });
 
-      const { updateEvent } = await import("./actions");
-      const result = await updateEvent("event-1", { description: "Updated by host" });
+      const { updateDinner } = await import("./actions");
+      const result = await updateDinner("dinner-1", { description: "Updated by host" });
 
       expect(getUserWithRole).not.toHaveBeenCalled();
       expect(supabase.update).toHaveBeenCalledWith(
         expect.objectContaining({ description: "Updated by host" }),
       );
-      expect(result).toEqual({ success: true, message: "Event updated" });
+      expect(result).toEqual({ success: true, message: "Dinner updated" });
     });
 
     it("surfaces the database's rejection when a non-admin, non-host member attempts an update", async () => {
@@ -471,8 +471,8 @@ describe("admin actions", () => {
         user: { id: "random-member-1" } as never,
       });
 
-      const { updateEvent } = await import("./actions");
-      const result = await updateEvent("event-1", { name: "Hijacked name" });
+      const { updateDinner } = await import("./actions");
+      const result = await updateDinner("dinner-1", { name: "Hijacked name" });
 
       expect(result).toEqual({
         success: false,
@@ -481,7 +481,7 @@ describe("admin actions", () => {
     });
   });
 
-  describe("deleteEvent", () => {
+  describe("deleteDinner", () => {
     it("rejects when the user is not an admin", async () => {
       vi.mocked(getUserWithRole).mockResolvedValue({
         supabase: mockSupabase() as never,
@@ -489,13 +489,13 @@ describe("admin actions", () => {
         role: "member",
       });
 
-      const { deleteEvent } = await import("./actions");
-      const result = await deleteEvent("event-1");
+      const { deleteDinner } = await import("./actions");
+      const result = await deleteDinner("dinner-1");
 
       expect(result).toEqual({ success: false, message: "Not authorized" });
     });
 
-    it("deletes the event if user is admin", async () => {
+    it("deletes the dinner if user is admin", async () => {
       const supabase = mockSupabase();
       supabase.eq.mockResolvedValue({ error: null });
       vi.mocked(getUserWithRole).mockResolvedValue({
@@ -504,12 +504,12 @@ describe("admin actions", () => {
         role: "admin",
       });
 
-      const { deleteEvent } = await import("./actions");
-      const result = await deleteEvent("event-1");
+      const { deleteDinner } = await import("./actions");
+      const result = await deleteDinner("dinner-1");
 
       expect(supabase.delete).toHaveBeenCalled();
-      expect(supabase.eq).toHaveBeenCalledWith("id", "event-1");
-      expect(result).toEqual({ success: true, message: "Event deleted" });
+      expect(supabase.eq).toHaveBeenCalledWith("id", "dinner-1");
+      expect(result).toEqual({ success: true, message: "Dinner deleted" });
     });
 
     it("returns an error message when the delete fails", async () => {
@@ -521,8 +521,8 @@ describe("admin actions", () => {
         role: "admin",
       });
 
-      const { deleteEvent } = await import("./actions");
-      const result = await deleteEvent("event-1");
+      const { deleteDinner } = await import("./actions");
+      const result = await deleteDinner("dinner-1");
 
       expect(result).toEqual({ success: false, message: "delete failed" });
     });
@@ -534,8 +534,8 @@ describe("admin actions", () => {
         role: "member",
       });
 
-      const { deleteEvent } = await import("./actions");
-      const result = await deleteEvent("event-1");
+      const { deleteDinner } = await import("./actions");
+      const result = await deleteDinner("dinner-1");
 
       expect(result).toEqual({ success: false, message: "Not authorized" });
     });

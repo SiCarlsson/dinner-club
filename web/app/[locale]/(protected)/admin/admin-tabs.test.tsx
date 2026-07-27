@@ -4,13 +4,13 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AdminTabs } from "./admin-tabs";
-import type { EventRecord, InvitationRecord, ProfileRecord, VenueRecord } from "./actions";
+import type { DinnerRecord, InvitationRecord, ProfileRecord, VenueRecord } from "./actions";
 
-vi.mock("./events-admin", () => ({
-  EventsAdmin: vi.fn(({ events, venues, profiles }) => (
+vi.mock("./dinners-admin", () => ({
+  DinnersAdmin: vi.fn(({ dinners, venues, profiles }) => (
     <div
-      data-testid="mock-events-admin"
-      data-events={events.length}
+      data-testid="mock-dinners-admin"
+      data-dinners={dinners.length}
       data-venues={venues.length}
       data-profiles={profiles.length}
     />
@@ -27,11 +27,11 @@ vi.mock("./whitelist-admin", () => ({
   WhitelistAdmin: vi.fn(() => <div data-testid="mock-whitelist-admin" />),
 }));
 
-const EVENTS: EventRecord[] = [
+const DINNERS: DinnerRecord[] = [
   {
     id: "1",
     name: "Dinner",
-    event_date: "2026-08-01T18:00:00.000Z",
+    dinner_date: "2026-08-01T18:00:00.000Z",
     rsvp_deadline: null,
     description: null,
     visibility: "published",
@@ -58,26 +58,26 @@ const INVITATIONS: InvitationRecord[] = [
 function renderAdminTabs() {
   return render(
     <AdminTabs
-      events={EVENTS}
+      dinners={DINNERS}
       venues={VENUES}
       profiles={PROFILES}
       invitations={INVITATIONS}
-      tabLabels={{ events: "Events", venues: "Venues", whitelist: "Whitelist" }}
+      tabLabels={{ dinners: "Dinners", venues: "Venues", whitelist: "Whitelist" }}
     />,
   );
 }
 
 describe("AdminTabs Component", () => {
-  it("shows the events panel by default with the events tab marked selected", () => {
+  it("shows the dinners panel by default with the dinners tab marked selected", () => {
     renderAdminTabs();
 
-    const eventsAdmin = screen.getByTestId("mock-events-admin");
-    expect(eventsAdmin).toHaveAttribute("data-events", "1");
-    expect(eventsAdmin).toHaveAttribute("data-venues", "1");
-    expect(eventsAdmin).toHaveAttribute("data-profiles", "1");
+    const dinnersAdmin = screen.getByTestId("mock-dinners-admin");
+    expect(dinnersAdmin).toHaveAttribute("data-dinners", "1");
+    expect(dinnersAdmin).toHaveAttribute("data-venues", "1");
+    expect(dinnersAdmin).toHaveAttribute("data-profiles", "1");
     expect(screen.queryByTestId("mock-whitelist-admin")).not.toBeInTheDocument();
 
-    expect(screen.getByRole("tab", { name: "Events" })).toHaveAttribute("aria-selected", "true");
+    expect(screen.getByRole("tab", { name: "Dinners" })).toHaveAttribute("aria-selected", "true");
     expect(screen.getByRole("tab", { name: "Whitelist" })).toHaveAttribute(
       "aria-selected",
       "false",
@@ -91,10 +91,10 @@ describe("AdminTabs Component", () => {
     await user.click(screen.getByRole("tab", { name: "Whitelist" }));
 
     expect(screen.getByTestId("mock-whitelist-admin")).toBeInTheDocument();
-    expect(screen.queryByTestId("mock-events-admin")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("mock-dinners-admin")).not.toBeInTheDocument();
 
     expect(screen.getByRole("tab", { name: "Whitelist" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByRole("tab", { name: "Events" })).toHaveAttribute("aria-selected", "false");
+    expect(screen.getByRole("tab", { name: "Dinners" })).toHaveAttribute("aria-selected", "false");
   });
 
   it("switches to the venues panel when its tab is clicked, passing venues down", async () => {
@@ -105,20 +105,20 @@ describe("AdminTabs Component", () => {
 
     const venuesAdmin = screen.getByTestId("mock-venues-admin");
     expect(venuesAdmin).toHaveAttribute("data-venues", "1");
-    expect(screen.queryByTestId("mock-events-admin")).not.toBeInTheDocument();
+    expect(screen.queryByTestId("mock-dinners-admin")).not.toBeInTheDocument();
 
     expect(screen.getByRole("tab", { name: "Venues" })).toHaveAttribute("aria-selected", "true");
-    expect(screen.getByRole("tab", { name: "Events" })).toHaveAttribute("aria-selected", "false");
+    expect(screen.getByRole("tab", { name: "Dinners" })).toHaveAttribute("aria-selected", "false");
   });
 
-  it("switches back to the events panel when its tab is clicked again", async () => {
+  it("switches back to the dinners panel when its tab is clicked again", async () => {
     const user = userEvent.setup();
     renderAdminTabs();
 
     await user.click(screen.getByRole("tab", { name: "Whitelist" }));
-    await user.click(screen.getByRole("tab", { name: "Events" }));
+    await user.click(screen.getByRole("tab", { name: "Dinners" }));
 
-    expect(screen.getByTestId("mock-events-admin")).toBeInTheDocument();
+    expect(screen.getByTestId("mock-dinners-admin")).toBeInTheDocument();
     expect(screen.queryByTestId("mock-whitelist-admin")).not.toBeInTheDocument();
   });
 });

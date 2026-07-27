@@ -1,4 +1,4 @@
-// app/[locale]/(protected)/events/events-gallery.tsx
+// app/[locale]/(protected)/dinners/dinners-gallery.tsx
 
 "use client";
 
@@ -16,12 +16,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { AttendeesDialog } from "./attendees-dialog";
 import {
-  rateEvent,
+  rateDinner,
   removeRsvp,
-  rsvpToEvent,
+  rsvpToDinner,
   setRsvpPlusOne,
-  type EventRating,
-  type GalleryEvent,
+  type DinnerRating,
+  type GalleryDinner,
   type RsvpStatus,
 } from "./actions";
 
@@ -53,17 +53,17 @@ function formatDeadline(dateString: string, locale: DateFnsLocale) {
 }
 
 function RsvpControls({
-  eventId,
+  dinnerId,
   status,
   hasPlusOne: initialHasPlusOne,
   plusOneName: initialPlusOneName,
 }: {
-  eventId: string;
+  dinnerId: string;
   status: RsvpStatus | null;
   hasPlusOne: boolean;
   plusOneName: string | null;
 }) {
-  const t = useTranslations("EventsPage");
+  const t = useTranslations("DinnersPage");
   const [current, setCurrent] = useState(status);
   const [isPending, startTransition] = useTransition();
 
@@ -74,7 +74,7 @@ function RsvpControls({
     const previous = current;
     setCurrent(removing ? null : next);
     startTransition(async () => {
-      const result = removing ? await removeRsvp(eventId) : await rsvpToEvent(eventId, next);
+      const result = removing ? await removeRsvp(dinnerId) : await rsvpToDinner(dinnerId, next);
       if (!result.success) setCurrent(previous);
     });
   };
@@ -106,7 +106,7 @@ function RsvpControls({
       </div>
       {current === "attending" && (
         <PlusOnePopover
-          eventId={eventId}
+          dinnerId={dinnerId}
           initialHasPlusOne={initialHasPlusOne}
           initialPlusOneName={initialPlusOneName}
           disabled={isPending}
@@ -117,17 +117,17 @@ function RsvpControls({
 }
 
 function PlusOnePopover({
-  eventId,
+  dinnerId,
   initialHasPlusOne,
   initialPlusOneName,
   disabled = false,
 }: {
-  eventId: string;
+  dinnerId: string;
   initialHasPlusOne: boolean;
   initialPlusOneName: string | null;
   disabled?: boolean;
 }) {
-  const t = useTranslations("EventsPage");
+  const t = useTranslations("DinnersPage");
   const [open, setOpen] = useState(false);
   const [saving, setSaving] = useState(false);
   // Committed values (what's persisted)
@@ -151,7 +151,7 @@ function PlusOnePopover({
   const save = async () => {
     if (nameMissing) return;
     setSaving(true);
-    const result = await setRsvpPlusOne(eventId, draftHasPlusOne, draftName);
+    const result = await setRsvpPlusOne(dinnerId, draftHasPlusOne, draftName);
     setSaving(false);
     if (result.success) {
       setHasPlusOne(draftHasPlusOne);
@@ -222,7 +222,7 @@ function StarRow({
   value: number;
   onChange: (value: number) => void;
 }) {
-  const t = useTranslations("EventsPage");
+  const t = useTranslations("DinnersPage");
   const [hover, setHover] = useState(0);
   const active = hover || value;
 
@@ -253,8 +253,8 @@ function StarRow({
   );
 }
 
-function RatingControls({ eventId, rating }: { eventId: string; rating: EventRating | null }) {
-  const t = useTranslations("EventsPage");
+function RatingControls({ dinnerId, rating }: { dinnerId: string; rating: DinnerRating | null }) {
+  const t = useTranslations("DinnersPage");
   const [drinks, setDrinks] = useState(rating?.drinks ?? 0);
   const [food, setFood] = useState(rating?.food ?? 0);
   const [venue, setVenue] = useState(rating?.venue ?? 0);
@@ -278,7 +278,7 @@ function RatingControls({ eventId, rating }: { eventId: string; rating: EventRat
   const submit = () => {
     if (!complete || isPending || !changed) return;
     startTransition(async () => {
-      const result = await rateEvent(eventId, { drinks, food, venue });
+      const result = await rateDinner(dinnerId, { drinks, food, venue });
       if (result.success) {
         setCommitted({ drinks, food, venue });
         setJustSaved(true);
@@ -311,41 +311,41 @@ function RatingControls({ eventId, rating }: { eventId: string; rating: EventRat
   );
 }
 
-function EventGridItem({
-  event,
+function DinnerGridItem({
+  dinner,
   dateFnsLocale,
   venueLabel,
   rsvpControls,
   subtitle,
   deadline,
 }: {
-  event: GalleryEvent;
+  dinner: GalleryDinner;
   dateFnsLocale: DateFnsLocale;
-  venueLabel: (event: GalleryEvent) => string;
+  venueLabel: (dinner: GalleryDinner) => string;
   rsvpControls?: React.ReactNode;
   subtitle?: string;
   deadline?: string;
 }) {
-  const hostName = event.hostName;
+  const hostName = dinner.hostName;
   return (
     <li className="border-border border-t py-4 first:border-t-0 first:pt-0 sm:border-t-0 sm:border-l sm:px-6 sm:py-0 sm:[&:nth-child(3n)]:pr-0 sm:[&:nth-child(3n+1)]:border-l-0 sm:[&:nth-child(3n+1)]:pl-0">
       <AttendeesDialog
-        eventId={event.id}
-        eventName={event.name}
-        description={event.description}
+        dinnerId={dinner.id}
+        dinnerName={dinner.name}
+        description={dinner.description}
         rsvpControls={rsvpControls}
         subtitle={subtitle}
-        canNotify={event.canNotify}
-        canManage={event.canManage}
+        canNotify={dinner.canNotify}
+        canManage={dinner.canManage}
         trigger={
           <button type="button" className="group flex w-full flex-col gap-2 text-left">
             <span className="text-muted-foreground text-[10px] tracking-[.24em] uppercase">
-              {formatGridLabel(event.event_date, dateFnsLocale)}
+              {formatGridLabel(dinner.dinner_date, dateFnsLocale)}
             </span>
             <span className="group-hover:text-accent font-serif text-[26px] leading-[1.05] transition-colors">
-              {event.name}
+              {dinner.name}
             </span>
-            <span className="text-muted-foreground text-[11.5px]">{venueLabel(event)}</span>
+            <span className="text-muted-foreground text-[11.5px]">{venueLabel(dinner)}</span>
             {(deadline || hostName) && (
               <span className="text-muted-foreground flex w-full items-center justify-between gap-2 text-[10px] tracking-[.14em] uppercase">
                 <span>{deadline}</span>
@@ -359,32 +359,32 @@ function EventGridItem({
   );
 }
 
-export function EventsGallery({
-  events,
-  hostingEvents = [],
-  pastEvents = [],
+export function DinnersGallery({
+  dinners,
+  hostingDinners = [],
+  pastDinners = [],
 }: {
-  events: GalleryEvent[];
-  hostingEvents?: GalleryEvent[];
-  pastEvents?: GalleryEvent[];
+  dinners: GalleryDinner[];
+  hostingDinners?: GalleryDinner[];
+  pastDinners?: GalleryDinner[];
 }) {
-  const t = useTranslations("EventsPage");
+  const t = useTranslations("DinnersPage");
   const locale = useLocale();
   const dateFnsLocale = DATE_FNS_LOCALES[locale as keyof typeof DATE_FNS_LOCALES] ?? enUS;
 
-  const venueLabel = (event: GalleryEvent) => event.venue?.name ?? t("SecretLocation");
+  const venueLabel = (dinner: GalleryDinner) => dinner.venue?.name ?? t("SecretLocation");
 
-  const [next, ...upcoming] = events;
+  const [next, ...upcoming] = dinners;
 
   return (
     <div className="flex flex-col">
-      {events.length === 0 ? (
+      {dinners.length === 0 ? (
         <p className="text-muted-foreground text-center text-[13px]">{t("Empty")}</p>
       ) : (
         <>
           <section className="border-border flex flex-col items-center gap-6 border-b pb-10 text-center md:pb-[52px]">
             <p className="text-accent text-[9px] tracking-[.36em] uppercase sm:text-[10px] sm:tracking-[.42em]">
-              {t("Eyebrow")} · {formatEyebrowDate(next.event_date, dateFnsLocale)}
+              {t("Eyebrow")} · {formatEyebrowDate(next.dinner_date, dateFnsLocale)}
             </p>
             <h2 className="font-serif text-[44px] leading-[.98] font-light tracking-[-.01em] md:text-[66px]">
               {next.name}
@@ -395,7 +395,7 @@ export function EventsGallery({
               </p>
             )}
             <RsvpControls
-              eventId={next.id}
+              dinnerId={next.id}
               status={next.myRsvpStatus}
               hasPlusOne={next.myHasPlusOne}
               plusOneName={next.myPlusOneName}
@@ -406,7 +406,7 @@ export function EventsGallery({
               </p>
             )}
             <p className="text-muted-foreground flex items-center gap-2 text-[13.5px]">
-              <span className="text-body">{formatDateTime(next.event_date, dateFnsLocale)}</span>
+              <span className="text-body">{formatDateTime(next.dinner_date, dateFnsLocale)}</span>
               <span aria-hidden="true">·</span>
               <span className="text-body">{venueLabel(next)}</span>
               {next.hostName && (
@@ -417,8 +417,8 @@ export function EventsGallery({
               )}
             </p>
             <AttendeesDialog
-              eventId={next.id}
-              eventName={next.name}
+              dinnerId={next.id}
+              dinnerName={next.name}
               canNotify={next.canNotify}
               canManage={next.canManage}
               trigger={
@@ -435,25 +435,25 @@ export function EventsGallery({
           {upcoming.length > 0 && (
             <section className="pt-10 md:pt-[52px]">
               <ul className="grid grid-cols-1 sm:grid-cols-3 sm:gap-y-10">
-                {upcoming.map((event) => (
-                  <EventGridItem
-                    key={event.id}
-                    event={event}
+                {upcoming.map((dinner) => (
+                  <DinnerGridItem
+                    key={dinner.id}
+                    dinner={dinner}
                     dateFnsLocale={dateFnsLocale}
                     venueLabel={venueLabel}
                     deadline={
-                      event.rsvp_deadline && !event.myRsvpStatus
+                      dinner.rsvp_deadline && !dinner.myRsvpStatus
                         ? t("RsvpDeadline", {
-                            date: formatDeadline(event.rsvp_deadline, dateFnsLocale),
+                            date: formatDeadline(dinner.rsvp_deadline, dateFnsLocale),
                           })
                         : undefined
                     }
                     rsvpControls={
                       <RsvpControls
-                        eventId={event.id}
-                        status={event.myRsvpStatus}
-                        hasPlusOne={event.myHasPlusOne}
-                        plusOneName={event.myPlusOneName}
+                        dinnerId={dinner.id}
+                        status={dinner.myRsvpStatus}
+                        hasPlusOne={dinner.myHasPlusOne}
+                        plusOneName={dinner.myPlusOneName}
                       />
                     }
                   />
@@ -464,36 +464,36 @@ export function EventsGallery({
         </>
       )}
 
-      {hostingEvents.length > 0 && (
+      {hostingDinners.length > 0 && (
         <section
           className={cn(
             "border-border pt-10 md:pt-[52px]",
-            events.length > 0 && "mt-10 border-t md:mt-[52px]",
+            dinners.length > 0 && "mt-10 border-t md:mt-[52px]",
           )}
         >
           <h2 className="text-foreground mb-6 text-[12px] font-medium tracking-[.2em] uppercase md:mb-8">
-            {t("YourEventsHeading")}
+            {t("YourDinnersHeading")}
           </h2>
           <ul className="grid grid-cols-1 sm:grid-cols-3 sm:gap-y-10">
-            {hostingEvents.map((event) => (
-              <EventGridItem
-                key={event.id}
-                event={event}
+            {hostingDinners.map((dinner) => (
+              <DinnerGridItem
+                key={dinner.id}
+                dinner={dinner}
                 dateFnsLocale={dateFnsLocale}
                 venueLabel={venueLabel}
                 deadline={
-                  event.rsvp_deadline && !event.myRsvpStatus
+                  dinner.rsvp_deadline && !dinner.myRsvpStatus
                     ? t("RsvpDeadline", {
-                        date: formatDeadline(event.rsvp_deadline, dateFnsLocale),
+                        date: formatDeadline(dinner.rsvp_deadline, dateFnsLocale),
                       })
                     : undefined
                 }
                 rsvpControls={
                   <RsvpControls
-                    eventId={event.id}
-                    status={event.myRsvpStatus}
-                    hasPlusOne={event.myHasPlusOne}
-                    plusOneName={event.myPlusOneName}
+                    dinnerId={dinner.id}
+                    status={dinner.myRsvpStatus}
+                    hasPlusOne={dinner.myHasPlusOne}
+                    plusOneName={dinner.myPlusOneName}
                   />
                 }
               />
@@ -502,29 +502,29 @@ export function EventsGallery({
         </section>
       )}
 
-      {pastEvents.length > 0 && (
+      {pastDinners.length > 0 && (
         <section
           className={cn(
             "border-border pt-10 md:pt-[52px]",
-            (events.length > 0 || hostingEvents.length > 0) && "mt-10 border-t md:mt-[52px]",
+            (dinners.length > 0 || hostingDinners.length > 0) && "mt-10 border-t md:mt-[52px]",
           )}
         >
           <h2 className="text-foreground mb-6 text-[12px] font-medium tracking-[.2em] uppercase md:mb-8">
             {t("PastHeading")}
           </h2>
           <ul className="grid grid-cols-1 sm:grid-cols-3 sm:gap-y-10">
-            {pastEvents.map((event) => {
-              const canRate = event.myRsvpStatus === "attending";
+            {pastDinners.map((dinner) => {
+              const canRate = dinner.myRsvpStatus === "attending";
               return (
-                <EventGridItem
-                  key={event.id}
-                  event={event}
+                <DinnerGridItem
+                  key={dinner.id}
+                  dinner={dinner}
                   dateFnsLocale={dateFnsLocale}
                   venueLabel={venueLabel}
                   subtitle={canRate ? t("RateSubtitle") : undefined}
                   rsvpControls={
                     canRate ? (
-                      <RatingControls eventId={event.id} rating={event.myRating} />
+                      <RatingControls dinnerId={dinner.id} rating={dinner.myRating} />
                     ) : undefined
                   }
                 />

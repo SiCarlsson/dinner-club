@@ -1,6 +1,6 @@
 {
   "Nav": {
-    "Dinners": "Events",
+    "Dinners": "Middagar",
     "Guide": "Guide",
     "Admin": "Admin",
     "Login": "Logga in",
@@ -52,7 +52,7 @@
     },
     "Footer": "Inbjudan krävs för medlemskap."
   },
-  "EventsPage": {
+  "DinnersPage": {
     "Title": "Middagar",
     "Eyebrow": "Nästa middag",
     "SecretLocation": "Hemlig plats",
@@ -60,7 +60,7 @@
     "Decline": "Kan inte",
     "RsvpDeadline": "Anmäl senast {date}",
     "Empty": "Inga kommande middagar än.",
-    "YourEventsHeading": "Dina middagar",
+    "YourDinnersHeading": "Dina middagar",
     "PastHeading": "Tidigare middagar",
     "PlusOne": "+1",
     "PlusOneAria": "Lägg till +1",
@@ -172,11 +172,11 @@
   "AdminPage": {
     "Title": "Admin",
     "Tabs": {
-      "Events": "Middagar",
+      "Dinners": "Middagar",
       "Venues": "Platser",
       "Whitelist": "Inbjudningar"
     },
-    "Events": {
+    "Dinners": {
       "Title": "Middagar",
       "Description": "Se och administrera middagar.",
       "UpcomingHeading": "Kommande middagar",
@@ -186,7 +186,7 @@
       "EditButton": "Redigera",
       "DeleteButton": "Ta bort",
       "DeleteConfirmTitle": "Ta bort middag?",
-      "DeleteConfirm": "Är du säker på att du vill ta bort detta event? Detta går inte att ångra.",
+      "DeleteConfirm": "Är du säker på att du vill ta bort denna middag? Detta går inte att ångra.",
       "CancelButton": "Avbryt",
       "Columns": {
         "Name": "Middag",
