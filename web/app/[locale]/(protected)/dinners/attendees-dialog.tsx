@@ -1,4 +1,4 @@
-// app/[locale]/(protected)/events/attendees-dialog.tsx
+// app/[locale]/(protected)/dinners/attendees-dialog.tsx
 
 "use client";
 
@@ -15,18 +15,18 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ManageEventDialog } from "../admin/new-event-dialog";
-import type { EventRecord, ProfileRecord, VenueRecord } from "../admin/actions";
+import { ManageDinnerDialog } from "../admin/new-dinner-dialog";
+import type { DinnerRecord, ProfileRecord, VenueRecord } from "../admin/actions";
 import {
-  getEventAttendees,
-  getManageableEvent,
-  notifyEventSubscribers,
+  getDinnerAttendees,
+  getManageableDinner,
+  notifyDinnerSubscribers,
   type AttendeeSummary,
 } from "./actions";
 
 export function AttendeesDialog({
-  eventId,
-  eventName,
+  dinnerId,
+  dinnerName,
   trigger,
   description,
   rsvpControls,
@@ -34,8 +34,8 @@ export function AttendeesDialog({
   canNotify = false,
   canManage = false,
 }: {
-  eventId: string;
-  eventName: string;
+  dinnerId: string;
+  dinnerName: string;
   trigger: React.ReactElement;
   description?: string | null;
   rsvpControls?: React.ReactNode;
@@ -43,14 +43,14 @@ export function AttendeesDialog({
   canNotify?: boolean;
   canManage?: boolean;
 }) {
-  const t = useTranslations("EventsPage");
+  const t = useTranslations("DinnersPage");
   const tDiet = useTranslations("ProfilePage.Diet");
   const [open, setOpen] = useState(false);
   const [state, setState] = useState<"loading" | "loaded" | "error">("loading");
   const [summary, setSummary] = useState<AttendeeSummary | null>(null);
   const [notifyState, setNotifyState] = useState<"idle" | "sending" | "sent" | "error">("idle");
   const [manageData, setManageData] = useState<{
-    event: EventRecord;
+    dinner: DinnerRecord;
     venues: VenueRecord[];
     profiles: ProfileRecord[];
   } | null>(null);
@@ -58,7 +58,7 @@ export function AttendeesDialog({
   const handleNotify = async () => {
     setNotifyState("sending");
     try {
-      const result = await notifyEventSubscribers(eventId);
+      const result = await notifyDinnerSubscribers(dinnerId);
       setNotifyState(result.success ? "sent" : "error");
     } catch {
       setNotifyState("error");
@@ -76,7 +76,7 @@ export function AttendeesDialog({
     if (!open) return;
 
     let active = true;
-    getEventAttendees(eventId).then((result) => {
+    getDinnerAttendees(dinnerId).then((result) => {
       if (!active) return;
       if (result.success) {
         setSummary(result.summary);
@@ -87,11 +87,11 @@ export function AttendeesDialog({
     });
 
     if (canManage) {
-      getManageableEvent(eventId).then((result) => {
+      getManageableDinner(dinnerId).then((result) => {
         if (!active) return;
         if (result.success) {
           setManageData({
-            event: result.event,
+            dinner: result.dinner,
             venues: result.venues,
             profiles: result.profiles,
           });
@@ -102,7 +102,7 @@ export function AttendeesDialog({
     return () => {
       active = false;
     };
-  }, [open, eventId, canManage]);
+  }, [open, dinnerId, canManage]);
 
   const onOpenChange = (next: boolean) => {
     if (next) {
@@ -119,7 +119,7 @@ export function AttendeesDialog({
       <DialogTrigger render={trigger} />
       <DialogContent className={cn(FLOATING_SURFACE, DIALOG_CONTENT)}>
         <DialogHeader>
-          <DialogTitle className="font-serif text-[20px] font-normal">{eventName}</DialogTitle>
+          <DialogTitle className="font-serif text-[20px] font-normal">{dinnerName}</DialogTitle>
           <DialogDescription className="text-[13px]">
             {subtitle ?? t("AttendeesSubtitle")}
           </DialogDescription>
@@ -130,10 +130,10 @@ export function AttendeesDialog({
         {rsvpControls && <div className="flex justify-center">{rsvpControls}</div>}
 
         {canManage && manageData && (
-          <ManageEventDialog
+          <ManageDinnerDialog
             venues={manageData.venues}
             profiles={manageData.profiles}
-            event={manageData.event}
+            dinner={manageData.dinner}
             trigger={
               <Button
                 type="button"

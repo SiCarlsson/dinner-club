@@ -2,37 +2,44 @@
 
 import { expect, test } from "@playwright/test";
 import { MEMBER_EMAIL, MEMBER_STATE } from "./helpers/auth";
-import { deleteEvent, deleteVenue, ensureUser, seedEvent, seedRsvp, seedVenue } from "./helpers/db";
+import {
+  deleteDinner,
+  deleteVenue,
+  ensureUser,
+  seedDinner,
+  seedRsvp,
+  seedVenue,
+} from "./helpers/db";
 
 test.use({ storageState: MEMBER_STATE });
 
 const stamp = Date.now();
 const venueName = `E2E Venue ${stamp}`;
-const eventName = `E2E Past Dinner ${stamp}`;
+const dinnerName = `E2E Past Dinner ${stamp}`;
 let venueId: string;
-let eventId: string;
+let dinnerId: string;
 
 test.beforeAll(async () => {
   const memberId = await ensureUser(MEMBER_EMAIL, "member");
   venueId = await seedVenue(venueName);
-  eventId = await seedEvent({
-    name: eventName,
+  dinnerId = await seedDinner({
+    name: dinnerName,
     venueId,
     visibility: "published",
-    eventDate: new Date(Date.now() - 24 * 3600 * 1000), // yesterday → rateable
+    dinnerDate: new Date(Date.now() - 24 * 3600 * 1000), // yesterday → rateable
   });
-  await seedRsvp(eventId, memberId, "attending"); // attendance is required to rate
+  await seedRsvp(dinnerId, memberId, "attending"); // attendance is required to rate
 });
 
 test.afterAll(async () => {
-  await deleteEvent(eventId); // cascades to the rating/rsvp
+  await deleteDinner(dinnerId); // cascades to the rating/rsvp
   await deleteVenue(venueId);
 });
 
 test("rating a past dinner surfaces the venue in the guide", async ({ page }) => {
-  await page.goto("/en/events");
+  await page.goto("/en/dinners");
 
-  await page.getByRole("button", { name: new RegExp(eventName) }).click();
+  await page.getByRole("button", { name: new RegExp(dinnerName) }).click();
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
 

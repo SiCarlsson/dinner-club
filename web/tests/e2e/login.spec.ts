@@ -27,6 +27,6 @@ test("an uninvited email is told they are not a member", async ({ page }) => {
 });
 
 test("a protected route redirects a logged-out visitor to login", async ({ page }) => {
-  await page.goto("/en/events");
+  await page.goto("/en/dinners");
   await expect(page).toHaveURL(/\/login/);
 });

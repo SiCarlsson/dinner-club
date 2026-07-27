@@ -106,41 +106,41 @@ export async function seedVenue(name: string): Promise<string> {
   return id;
 }
 
-export async function seedEvent(opts: {
+export async function seedDinner(opts: {
   name: string;
   venueId?: string;
   visibility?: "published" | "unpublished";
-  eventDate?: Date;
+  dinnerDate?: Date;
 }): Promise<string> {
-  const eventDate = opts.eventDate ?? new Date(Date.now() + 24 * 3600 * 1000);
+  const dinnerDate = opts.dinnerDate ?? new Date(Date.now() + 24 * 3600 * 1000);
   const [{ id }] = await sql<{ id: string }>(
-    `INSERT INTO public.events (name, venue_id, visibility, event_date, rsvp_deadline)
+    `INSERT INTO public.dinners (name, venue_id, visibility, dinner_date, rsvp_deadline)
      VALUES ($1, $2, $3, $4, $5) RETURNING id`,
     [
       opts.name,
       opts.venueId ?? null,
       opts.visibility ?? "published",
-      eventDate.toISOString(),
-      eventDate.toISOString(),
+      dinnerDate.toISOString(),
+      dinnerDate.toISOString(),
     ],
   );
   return id;
 }
 
 export async function seedRsvp(
-  eventId: string,
+  dinnerId: string,
   userId: string,
   status = "attending",
 ): Promise<void> {
   await sql(
-    `INSERT INTO public.rsvps (event_id, user_id, status) VALUES ($1, $2, $3)
-     ON CONFLICT (event_id, user_id) DO UPDATE SET status = EXCLUDED.status`,
-    [eventId, userId, status],
+    `INSERT INTO public.rsvps (dinner_id, user_id, status) VALUES ($1, $2, $3)
+     ON CONFLICT (dinner_id, user_id) DO UPDATE SET status = EXCLUDED.status`,
+    [dinnerId, userId, status],
   );
 }
 
-export async function deleteEvent(eventId: string): Promise<void> {
-  await sql("DELETE FROM public.events WHERE id = $1", [eventId]);
+export async function deleteDinner(dinnerId: string): Promise<void> {
+  await sql("DELETE FROM public.dinners WHERE id = $1", [dinnerId]);
 }
 
 export async function clearPushSubscriptions(): Promise<void> {

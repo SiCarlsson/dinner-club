@@ -54,7 +54,7 @@ export function VenueDialog({
   const [form, setForm] = useState(initialForm);
   const [status, setStatus] = useState<"idle" | "saving" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
-  const t = useTranslations("AdminPage.Events.Dialog.NewVenue");
+  const t = useTranslations("AdminPage.Dinners.Dialog.NewVenue");
 
   const resetAndClose = () => {
     setForm(initialForm);
@@ -210,7 +210,7 @@ export function VenueDialog({
 }
 
 export function NewVenueDialog({ onCreated }: { onCreated: (venue: VenueRecord) => void }) {
-  const t = useTranslations("AdminPage.Events.Dialog.NewVenue");
+  const t = useTranslations("AdminPage.Dinners.Dialog.NewVenue");
 
   return (
     <VenueDialog

@@ -1,33 +1,33 @@
-// app/[locale]/(protected)/events/actions.ts
+// app/[locale]/(protected)/dinners/actions.ts
 
 "use server";
 
 import { revalidatePath } from "next/cache";
 import { getCurrentUser } from "@/utils/supabase/auth";
 import { sendPushToAllSubscribers } from "@/lib/push-server";
-import type { EventRecord, ProfileRecord, VenueRecord } from "../admin/actions";
+import type { DinnerRecord, ProfileRecord, VenueRecord } from "../admin/actions";
 
 export type RsvpStatus = "attending" | "declined";
 
-export type EventRating = { drinks: number; food: number; venue: number };
+export type DinnerRating = { drinks: number; food: number; venue: number };
 
-export type GalleryEvent = {
+export type GalleryDinner = {
   id: string;
   name: string;
-  event_date: string;
+  dinner_date: string;
   rsvp_deadline: string | null;
   description: string | null;
   venue: { id: string; name: string; address: string | null; district: string | null } | null;
   myRsvpStatus: RsvpStatus | null;
   myHasPlusOne: boolean;
   myPlusOneName: string | null;
-  myRating: EventRating | null;
+  myRating: DinnerRating | null;
   canNotify: boolean;
   canManage: boolean;
   hostName: string | null;
 };
 
-export async function getUpcomingEvents() {
+export async function getUpcomingDinners() {
   const { supabase, user } = await getCurrentUser();
 
   if (!user) {
@@ -35,24 +35,24 @@ export async function getUpcomingEvents() {
   }
 
   const { data, error } = await supabase
-    .from("events")
+    .from("dinners")
     .select(
-      "id, name, event_date, rsvp_deadline, description, host_id, venue:venues(id, name, address, district)",
+      "id, name, dinner_date, rsvp_deadline, description, host_id, venue:venues(id, name, address, district)",
     )
     .eq("visibility", "published")
-    .gte("event_date", new Date().toISOString())
-    .order("event_date", { ascending: true })
+    .gte("dinner_date", new Date().toISOString())
+    .order("dinner_date", { ascending: true })
     .limit(4); // The gallery shows a hero dinner plus the next three in the grid.
 
   if (error) {
     return { success: false as const, message: error.message };
   }
 
-  type RawEvent = Omit<
-    GalleryEvent,
+  type RawDinner = Omit<
+    GalleryDinner,
     "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName" | "myRating" | "canNotify" | "canManage"
   > & { host_id: string | null };
-  const events = data as unknown as RawEvent[];
+  const dinners = data as unknown as RawDinner[];
 
   const { data: profile } = await supabase
     .from("profiles")
@@ -64,26 +64,26 @@ export async function getUpcomingEvents() {
 
   const { data: rsvps } = await supabase
     .from("rsvps")
-    .select("event_id, status, has_plus_one, plus_one_name")
+    .select("dinner_id, status, has_plus_one, plus_one_name")
     .eq("user_id", user.id)
     .in(
-      "event_id",
-      events.map((event) => event.id),
+      "dinner_id",
+      dinners.map((dinner) => dinner.id),
     );
 
-  const rsvpByEvent = new Map((rsvps ?? []).map((rsvp) => [rsvp.event_id, rsvp]));
+  const rsvpByDinner = new Map((rsvps ?? []).map((rsvp) => [rsvp.dinner_id, rsvp]));
 
-  const hostIds = [...new Set(events.map((event) => event.host_id).filter(Boolean))];
+  const hostIds = [...new Set(dinners.map((dinner) => dinner.host_id).filter(Boolean))];
   const { data: hosts } = hostIds.length
     ? await supabase.from("profiles").select("id, full_name").in("id", hostIds)
     : { data: [] };
   const hostNameById = new Map((hosts ?? []).map((host) => [host.id, host.full_name]));
 
-  const eventsWithRsvp: GalleryEvent[] = events.map(({ host_id, ...event }) => {
-    const rsvp = rsvpByEvent.get(event.id);
+  const dinnersWithRsvp: GalleryDinner[] = dinners.map(({ host_id, ...dinner }) => {
+    const rsvp = rsvpByDinner.get(dinner.id);
     const isHost = isAdmin || host_id === user.id;
     return {
-      ...event,
+      ...dinner,
       myRsvpStatus: (rsvp?.status as RsvpStatus | undefined) ?? null,
       myHasPlusOne: rsvp?.has_plus_one ?? false,
       myPlusOneName: rsvp?.plus_one_name ?? null,
@@ -94,10 +94,10 @@ export async function getUpcomingEvents() {
     };
   });
 
-  return { success: true as const, events: eventsWithRsvp };
+  return { success: true as const, dinners: dinnersWithRsvp };
 }
 
-export async function getPastEvents() {
+export async function getPastDinners() {
   const { supabase, user } = await getCurrentUser();
 
   if (!user) {
@@ -105,61 +105,61 @@ export async function getPastEvents() {
   }
 
   const { data, error } = await supabase
-    .from("events")
+    .from("dinners")
     .select(
-      "id, name, event_date, rsvp_deadline, description, venue:venues(id, name, address, district)",
+      "id, name, dinner_date, rsvp_deadline, description, venue:venues(id, name, address, district)",
     )
     .eq("visibility", "published")
-    .lt("event_date", new Date().toISOString())
-    .order("event_date", { ascending: false });
+    .lt("dinner_date", new Date().toISOString())
+    .order("dinner_date", { ascending: false });
 
   if (error) {
     return { success: false as const, message: error.message };
   }
 
-  const events = data as unknown as Omit<
-    GalleryEvent,
+  const dinners = data as unknown as Omit<
+    GalleryDinner,
     "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName" | "myRating" | "canManage"
   >[];
 
-  const eventIds = events.map((event) => event.id);
+  const dinnerIds = dinners.map((dinner) => dinner.id);
 
   const [{ data: rsvps }, { data: ratings }] = await Promise.all([
     supabase
       .from("rsvps")
-      .select("event_id, status")
+      .select("dinner_id, status")
       .eq("user_id", user.id)
-      .in("event_id", eventIds),
+      .in("dinner_id", dinnerIds),
     supabase
       .from("ratings")
-      .select("event_id, drinks_rating, food_rating, venue_rating")
+      .select("dinner_id, drinks_rating, food_rating, venue_rating")
       .eq("user_id", user.id)
-      .in("event_id", eventIds),
+      .in("dinner_id", dinnerIds),
   ]);
 
-  const statusByEvent = new Map((rsvps ?? []).map((rsvp) => [rsvp.event_id, rsvp.status]));
-  const ratingByEvent = new Map((ratings ?? []).map((rating) => [rating.event_id, rating]));
+  const statusByDinner = new Map((rsvps ?? []).map((rsvp) => [rsvp.dinner_id, rsvp.status]));
+  const ratingByDinner = new Map((ratings ?? []).map((rating) => [rating.dinner_id, rating]));
 
-  const pastEvents: GalleryEvent[] = events.map((event) => {
-    const rating = ratingByEvent.get(event.id);
+  const pastDinners: GalleryDinner[] = dinners.map((dinner) => {
+    const rating = ratingByDinner.get(dinner.id);
     return {
-      ...event,
-      myRsvpStatus: (statusByEvent.get(event.id) as RsvpStatus | undefined) ?? null,
+      ...dinner,
+      myRsvpStatus: (statusByDinner.get(dinner.id) as RsvpStatus | undefined) ?? null,
       myHasPlusOne: false,
       myPlusOneName: null,
       myRating: rating
         ? { drinks: rating.drinks_rating, food: rating.food_rating, venue: rating.venue_rating }
         : null,
-      canNotify: false, // past events aren't announced
+      canNotify: false, // past dinners aren't announced
       canManage: false, // and aren't edited from the gallery
       hostName: null,
     };
   });
 
-  return { success: true as const, events: pastEvents };
+  return { success: true as const, dinners: pastDinners };
 }
 
-export async function getHostingEvents() {
+export async function getHostingDinners() {
   const { supabase, user } = await getCurrentUser();
 
   if (!user) {
@@ -167,38 +167,38 @@ export async function getHostingEvents() {
   }
 
   const { data, error } = await supabase
-    .from("events")
+    .from("dinners")
     .select(
-      "id, name, event_date, rsvp_deadline, description, venue:venues(id, name, address, district)",
+      "id, name, dinner_date, rsvp_deadline, description, venue:venues(id, name, address, district)",
     )
     .eq("host_id", user.id)
-    .gte("event_date", new Date().toISOString())
-    .order("event_date", { ascending: true });
+    .gte("dinner_date", new Date().toISOString())
+    .order("dinner_date", { ascending: true });
 
   if (error) {
     return { success: false as const, message: error.message };
   }
 
-  const events = data as unknown as Omit<
-    GalleryEvent,
+  const dinners = data as unknown as Omit<
+    GalleryDinner,
     "myRsvpStatus" | "myHasPlusOne" | "myPlusOneName" | "myRating" | "canNotify" | "canManage"
   >[];
 
   const { data: rsvps } = await supabase
     .from("rsvps")
-    .select("event_id, status, has_plus_one, plus_one_name")
+    .select("dinner_id, status, has_plus_one, plus_one_name")
     .eq("user_id", user.id)
     .in(
-      "event_id",
-      events.map((event) => event.id),
+      "dinner_id",
+      dinners.map((dinner) => dinner.id),
     );
 
-  const rsvpByEvent = new Map((rsvps ?? []).map((rsvp) => [rsvp.event_id, rsvp]));
+  const rsvpByDinner = new Map((rsvps ?? []).map((rsvp) => [rsvp.dinner_id, rsvp]));
 
-  const hostingEvents: GalleryEvent[] = events.map((event) => {
-    const rsvp = rsvpByEvent.get(event.id);
+  const hostingDinners: GalleryDinner[] = dinners.map((dinner) => {
+    const rsvp = rsvpByDinner.get(dinner.id);
     return {
-      ...event,
+      ...dinner,
       myRsvpStatus: (rsvp?.status as RsvpStatus | undefined) ?? null,
       myHasPlusOne: rsvp?.has_plus_one ?? false,
       myPlusOneName: rsvp?.plus_one_name ?? null,
@@ -209,28 +209,28 @@ export async function getHostingEvents() {
     };
   });
 
-  return { success: true as const, events: hostingEvents };
+  return { success: true as const, dinners: hostingDinners };
 }
 
 const MANAGE_VENUE_COLUMNS = "id, name, address, city, district, latitude, longitude";
 
-export async function getManageableEvent(eventId: string) {
+export async function getManageableDinner(dinnerId: string) {
   const { supabase, user } = await getCurrentUser();
 
   if (!user) {
     return { success: false as const, message: "Not authenticated" };
   }
 
-  const { data: event, error } = await supabase
-    .from("events")
+  const { data: dinner, error } = await supabase
+    .from("dinners")
     .select(
-      "id, name, event_date, rsvp_deadline, description, visibility, host_id, venue:venues(id, name)",
+      "id, name, dinner_date, rsvp_deadline, description, visibility, host_id, venue:venues(id, name)",
     )
-    .eq("id", eventId)
+    .eq("id", dinnerId)
     .single();
 
-  if (error || !event) {
-    return { success: false as const, message: "Event not found" };
+  if (error || !dinner) {
+    return { success: false as const, message: "Dinner not found" };
   }
 
   const { data: profile } = await supabase
@@ -240,7 +240,7 @@ export async function getManageableEvent(eventId: string) {
     .single();
 
   const isAdmin = profile?.role === "admin";
-  const isHost = event.host_id === user.id;
+  const isHost = dinner.host_id === user.id;
 
   if (!isAdmin && !isHost) {
     return { success: false as const, message: "Not authorized" };
@@ -249,11 +249,11 @@ export async function getManageableEvent(eventId: string) {
   const { data: venues } = await supabase.from("venues").select(MANAGE_VENUE_COLUMNS).order("name");
 
   let profiles: ProfileRecord[] = [];
-  if (event.host_id) {
+  if (dinner.host_id) {
     const { data: host } = await supabase
       .from("profiles")
       .select("id, full_name")
-      .eq("id", event.host_id)
+      .eq("id", dinner.host_id)
       .single();
     if (host) {
       profiles = [host as ProfileRecord];
@@ -262,13 +262,13 @@ export async function getManageableEvent(eventId: string) {
 
   return {
     success: true as const,
-    event: event as unknown as EventRecord,
+    dinner: dinner as unknown as DinnerRecord,
     venues: (venues ?? []) as VenueRecord[],
     profiles,
   };
 }
 
-export async function rsvpToEvent(eventId: string, status: RsvpStatus) {
+export async function rsvpToDinner(dinnerId: string, status: RsvpStatus) {
   const { supabase, user } = await getCurrentUser();
 
   if (!user) {
@@ -277,23 +277,23 @@ export async function rsvpToEvent(eventId: string, status: RsvpStatus) {
 
   const { error } = await supabase.from("rsvps").upsert(
     {
-      event_id: eventId,
+      dinner_id: dinnerId,
       user_id: user.id,
       status,
       updated_at: new Date().toISOString(),
     },
-    { onConflict: "event_id,user_id" },
+    { onConflict: "dinner_id,user_id" },
   );
 
   if (error) {
     return { success: false as const, message: error.message };
   }
 
-  revalidatePath("/events");
+  revalidatePath("/dinners");
   return { success: true as const, message: "RSVP saved" };
 }
 
-export async function removeRsvp(eventId: string) {
+export async function removeRsvp(dinnerId: string) {
   const { supabase, user } = await getCurrentUser();
 
   if (!user) {
@@ -303,18 +303,18 @@ export async function removeRsvp(eventId: string) {
   const { error } = await supabase
     .from("rsvps")
     .delete()
-    .eq("event_id", eventId)
+    .eq("dinner_id", dinnerId)
     .eq("user_id", user.id);
 
   if (error) {
     return { success: false as const, message: error.message };
   }
 
-  revalidatePath("/events");
+  revalidatePath("/dinners");
   return { success: true as const, message: "RSVP removed" };
 }
 
-export async function setRsvpPlusOne(eventId: string, hasPlusOne: boolean, plusOneName: string) {
+export async function setRsvpPlusOne(dinnerId: string, hasPlusOne: boolean, plusOneName: string) {
   const { supabase, user } = await getCurrentUser();
 
   if (!user) {
@@ -329,24 +329,24 @@ export async function setRsvpPlusOne(eventId: string, hasPlusOne: boolean, plusO
 
   const { error } = await supabase.from("rsvps").upsert(
     {
-      event_id: eventId,
+      dinner_id: dinnerId,
       user_id: user.id,
       has_plus_one: hasPlusOne,
       plus_one_name: hasPlusOne ? trimmedName : null,
       updated_at: new Date().toISOString(),
     },
-    { onConflict: "event_id,user_id" },
+    { onConflict: "dinner_id,user_id" },
   );
 
   if (error) {
     return { success: false as const, message: error.message };
   }
 
-  revalidatePath("/events");
+  revalidatePath("/dinners");
   return { success: true as const, message: "Plus-one saved" };
 }
 
-export async function rateEvent(eventId: string, rating: EventRating) {
+export async function rateDinner(dinnerId: string, rating: DinnerRating) {
   const { supabase, user } = await getCurrentUser();
 
   if (!user) {
@@ -355,21 +355,21 @@ export async function rateEvent(eventId: string, rating: EventRating) {
 
   const { error } = await supabase.from("ratings").upsert(
     {
-      event_id: eventId,
+      dinner_id: dinnerId,
       user_id: user.id,
       drinks_rating: rating.drinks,
       food_rating: rating.food,
       venue_rating: rating.venue,
       updated_at: new Date().toISOString(),
     },
-    { onConflict: "event_id,user_id" },
+    { onConflict: "dinner_id,user_id" },
   );
 
   if (error) {
     return { success: false as const, message: error.message };
   }
 
-  revalidatePath("/events");
+  revalidatePath("/dinners");
   return { success: true as const, message: "Rating saved" };
 }
 
@@ -381,7 +381,7 @@ export type AttendeeSummary = {
   dietary: { option: string; count: number }[];
 };
 
-export async function getEventAttendees(eventId: string) {
+export async function getDinnerAttendees(dinnerId: string) {
   const { supabase, user } = await getCurrentUser();
 
   if (!user) {
@@ -391,7 +391,7 @@ export async function getEventAttendees(eventId: string) {
   const { data: rsvps, error } = await supabase
     .from("rsvps")
     .select("user_id, has_plus_one, plus_one_name")
-    .eq("event_id", eventId)
+    .eq("dinner_id", dinnerId)
     .eq("status", "attending");
 
   if (error) {
@@ -458,23 +458,23 @@ function formatNotificationBody(dateString: string) {
   return `${day} · ${time}`;
 }
 
-export async function notifyEventSubscribers(eventId: string) {
+export async function notifyDinnerSubscribers(dinnerId: string) {
   const { supabase, user } = await getCurrentUser();
 
   if (!user) {
     return { success: false as const, message: "Not authenticated" };
   }
 
-  // RLS lets members read published events; the explicit role/host check
+  // RLS lets members read published dinners; the explicit role/host check
   // below is the real gate on who may send.
-  const { data: event, error } = await supabase
-    .from("events")
-    .select("id, name, event_date, host_id")
-    .eq("id", eventId)
+  const { data: dinner, error } = await supabase
+    .from("dinners")
+    .select("id, name, dinner_date, host_id")
+    .eq("id", dinnerId)
     .single();
 
-  if (error || !event) {
-    return { success: false as const, message: "Event not found" };
+  if (error || !dinner) {
+    return { success: false as const, message: "Dinner not found" };
   }
 
   const { data: profile } = await supabase
@@ -484,17 +484,17 @@ export async function notifyEventSubscribers(eventId: string) {
     .single();
 
   const isAdmin = profile?.role === "admin";
-  const isHost = event.host_id === user.id;
+  const isHost = dinner.host_id === user.id;
 
   if (!isAdmin && !isHost) {
     return { success: false as const, message: "Not authorized" };
   }
 
   const result = await sendPushToAllSubscribers({
-    title: event.name,
-    body: formatNotificationBody(event.event_date),
-    url: "/events",
-    tag: `event-${event.id}`,
+    title: dinner.name,
+    body: formatNotificationBody(dinner.dinner_date),
+    url: "/dinners",
+    tag: `dinner-${dinner.id}`,
   });
 
   if (!result.success) {

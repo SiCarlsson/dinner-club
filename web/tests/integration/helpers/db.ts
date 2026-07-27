@@ -130,10 +130,10 @@ export async function seedVenue(overrides: Record<string, unknown> = {}): Promis
   return id;
 }
 
-export async function seedEvent(overrides: Record<string, unknown> = {}): Promise<string> {
+export async function seedDinner(overrides: Record<string, unknown> = {}): Promise<string> {
   const row = {
-    name: `Event ${counter++}`,
-    event_date: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
+    name: `Dinner ${counter++}`,
+    dinner_date: new Date(Date.now() + 7 * 24 * 3600 * 1000).toISOString(),
     rsvp_deadline: new Date(Date.now() + 6 * 24 * 3600 * 1000).toISOString(),
     visibility: "unpublished",
     ...overrides,
@@ -141,19 +141,19 @@ export async function seedEvent(overrides: Record<string, unknown> = {}): Promis
   const cols = Object.keys(row);
   const placeholders = cols.map((_, i) => `$${i + 1}`);
   const [{ id }] = await sql<{ id: string }>(
-    `INSERT INTO public.events (${cols.join(", ")}) VALUES (${placeholders.join(", ")}) RETURNING id`,
+    `INSERT INTO public.dinners (${cols.join(", ")}) VALUES (${placeholders.join(", ")}) RETURNING id`,
     Object.values(row),
   );
   return id;
 }
 
 export async function seedRsvp(
-  eventId: string,
+  dinnerId: string,
   userId: string,
   status = "attending",
 ): Promise<void> {
-  await sql("INSERT INTO public.rsvps (event_id, user_id, status) VALUES ($1, $2, $3)", [
-    eventId,
+  await sql("INSERT INTO public.rsvps (dinner_id, user_id, status) VALUES ($1, $2, $3)", [
+    dinnerId,
     userId,
     status,
   ]);
@@ -186,7 +186,7 @@ export async function countRows(table: string, column: string, value: string): P
 
 export async function resetDb(): Promise<void> {
   await sql(
-    "TRUNCATE public.ratings, public.rsvps, public.events, public.venues, public.invitations RESTART IDENTITY CASCADE",
+    "TRUNCATE public.ratings, public.rsvps, public.dinners, public.venues, public.invitations RESTART IDENTITY CASCADE",
   );
   await sql("DELETE FROM auth.users");
 }

@@ -11,9 +11,9 @@ values
   ('a0000000-0000-0000-0000-000000000006', 'Rolfs Kök',    'Tegnérgatan 41',     'Norrmalm',   'Stockholm', 59.3407, 18.0561)
 on conflict (id) do nothing;
 
--- Event dates are relative to now() so the seed always has a realistic spread of
+-- Dinner dates are relative to now() so the seed always has a realistic spread of
 -- upcoming and past dinners no matter when `supabase db reset` runs
-insert into public.events (id, name, description, venue_id, event_date, rsvp_deadline, visibility)
+insert into public.dinners (id, name, description, venue_id, dinner_date, rsvp_deadline, visibility)
 values
   (
     'b0000000-0000-0000-0000-000000000001',
@@ -156,10 +156,10 @@ from (
 ) as v(id, full_name, role, dietary_restrictions)
 where p.id = v.id;
 
--- RSVPs: every event has several attendees, with a mix of members bringing a named
+-- RSVPs: every dinner has several attendees, with a mix of members bringing a named
 -- +1 and members coming solo (plus a few declined to exercise the status
 -- filter)
-insert into public.rsvps (event_id, user_id, status, has_plus_one, plus_one_name)
+insert into public.rsvps (dinner_id, user_id, status, has_plus_one, plus_one_name)
 values
   -- First Dinner of Autumn
   ('b0000000-0000-0000-0000-000000000001', 'c0000000-0000-0000-0000-000000000001', 'attending', true,  'Oskar Lundgren'),
@@ -237,10 +237,10 @@ values
   ('b0000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-000000000006', 'attending', false, null),
   ('b0000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-000000000007', 'attending', false, null),
   ('b0000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-000000000008', 'attending', false, null)
-on conflict (event_id, user_id) do nothing;
+on conflict (dinner_id, user_id) do nothing;
 
 -- Ratings for the four past dinners
-insert into public.ratings (event_id, user_id, drinks_rating, food_rating, venue_rating)
+insert into public.ratings (dinner_id, user_id, drinks_rating, food_rating, venue_rating)
 values
   -- Midwinter Supper → Pelikan
   ('b0000000-0000-0000-0000-000000000007', 'c0000000-0000-0000-0000-000000000001', 4, 4, 4),
@@ -271,7 +271,7 @@ values
   ('b0000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-000000000006', 3, 3, 4),
   ('b0000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-000000000007', 4, 4, 3),
   ('b0000000-0000-0000-0000-00000000000a', 'c0000000-0000-0000-0000-000000000008', 3, 4, 4)
-on conflict (event_id, user_id) do nothing;
+on conflict (dinner_id, user_id) do nothing;
 
 -- Whitelist the guest emails before their auth.users rows (see note above the members).
 insert into public.invitations (email)
@@ -313,7 +313,7 @@ update public.profiles as p set
 from generate_series(1, 22) as n
 where p.id = ('d0000000-0000-0000-0000-00000000' || lpad(n::text, 4, '0'))::uuid;
 
-insert into public.rsvps (event_id, user_id, status, has_plus_one, plus_one_name)
+insert into public.rsvps (dinner_id, user_id, status, has_plus_one, plus_one_name)
 select
   'b0000000-0000-0000-0000-000000000003',
   ('d0000000-0000-0000-0000-00000000' || lpad(n::text, 4, '0'))::uuid,
@@ -321,7 +321,7 @@ select
   (n % 6 = 0),
   case when n % 6 = 0 then 'Sällskap ' || n else null end
 from generate_series(1, 22) as n
-on conflict (event_id, user_id) do nothing;
+on conflict (dinner_id, user_id) do nothing;
 
 -- Auth wiring for every seeded account
 insert into auth.identities (id, provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)

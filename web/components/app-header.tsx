@@ -40,7 +40,7 @@ export async function AppHeader() {
               </Link>
             )}
             <Link
-              href="/events"
+              href="/dinners"
               className="text-muted-foreground hover:text-foreground hidden text-[12px] tracking-[.06em] uppercase transition-colors sm:inline-flex"
             >
               {t("Dinners")}

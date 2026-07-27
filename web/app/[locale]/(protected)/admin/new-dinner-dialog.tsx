@@ -1,4 +1,4 @@
-// app/[locale]/(protected)/admin/new-event-dialog.tsx
+// app/[locale]/(protected)/admin/new-dinner-dialog.tsx
 
 "use client";
 
@@ -26,9 +26,9 @@ import {
 } from "@/lib/form-styles";
 import { useLocale, useTranslations } from "next-intl";
 import {
-  createEvent,
-  updateEvent,
-  type EventRecord,
+  createDinner,
+  updateDinner,
+  type DinnerRecord,
   type ProfileRecord,
   type VenueRecord,
 } from "./actions";
@@ -80,17 +80,17 @@ const EMPTY_FORM: FormState = {
   published: false,
 };
 
-function formFromEvent(event: EventRecord): FormState {
-  const eventDate = new Date(event.event_date);
+function formFromDinner(dinner: DinnerRecord): FormState {
+  const dinnerDate = new Date(dinner.dinner_date);
   return {
-    name: event.name,
-    date: eventDate,
-    time: format(eventDate, "HH:mm"),
-    rsvpDeadline: event.rsvp_deadline ? new Date(event.rsvp_deadline) : undefined,
-    venueId: event.venue?.id ?? "",
-    hostId: event.host_id ?? "",
-    description: event.description ?? "",
-    published: event.visibility === "published",
+    name: dinner.name,
+    date: dinnerDate,
+    time: format(dinnerDate, "HH:mm"),
+    rsvpDeadline: dinner.rsvp_deadline ? new Date(dinner.rsvp_deadline) : undefined,
+    venueId: dinner.venue?.id ?? "",
+    hostId: dinner.host_id ?? "",
+    description: dinner.description ?? "",
+    published: dinner.visibility === "published",
   };
 }
 
@@ -100,10 +100,10 @@ function endOfDay(date: Date) {
   return deadline;
 }
 
-function EventDialog({
+function DinnerDialog({
   venues: initialVenues,
   profiles = [],
-  event,
+  dinner,
   trigger,
   showHostField = true,
   hostReadOnly = false,
@@ -111,7 +111,7 @@ function EventDialog({
 }: {
   venues: VenueRecord[];
   profiles?: ProfileRecord[];
-  event?: EventRecord;
+  dinner?: DinnerRecord;
   trigger: React.ReactElement;
   showHostField?: boolean;
   // When read-only, the host is shown pre-filled but cannot be changed —
@@ -119,7 +119,7 @@ function EventDialog({
   hostReadOnly?: boolean;
   showAddVenue?: boolean;
 }) {
-  const initialForm = event ? formFromEvent(event) : EMPTY_FORM;
+  const initialForm = dinner ? formFromDinner(dinner) : EMPTY_FORM;
   const [open, setOpen] = useState(false);
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [deadlinePickerOpen, setDeadlinePickerOpen] = useState(false);
@@ -130,24 +130,24 @@ function EventDialog({
   const router = useRouter();
   const locale = useLocale();
   const dateFnsLocale = DATE_FNS_LOCALES[locale as keyof typeof DATE_FNS_LOCALES] ?? enUS;
-  const t = useTranslations("AdminPage.Events.Dialog");
+  const t = useTranslations("AdminPage.Dinners.Dialog");
 
   // `form` is seeded from `initialForm` on mount, but this component instance is
-  // reused across edits (e.g. after a save + router.refresh() updates `event`).
+  // reused across edits (e.g. after a save + router.refresh() updates `dinner`).
   // Reseeding on open ensures the dialog always reflects the latest persisted
   // values rather than the state left over from the previous edit.
-  const syncFormFromEvent = () => {
+  const syncFormFromDinner = () => {
     setForm(initialForm);
     setStatus("idle");
     setErrorMessage("");
   };
 
   const resetAndClose = () => {
-    syncFormFromEvent();
+    syncFormFromDinner();
     setOpen(false);
   };
 
-  // An event must always have a date and an RSVP deadline (the DB enforces NOT NULL too).
+  // An dinner must always have a date and an RSVP deadline (the DB enforces NOT NULL too).
   const canSubmit = Boolean(form.date && form.rsvpDeadline);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -156,12 +156,12 @@ function EventDialog({
     setStatus("saving");
 
     const [hours, minutes] = form.time ? form.time.split(":").map(Number) : [0, 0];
-    const eventDate = new Date(form.date);
-    eventDate.setHours(hours, minutes, 0, 0);
+    const dinnerDate = new Date(form.date);
+    dinnerDate.setHours(hours, minutes, 0, 0);
 
     const input = {
       name: form.name,
-      eventDate: eventDate.toISOString(),
+      dinnerDate: dinnerDate.toISOString(),
       rsvpDeadline: endOfDay(form.rsvpDeadline).toISOString(),
       venueId: form.venueId || null,
       description: form.description || null,
@@ -171,7 +171,7 @@ function EventDialog({
       ...(showHostField && !hostReadOnly && { hostId: form.hostId || null }),
     };
 
-    const result = event ? await updateEvent(event.id, input) : await createEvent(input);
+    const result = dinner ? await updateDinner(dinner.id, input) : await createDinner(input);
 
     if (result.success) {
       router.refresh();
@@ -187,7 +187,7 @@ function EventDialog({
       open={open}
       onOpenChange={(nextOpen: boolean) => {
         if (nextOpen) {
-          syncFormFromEvent();
+          syncFormFromDinner();
           setOpen(true);
         } else {
           resetAndClose();
@@ -198,19 +198,19 @@ function EventDialog({
       <DialogContent className={cn(FLOATING_SURFACE, DIALOG_CONTENT)}>
         <DialogHeader>
           <DialogTitle className="font-serif text-[20px] font-normal">
-            {event ? t("EditTitle") : t("Title")}
+            {dinner ? t("EditTitle") : t("Title")}
           </DialogTitle>
           <DialogDescription className={DIALOG_DESCRIPTION}>
-            {event ? t("EditDescription") : t("Description")}
+            {dinner ? t("EditDescription") : t("Description")}
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="flex flex-1 flex-col gap-5 overflow-y-auto">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="event-name" className={FIELD_LABEL}>
+            <Label htmlFor="dinner-name" className={FIELD_LABEL}>
               {t("NameLabel")}
             </Label>
             <Input
-              id="event-name"
+              id="dinner-name"
               value={form.name}
               onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
               placeholder={t("NamePlaceholder")}
@@ -221,14 +221,14 @@ function EventDialog({
 
           <div className="flex gap-4">
             <div className="flex flex-1 flex-col gap-2">
-              <Label htmlFor="event-date" className={FIELD_LABEL}>
+              <Label htmlFor="dinner-date" className={FIELD_LABEL}>
                 {t("DateLabel")}
               </Label>
               <Popover open={datePickerOpen} onOpenChange={setDatePickerOpen}>
                 <PopoverTrigger
                   render={
                     <Button
-                      id="event-date"
+                      id="dinner-date"
                       type="button"
                       variant="outline"
                       className={cn(
@@ -261,14 +261,14 @@ function EventDialog({
               </Popover>
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="event-time" className={FIELD_LABEL}>
+              <Label htmlFor="dinner-time" className={FIELD_LABEL}>
                 {t("TimeLabel")}
               </Label>
               <Select
                 value={form.time}
                 onValueChange={(value) => setForm((prev) => ({ ...prev, time: value as string }))}
               >
-                <SelectTrigger id="event-time" className={cn(FIELD_INPUT, "w-24")}>
+                <SelectTrigger id="dinner-time" className={cn(FIELD_INPUT, "w-24")}>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent
@@ -286,7 +286,7 @@ function EventDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="event-rsvp-deadline" className={FIELD_LABEL}>
+            <Label htmlFor="dinner-rsvp-deadline" className={FIELD_LABEL}>
               {t("RsvpDeadlineLabel")}
             </Label>
             <div className="flex items-end gap-2">
@@ -294,7 +294,7 @@ function EventDialog({
                 <PopoverTrigger
                   render={
                     <Button
-                      id="event-rsvp-deadline"
+                      id="dinner-rsvp-deadline"
                       type="button"
                       variant="outline"
                       className={cn(
@@ -339,7 +339,7 @@ function EventDialog({
           </div>
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="event-venue" className={FIELD_LABEL}>
+            <Label htmlFor="dinner-venue" className={FIELD_LABEL}>
               {t("VenueLabel")}
             </Label>
             <div className="flex items-end gap-2">
@@ -350,7 +350,7 @@ function EventDialog({
                   setForm((prev) => ({ ...prev, venueId: value as string }))
                 }
               >
-                <SelectTrigger id="event-venue" className={cn(FIELD_INPUT, "flex-1")}>
+                <SelectTrigger id="dinner-venue" className={cn(FIELD_INPUT, "flex-1")}>
                   <SelectValue placeholder={t("VenuePlaceholder")} />
                 </SelectTrigger>
                 <SelectContent
@@ -378,7 +378,7 @@ function EventDialog({
 
           {showHostField && (
             <div className="flex flex-col gap-2">
-              <Label htmlFor="event-host" className={FIELD_LABEL}>
+              <Label htmlFor="dinner-host" className={FIELD_LABEL}>
                 {t("HostLabel")}
               </Label>
               <div className="flex items-end gap-2">
@@ -392,7 +392,7 @@ function EventDialog({
                     setForm((prev) => ({ ...prev, hostId: value as string }))
                   }
                 >
-                  <SelectTrigger id="event-host" className={cn(FIELD_INPUT, "flex-1")}>
+                  <SelectTrigger id="dinner-host" className={cn(FIELD_INPUT, "flex-1")}>
                     <SelectValue placeholder={t("HostPlaceholder")} />
                   </SelectTrigger>
                   <SelectContent
@@ -421,11 +421,11 @@ function EventDialog({
           )}
 
           <div className="flex flex-col gap-2">
-            <Label htmlFor="event-description" className={FIELD_LABEL}>
+            <Label htmlFor="dinner-description" className={FIELD_LABEL}>
               {t("DescriptionLabel")}
             </Label>
             <Textarea
-              id="event-description"
+              id="dinner-description"
               value={form.description}
               onChange={(e) => setForm((prev) => ({ ...prev, description: e.target.value }))}
               placeholder={t("DescriptionPlaceholder")}
@@ -435,13 +435,13 @@ function EventDialog({
 
           <div className="flex items-center gap-2">
             <Checkbox
-              id="event-visibility"
+              id="dinner-visibility"
               checked={form.published}
               onCheckedChange={(checked) =>
                 setForm((prev) => ({ ...prev, published: checked === true }))
               }
             />
-            <Label htmlFor="event-visibility" className="font-normal">
+            <Label htmlFor="dinner-visibility" className="font-normal">
               {t("VisibilityLabel")}
             </Label>
           </div>
@@ -473,51 +473,51 @@ function EventDialog({
   );
 }
 
-export function NewEventDialog({
+export function NewDinnerDialog({
   venues,
   profiles,
 }: {
   venues: VenueRecord[];
   profiles: ProfileRecord[];
 }) {
-  const tEvents = useTranslations("AdminPage.Events");
+  const tDinners = useTranslations("AdminPage.Dinners");
 
   return (
-    <EventDialog
+    <DinnerDialog
       venues={venues}
       profiles={profiles}
       trigger={
         <Button className="h-auto w-full px-[22px] py-[11px] text-[12px] tracking-[.08em] uppercase sm:w-auto">
           <span aria-hidden="true">+ </span>
-          {tEvents("AddButton")}
+          {tDinners("AddButton")}
         </Button>
       }
     />
   );
 }
 
-export function EditEventDialog({
+export function EditDinnerDialog({
   venues,
   profiles,
-  event,
+  dinner,
 }: {
   venues: VenueRecord[];
   profiles: ProfileRecord[];
-  event: EventRecord;
+  dinner: DinnerRecord;
 }) {
-  const tEvents = useTranslations("AdminPage.Events");
+  const tDinners = useTranslations("AdminPage.Dinners");
 
   return (
-    <EventDialog
+    <DinnerDialog
       venues={venues}
       profiles={profiles}
-      event={event}
+      dinner={dinner}
       trigger={
         <Button
           variant="link"
           className="text-muted-foreground hover:text-foreground h-auto p-0 text-[11px] tracking-[.02em] uppercase hover:no-underline"
         >
-          {tEvents("EditButton")}
+          {tDinners("EditButton")}
         </Button>
       }
     />
@@ -528,22 +528,22 @@ export function EditEventDialog({
 // shown pre-filled but read-only (a host may see who is assigned but not
 // reassign), and venue creation is hidden. Field-level parity minus delete
 // (no delete control here) and minus reassigning the host.
-export function ManageEventDialog({
+export function ManageDinnerDialog({
   venues,
   profiles = [],
-  event,
+  dinner,
   trigger,
 }: {
   venues: VenueRecord[];
   profiles?: ProfileRecord[];
-  event: EventRecord;
+  dinner: DinnerRecord;
   trigger: React.ReactElement;
 }) {
   return (
-    <EventDialog
+    <DinnerDialog
       venues={venues}
       profiles={profiles}
-      event={event}
+      dinner={dinner}
       trigger={trigger}
       hostReadOnly
       showAddVenue={false}

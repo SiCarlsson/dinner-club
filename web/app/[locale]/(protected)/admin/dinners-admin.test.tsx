@@ -1,22 +1,22 @@
-// app/[locale]/(protected)/admin/events-admin.test.tsx
+// app/[locale]/(protected)/admin/dinners-admin.test.tsx
 
 import messages from "@/messages/en.json";
 import { NextIntlClientProvider } from "next-intl";
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 import { render, screen, within } from "@testing-library/react";
-import { EventsAdmin } from "./events-admin";
-import type { EventRecord, ProfileRecord, VenueRecord } from "./actions";
+import { DinnersAdmin } from "./dinners-admin";
+import type { DinnerRecord, ProfileRecord, VenueRecord } from "./actions";
 
-vi.mock("./new-event-dialog", () => ({
-  NewEventDialog: vi.fn(() => <button>Mock New Event</button>),
-  EditEventDialog: vi.fn(({ event }: { event: EventRecord }) => (
-    <button>Mock Edit {event.id}</button>
+vi.mock("./new-dinner-dialog", () => ({
+  NewDinnerDialog: vi.fn(() => <button>Mock New Dinner</button>),
+  EditDinnerDialog: vi.fn(({ dinner }: { dinner: DinnerRecord }) => (
+    <button>Mock Edit {dinner.id}</button>
   )),
 }));
 
-vi.mock("./delete-event-button", () => ({
-  DeleteEventButton: vi.fn(({ event }: { event: EventRecord }) => (
-    <button>Mock Delete {event.id}</button>
+vi.mock("./delete-dinner-button", () => ({
+  DeleteDinnerButton: vi.fn(({ dinner }: { dinner: DinnerRecord }) => (
+    <button>Mock Delete {dinner.id}</button>
   )),
 }));
 
@@ -33,15 +33,15 @@ const VENUES: VenueRecord[] = [
 ];
 const PROFILES: ProfileRecord[] = [{ id: "p1", full_name: "Alex Smith" }];
 
-function renderEventsAdmin(events: EventRecord[]) {
+function renderDinnersAdmin(dinners: DinnerRecord[]) {
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
-      <EventsAdmin events={events} venues={VENUES} profiles={PROFILES} />
+      <DinnersAdmin dinners={dinners} venues={VENUES} profiles={PROFILES} />
     </NextIntlClientProvider>,
   );
 }
 
-describe("EventsAdmin Component", () => {
+describe("DinnersAdmin Component", () => {
   beforeEach(() => {
     vi.useFakeTimers();
     vi.setSystemTime(new Date("2026-07-17T00:00:00.000Z"));
@@ -51,26 +51,26 @@ describe("EventsAdmin Component", () => {
     vi.useRealTimers();
   });
 
-  it("renders the title, description and new-event trigger", () => {
-    renderEventsAdmin([]);
+  it("renders the title, description and new-dinner trigger", () => {
+    renderDinnersAdmin([]);
 
-    expect(screen.getByText(messages.AdminPage.Events.Title)).toBeInTheDocument();
-    expect(screen.getByText(messages.AdminPage.Events.Description)).toBeInTheDocument();
-    expect(screen.getByText("Mock New Event")).toBeInTheDocument();
+    expect(screen.getByText(messages.AdminPage.Dinners.Title)).toBeInTheDocument();
+    expect(screen.getByText(messages.AdminPage.Dinners.Description)).toBeInTheDocument();
+    expect(screen.getByText("Mock New Dinner")).toBeInTheDocument();
   });
 
-  it("shows the empty state when there are no events", () => {
-    renderEventsAdmin([]);
+  it("shows the empty state when there are no dinners", () => {
+    renderDinnersAdmin([]);
 
-    expect(screen.getByText(messages.AdminPage.Events.Empty)).toBeInTheDocument();
+    expect(screen.getByText(messages.AdminPage.Dinners.Empty)).toBeInTheDocument();
   });
 
-  it("renders each event with its own name, venue, date, and edit/delete controls", () => {
-    const events: EventRecord[] = [
+  it("renders each dinner with its own name, venue, date, and edit/delete controls", () => {
+    const dinners: DinnerRecord[] = [
       {
         id: "1",
         name: "Summer Dinner",
-        event_date: "2026-08-01T18:00:00.000Z",
+        dinner_date: "2026-08-01T18:00:00.000Z",
         rsvp_deadline: null,
         description: null,
         visibility: "published",
@@ -80,7 +80,7 @@ describe("EventsAdmin Component", () => {
       {
         id: "2",
         name: "No Venue Dinner",
-        event_date: "2026-09-12T18:00:00.000Z",
+        dinner_date: "2026-09-12T18:00:00.000Z",
         rsvp_deadline: null,
         description: null,
         visibility: "unpublished",
@@ -89,9 +89,9 @@ describe("EventsAdmin Component", () => {
       },
     ];
 
-    renderEventsAdmin(events);
+    renderDinnersAdmin(dinners);
 
-    expect(screen.queryByText(messages.AdminPage.Events.Empty)).not.toBeInTheDocument();
+    expect(screen.queryByText(messages.AdminPage.Dinners.Empty)).not.toBeInTheDocument();
 
     // The desktop table is the semantic source of truth; a duplicate stacked
     // list (hidden on desktop via CSS) renders the same data for mobile.
@@ -100,7 +100,7 @@ describe("EventsAdmin Component", () => {
     expect(table.getByText("Summer Dinner")).toBeInTheDocument();
     expect(table.getByText("Café Norr")).toBeInTheDocument();
     expect(table.getByText("No Venue Dinner")).toBeInTheDocument();
-    expect(table.getByText(messages.AdminPage.Events.NoVenue)).toBeInTheDocument();
+    expect(table.getByText(messages.AdminPage.Dinners.NoVenue)).toBeInTheDocument();
 
     expect(table.getByText("Mock Edit 1")).toBeInTheDocument();
     expect(table.getByText("Mock Delete 1")).toBeInTheDocument();
@@ -109,11 +109,11 @@ describe("EventsAdmin Component", () => {
   });
 
   it("separates past dinners from upcoming ones under their own headings", () => {
-    const events: EventRecord[] = [
+    const dinners: DinnerRecord[] = [
       {
         id: "future",
         name: "Future Dinner",
-        event_date: "2026-08-01T18:00:00.000Z",
+        dinner_date: "2026-08-01T18:00:00.000Z",
         rsvp_deadline: null,
         description: null,
         visibility: "published",
@@ -123,7 +123,7 @@ describe("EventsAdmin Component", () => {
       {
         id: "past",
         name: "Past Dinner",
-        event_date: "2026-06-01T18:00:00.000Z",
+        dinner_date: "2026-06-01T18:00:00.000Z",
         rsvp_deadline: null,
         description: null,
         visibility: "published",
@@ -132,10 +132,10 @@ describe("EventsAdmin Component", () => {
       },
     ];
 
-    renderEventsAdmin(events);
+    renderDinnersAdmin(dinners);
 
-    expect(screen.getByText(messages.AdminPage.Events.UpcomingHeading)).toBeInTheDocument();
-    expect(screen.getByText(messages.AdminPage.Events.PastHeading)).toBeInTheDocument();
+    expect(screen.getByText(messages.AdminPage.Dinners.UpcomingHeading)).toBeInTheDocument();
+    expect(screen.getByText(messages.AdminPage.Dinners.PastHeading)).toBeInTheDocument();
 
     const [upcomingTable, pastTable] = screen.getAllByRole("table");
 
@@ -147,11 +147,11 @@ describe("EventsAdmin Component", () => {
   });
 
   it("shows only the upcoming heading when there are no past dinners", () => {
-    const events: EventRecord[] = [
+    const dinners: DinnerRecord[] = [
       {
         id: "future",
         name: "Future Dinner",
-        event_date: "2026-08-01T18:00:00.000Z",
+        dinner_date: "2026-08-01T18:00:00.000Z",
         rsvp_deadline: null,
         description: null,
         visibility: "published",
@@ -160,19 +160,19 @@ describe("EventsAdmin Component", () => {
       },
     ];
 
-    renderEventsAdmin(events);
+    renderDinnersAdmin(dinners);
 
-    expect(screen.getByText(messages.AdminPage.Events.UpcomingHeading)).toBeInTheDocument();
-    expect(screen.queryByText(messages.AdminPage.Events.PastHeading)).not.toBeInTheDocument();
+    expect(screen.getByText(messages.AdminPage.Dinners.UpcomingHeading)).toBeInTheDocument();
+    expect(screen.queryByText(messages.AdminPage.Dinners.PastHeading)).not.toBeInTheDocument();
     expect(screen.getAllByRole("table")).toHaveLength(1);
   });
 
-  it("shows a Published badge for published events and a Draft badge otherwise", () => {
-    const events: EventRecord[] = [
+  it("shows a Published badge for published dinners and a Draft badge otherwise", () => {
+    const dinners: DinnerRecord[] = [
       {
         id: "1",
         name: "Published Dinner",
-        event_date: "2026-08-01T18:00:00.000Z",
+        dinner_date: "2026-08-01T18:00:00.000Z",
         rsvp_deadline: null,
         description: null,
         visibility: "published",
@@ -182,7 +182,7 @@ describe("EventsAdmin Component", () => {
       {
         id: "2",
         name: "Draft Dinner",
-        event_date: "2026-09-12T18:00:00.000Z",
+        dinner_date: "2026-09-12T18:00:00.000Z",
         rsvp_deadline: null,
         description: null,
         visibility: "unpublished",
@@ -191,11 +191,11 @@ describe("EventsAdmin Component", () => {
       },
     ];
 
-    renderEventsAdmin(events);
+    renderDinnersAdmin(dinners);
 
     const table = within(screen.getByRole("table"));
 
-    expect(table.getByText(messages.AdminPage.Events.Status.Published)).toBeInTheDocument();
-    expect(table.getByText(messages.AdminPage.Events.Status.Draft)).toBeInTheDocument();
+    expect(table.getByText(messages.AdminPage.Dinners.Status.Published)).toBeInTheDocument();
+    expect(table.getByText(messages.AdminPage.Dinners.Status.Draft)).toBeInTheDocument();
   });
 });

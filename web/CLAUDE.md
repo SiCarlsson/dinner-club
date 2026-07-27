@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## What this is
 
-The Dinner Club — an invitation-only, mobile-first web app to coordinate dinner events, RSVP, and rate Stockholm venues (full product spec in `OUTLINE.md`). This `web/` directory holds the entire Next.js application. Two sibling directories hold infrastructure: `../supabase/` (database migrations, RLS policies, local Supabase config) and `../terraform/` (IaC for GCP Cloud Run + the Supabase provider).
+The Dinner Club — an invitation-only, mobile-first web app to coordinate dinners, RSVP, and rate Stockholm venues (full product spec in `OUTLINE.md`). This `web/` directory holds the entire Next.js application. Two sibling directories hold infrastructure: `../supabase/` (database migrations, RLS policies, local Supabase config) and `../terraform/` (IaC for GCP Cloud Run + the Supabase provider).
 
 ## Commands
 
@@ -47,7 +47,7 @@ Mutations and data fetching use `"use server"` action files (e.g. `app/[locale]/
 ### Data model (`../supabase/migrations/`)
 - `profiles` — 1:1 with `auth.users`, auto-created by the `on_auth_user_created` trigger; `role` is `'member' | 'admin'`.
 - `venues` — dinner locations (always restaurants); publicly readable (`anon`).
-- `events` — `visibility` is `'published' | 'unpublished'`; members see only published, admins/hosts see all; FKs to `venues` and to the host user.
+- `dinners` — `visibility` is `'published' | 'unpublished'`; members see only published, admins/hosts see all; FKs to `venues` and to the host user.
 
 ## Conventions
 

@@ -49,7 +49,7 @@ describe("AppHeaderMenu", () => {
 
     expect(await screen.findByRole("menuitem", { name: mockSv.Nav.Dinners })).toHaveAttribute(
       "href",
-      "/events",
+      "/dinners",
     );
     expect(screen.getByRole("menuitem", { name: mockSv.Nav.Profile })).toHaveAttribute(
       "href",

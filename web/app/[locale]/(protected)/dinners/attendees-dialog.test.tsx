@@ -1,4 +1,4 @@
-// app/[locale]/(protected)/events/attendees-dialog.test.tsx
+// app/[locale]/(protected)/dinners/attendees-dialog.test.tsx
 
 import messages from "@/messages/en.json";
 import { NextIntlClientProvider } from "next-intl";
@@ -6,19 +6,19 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { AttendeesDialog } from "./attendees-dialog";
-import { getEventAttendees, notifyEventSubscribers, type AttendeeSummary } from "./actions";
+import { getDinnerAttendees, notifyDinnerSubscribers, type AttendeeSummary } from "./actions";
 
 vi.mock("./actions", () => ({
-  getEventAttendees: vi.fn(),
-  notifyEventSubscribers: vi.fn(),
+  getDinnerAttendees: vi.fn(),
+  notifyDinnerSubscribers: vi.fn(),
 }));
 
 function renderDialog({ canNotify = false }: { canNotify?: boolean } = {}) {
   return render(
     <NextIntlClientProvider locale="en" messages={messages}>
       <AttendeesDialog
-        eventId="e1"
-        eventName="Summer Dinner"
+        dinnerId="e1"
+        dinnerName="Summer Dinner"
         canNotify={canNotify}
         trigger={<button type="button">open</button>}
       />
@@ -46,13 +46,13 @@ describe("AttendeesDialog", () => {
   });
 
   it("fetches and renders attendees, guests and dietary aggregate on open", async () => {
-    vi.mocked(getEventAttendees).mockResolvedValue({ success: true, summary });
+    vi.mocked(getDinnerAttendees).mockResolvedValue({ success: true, summary });
     const user = userEvent.setup();
     renderDialog();
 
     await user.click(screen.getByRole("button", { name: "open" }));
 
-    expect(getEventAttendees).toHaveBeenCalledWith("e1");
+    expect(getDinnerAttendees).toHaveBeenCalledWith("e1");
     // Members and their named guest.
     expect(await screen.findByText("Adam")).toBeInTheDocument();
     expect(screen.getByText("Zara")).toBeInTheDocument();
@@ -62,14 +62,14 @@ describe("AttendeesDialog", () => {
     expect(screen.getByText(`${messages.ProfilePage.Diet.gluten} · 1`)).toBeInTheDocument();
   });
 
-  it("renders the event description and RSVP controls when provided", async () => {
-    vi.mocked(getEventAttendees).mockResolvedValue({ success: true, summary });
+  it("renders the dinner description and RSVP controls when provided", async () => {
+    vi.mocked(getDinnerAttendees).mockResolvedValue({ success: true, summary });
     const user = userEvent.setup();
     render(
       <NextIntlClientProvider locale="en" messages={messages}>
         <AttendeesDialog
-          eventId="e1"
-          eventName="Summer Dinner"
+          dinnerId="e1"
+          dinnerName="Summer Dinner"
           description="A warm evening in the city."
           rsvpControls={<button type="button">rsvp-slot</button>}
           trigger={<button type="button">open</button>}
@@ -84,7 +84,7 @@ describe("AttendeesDialog", () => {
   });
 
   it("shows the empty state when no one is attending", async () => {
-    vi.mocked(getEventAttendees).mockResolvedValue({
+    vi.mocked(getDinnerAttendees).mockResolvedValue({
       success: true,
       summary: { attendees: [], memberCount: 0, guestCount: 0, totalCount: 0, dietary: [] },
     });
@@ -93,21 +93,21 @@ describe("AttendeesDialog", () => {
 
     await user.click(screen.getByRole("button", { name: "open" }));
 
-    expect(await screen.findByText(messages.EventsPage.AttendeesEmpty)).toBeInTheDocument();
+    expect(await screen.findByText(messages.DinnersPage.AttendeesEmpty)).toBeInTheDocument();
   });
 
   it("shows an error state when the fetch fails", async () => {
-    vi.mocked(getEventAttendees).mockResolvedValue({ success: false, message: "db down" });
+    vi.mocked(getDinnerAttendees).mockResolvedValue({ success: false, message: "db down" });
     const user = userEvent.setup();
     renderDialog();
 
     await user.click(screen.getByRole("button", { name: "open" }));
 
-    expect(await screen.findByText(messages.EventsPage.AttendeesError)).toBeInTheDocument();
+    expect(await screen.findByText(messages.DinnersPage.AttendeesError)).toBeInTheDocument();
   });
 
   it("hides the notify button when the user isn't allowed to send", async () => {
-    vi.mocked(getEventAttendees).mockResolvedValue({ success: true, summary });
+    vi.mocked(getDinnerAttendees).mockResolvedValue({ success: true, summary });
     const user = userEvent.setup();
     renderDialog();
 
@@ -115,25 +115,25 @@ describe("AttendeesDialog", () => {
 
     await screen.findByText("Adam");
     expect(
-      screen.queryByRole("button", { name: messages.EventsPage.Notify.Button }),
+      screen.queryByRole("button", { name: messages.DinnersPage.Notify.Button }),
     ).not.toBeInTheDocument();
   });
 
   it("sends a notification and shows the sent state when authorized", async () => {
-    vi.mocked(getEventAttendees).mockResolvedValue({ success: true, summary });
-    vi.mocked(notifyEventSubscribers).mockResolvedValue({ success: true, sent: 2 });
+    vi.mocked(getDinnerAttendees).mockResolvedValue({ success: true, summary });
+    vi.mocked(notifyDinnerSubscribers).mockResolvedValue({ success: true, sent: 2 });
     const user = userEvent.setup();
     renderDialog({ canNotify: true });
 
     await user.click(screen.getByRole("button", { name: "open" }));
     const notifyButton = await screen.findByRole("button", {
-      name: messages.EventsPage.Notify.Button,
+      name: messages.DinnersPage.Notify.Button,
     });
     await user.click(notifyButton);
 
-    expect(notifyEventSubscribers).toHaveBeenCalledWith("e1");
+    expect(notifyDinnerSubscribers).toHaveBeenCalledWith("e1");
     expect(
-      await screen.findByRole("button", { name: messages.EventsPage.Notify.Sent }),
+      await screen.findByRole("button", { name: messages.DinnersPage.Notify.Sent }),
     ).toBeInTheDocument();
   });
 });
