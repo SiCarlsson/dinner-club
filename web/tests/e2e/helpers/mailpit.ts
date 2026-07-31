@@ -4,7 +4,7 @@ import { localConfig } from "./db";
 
 type MailpitMessage = { ID: string; Created: string };
 
-export async function getMagicLink(
+export async function getOtpCode(
   email: string,
   sinceMs: number,
   timeoutMs = 15_000,
@@ -25,18 +25,18 @@ export async function getMagicLink(
       if (fresh[0]) {
         const detail = await fetch(`${base}/api/v1/message/${fresh[0].ID}`);
         const body = (await detail.json()) as { HTML?: string; Text?: string };
-        const link = extractVerifyLink(body.HTML ?? "") ?? extractVerifyLink(body.Text ?? "");
-        if (link) return link;
+        const code = extractOtpCode(body.Text ?? "") ?? extractOtpCode(body.HTML ?? "");
+        if (code) return code;
       }
     }
     await new Promise((r) => setTimeout(r, 500));
   }
 
-  throw new Error(`No magic-link email for ${email} within ${timeoutMs}ms`);
+  throw new Error(`No login-code email for ${email} within ${timeoutMs}ms`);
 }
 
-function extractVerifyLink(content: string): string | undefined {
-  const match = content.match(/https?:\/\/[^"'\s]*\/auth\/v1\/verify[^"'\s]*/);
-  if (!match) return undefined;
-  return match[0].replace(/&amp;/g, "&");
+function extractOtpCode(content: string): string | undefined {
+  const text = content.replace(/<[^>]*>/g, " ");
+  const match = text.match(/\b\d{6}\b/);
+  return match?.[0];
 }

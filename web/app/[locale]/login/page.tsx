@@ -10,14 +10,17 @@ import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { checkInvitation } from "./actions";
 
+type Step = "email" | "code";
+type Status = "idle" | "loading" | "error" | "not-invited";
+
 export default function Login() {
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "sent" | "error" | "not-invited">(
-    "idle",
-  );
+  const [code, setCode] = useState("");
+  const [step, setStep] = useState<Step>("email");
+  const [status, setStatus] = useState<Status>("idle");
   const supabase = useMemo(() => createClient(), []);
 
-  const handleLogin = async () => {
+  const requestCode = async () => {
     setStatus("loading");
 
     const invitation = await checkInvitation(email);
@@ -30,18 +33,48 @@ export default function Login() {
       return;
     }
 
-    const { error } = await supabase.auth.signInWithOtp({
+    const { error } = await supabase.auth.signInWithOtp({ email });
+    if (error) {
+      setStatus("error");
+      return;
+    }
+
+    setCode("");
+    setStep("code");
+    setStatus("idle");
+  };
+
+  const verifyCode = async () => {
+    setStatus("loading");
+
+    const { error } = await supabase.auth.verifyOtp({
       email,
-      options: {
-        emailRedirectTo: `${location.origin}/auth/confirm`,
-      },
+      token: code,
+      type: "email",
     });
-    setStatus(error ? "error" : "sent");
+    if (error) {
+      setStatus("error");
+      return;
+    }
+
+    const next = new URLSearchParams(window.location.search).get("next") ?? "/";
+    window.location.assign(next);
+  };
+
+  const resetToEmail = () => {
+    setStep("email");
+    setStatus("idle");
+    setCode("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (email && status !== "loading") handleLogin();
+    if (status === "loading") return;
+    if (step === "email") {
+      if (email) requestCode();
+    } else {
+      if (code) verifyCode();
+    }
   };
 
   const t = useTranslations("LoginPage");
@@ -53,17 +86,7 @@ export default function Login() {
       }
     >
       <div className="flex flex-1 flex-col items-center justify-center gap-8 pb-[81px] text-center sm:pb-[90px]">
-        {status === "sent" ? (
-          <>
-            <div className="flex flex-col gap-3">
-              <h1 className={"font-serif text-[34px] font-light"}>{t("LinkSent.Title")}</h1>
-              <p className="text-foreground/80 max-w-[38ch] text-[13px] leading-[1.6]">
-                {t("LinkSent.Description1")} <span className="text-foreground">{email}</span>.{" "}
-                {t("LinkSent.Description2")}
-              </p>
-            </div>
-          </>
-        ) : status === "not-invited" ? (
+        {status === "not-invited" ? (
           <>
             <div className="flex flex-col gap-3">
               <h1 className={"font-serif text-[34px] font-light"}>{t("NotMember.Title")}</h1>
@@ -79,6 +102,59 @@ export default function Login() {
               className="text-muted-foreground hover:text-foreground text-[12px] tracking-[.08em] uppercase transition-colors"
             >
               {t("NotMember.TryAgain")}
+            </button>
+          </>
+        ) : step === "code" ? (
+          <>
+            <div className="flex flex-col gap-3">
+              <h1 className={"font-serif text-[34px] font-light"}>{t("CodeStep.Title")}</h1>
+              <p className="text-foreground/80 max-w-[38ch] text-[13px] leading-[1.6]">
+                {t("CodeStep.Description1")} <span className="text-foreground">{email}</span>.{" "}
+                {t("CodeStep.Description2")}
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit} className="flex w-full max-w-[340px] flex-col gap-6">
+              <div className="flex flex-col gap-2 text-left">
+                <Label
+                  htmlFor="code"
+                  className="text-muted-foreground text-[10px] tracking-[.14em] uppercase"
+                >
+                  {t("CodeStep.Label")}
+                </Label>
+                <Input
+                  id="code"
+                  type="text"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  required
+                  maxLength={6}
+                  value={code}
+                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
+                  placeholder={t("CodeStep.Placeholder")}
+                  className="border-input focus-visible:border-accent h-auto rounded-none border-0 border-b bg-transparent px-0 pb-[9px] text-center text-[24px] tracking-[.5em] focus-visible:ring-0 dark:bg-transparent"
+                />
+              </div>
+
+              <Button
+                type="submit"
+                disabled={status === "loading" || code.length < 6}
+                className="h-auto w-full rounded-none px-[30px] py-[12px] text-[12px] tracking-[.08em] uppercase"
+              >
+                {status === "loading" ? t("CodeStep.Verifying") + "..." : t("CodeStep.Button")}
+              </Button>
+
+              {status === "error" && (
+                <p className="text-destructive text-[13px]">{t("CodeStep.Error")}</p>
+              )}
+            </form>
+
+            <button
+              type="button"
+              onClick={resetToEmail}
+              className="text-muted-foreground hover:text-foreground text-[12px] tracking-[.08em] uppercase transition-colors"
+            >
+              {t("CodeStep.Back")}
             </button>
           </>
         ) : (
