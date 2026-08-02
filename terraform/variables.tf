@@ -46,6 +46,12 @@ variable "image_tag" {
   default     = "latest"
 }
 
+variable "bootstrap_image" {
+  description = "Public placeholder image used only when the Cloud Run service is first created, before CI/CD has pushed a real image (solves the cold-start chicken-and-egg). Cloud Run ignores later image changes (see the lifecycle block in cloudrun.tf), so once CI/CD deploys the real image this value is inert. Set to null to create the service directly against the real image (var.image_tag) if you have already pushed one."
+  type        = string
+  default     = "us-docker.pkg.dev/cloudrun/container/hello"
+}
+
 variable "artifact_keep_count" {
   description = "Number of most-recent images to always keep in Artifact Registry, regardless of age"
   type        = number

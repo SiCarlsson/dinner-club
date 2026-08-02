@@ -22,11 +22,15 @@ gcp_project_id = "your-gcp-project-id"
 # Region for Cloud Run, Artifact Registry, and Secret Manager (default: europe-north2 / Stockholm)
 # gcp_region = "europe-north2"
 
-# Image tag to deploy (must already be pushed to Artifact Registry). Defaults to "latest".
+# Image tag to deploy (must already be pushed to Artifact Registry). Defaults to "latest"
 # image_tag = "latest"
 
+# Placeholder image used only on the very first create, before CI/CD has pushed a
+# real image
+# bootstrap_image = "us-docker.pkg.dev/cloudrun/container/hello"
+
 # Artifact Registry cleanup policy. Always keep this many most-recent images (default: 2),
-# and delete anything older than this many days beyond them (default: 7).
+# and delete anything older than this many days beyond them (default: 7)
 # artifact_keep_count   = 2
 # artifact_max_age_days = 7
 
@@ -35,11 +39,11 @@ gcp_project_id = "your-gcp-project-id"
 # github_token = "ghp_..."
 
 # --- Application runtime config ---------------------------------------------
-# NEXT_PUBLIC_SUPABASE_* values are derived from the Supabase project automatically.
+# NEXT_PUBLIC_SUPABASE_* values are derived from the Supabase project automatically
 
-# Public base URL of the app (NEXT_PUBLIC_BASE_URL). On the very first deploy you
-# won't know the Cloud Run URL yet — deploy once, read the cloud_run_url output,
-# then set this and rebuild/redeploy (or point it at your custom domain).
+# Public base URL of the app. On the very first deploy you
+# won't know the Cloud Run URL yet. Deploy once, read the cloud_run_url output,
+# then set this and rebuild/redeploy (or point it at your custom domain)
 app_base_url = "https://your-domain.example"
 
 # Web Push (VAPID) keys — generate with: npx web-push generate-vapid-keys
