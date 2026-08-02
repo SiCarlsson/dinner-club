@@ -1,5 +1,5 @@
 # ==============================================================================
-# Cloud Run (v2) + Artifact Registry
+# Cloud Run + Artifact Registry
 # ==============================================================================
 
 locals {
@@ -74,7 +74,10 @@ resource "google_cloud_run_v2_service" "app" {
     }
 
     containers {
-      image = local.container_image
+      # On first create, use the public placeholder image so `terraform apply`
+      # succeeds before any real image exists in Artifact Registry. CI/CD then
+      # deploys the real image
+      image = coalesce(var.bootstrap_image, local.container_image)
 
       ports {
         container_port = 3000
