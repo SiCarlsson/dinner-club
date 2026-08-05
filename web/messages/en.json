@@ -150,15 +150,26 @@
   },
   "LoginPage": {
     "Title": "Log in",
-    "Description": "Enter your email and password to sign in.",
     "Email": "Email",
     "EmailPlaceholder": "your.email@example.com",
     "Password": "Password",
     "PasswordPlaceholder": "••••••••",
-    "Button": {
-      "Default": "Sign in",
-      "InProcess": "Signing in",
-      "Error": "Something went wrong. Check your details and try again."
+    "InProcess": "Just a moment",
+    "Error": "Something went wrong. Check your details and try again.",
+    "ChangeEmail": "Use a different email",
+    "EmailStep": {
+      "Description": "Enter your email to continue.",
+      "Button": "Continue"
+    },
+    "SignIn": {
+      "Description": "Enter your password to sign in.",
+      "Button": "Sign in"
+    },
+    "SignUp": {
+      "Description": "Choose a password to set up your account.",
+      "ConfirmLabel": "Confirm password",
+      "Mismatch": "The passwords don't match.",
+      "Button": "Create account"
     },
     "NotMember": {
       "Title": "You're not a member",

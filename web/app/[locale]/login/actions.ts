@@ -4,18 +4,10 @@
 
 import { createAdminClient } from "@/utils/supabase/admin";
 
-// Checks the invitations whitelist before we attempt sign-in, purely so the
-// login page can tell an uninvited person they're not a member. The real
-// boundary is the enforce_invitation trigger on auth.users — this can be
-// bypassed without any security impact.
-//
-// Uses the service-role client because the invitations RLS policy only lets
-// admins read the table; an anonymous visitor must not be able to enumerate it
-// themselves. Returns `{ error: true }` on failure so the caller shows a generic
-// error instead of wrongly claiming the visitor isn't a member.
-export async function checkInvitation(
-  email: string,
-): Promise<{ invited: boolean } | { error: true }> {
+export type InvitationResult =
+  { error: true } | { invited: false } | { invited: true; hasAccount: boolean };
+
+export async function checkInvitation(email: string): Promise<InvitationResult> {
   const normalized = email.trim().toLowerCase();
 
   if (!normalized) {
@@ -23,15 +15,28 @@ export async function checkInvitation(
   }
 
   const supabase = createAdminClient();
-  const { data, error } = await supabase
+
+  const { data: invitation, error: invitationError } = await supabase
     .from("invitations")
     .select("id")
     .eq("email", normalized)
     .maybeSingle();
 
-  if (error) {
+  if (invitationError) {
     return { error: true };
   }
 
-  return { invited: data !== null };
+  if (invitation === null) {
+    return { invited: false };
+  }
+
+  const { data: hasAccount, error: accountError } = await supabase.rpc("email_has_account", {
+    p_email: normalized,
+  });
+
+  if (accountError) {
+    return { error: true };
+  }
+
+  return { invited: true, hasAccount: hasAccount === true };
 }

@@ -150,15 +150,26 @@
   },
   "LoginPage": {
     "Title": "Logga in",
-    "Description": "Ange din e-postadress och ditt lösenord för att logga in.",
     "Email": "Epost",
     "EmailPlaceholder": "din.epost@exempel.se",
     "Password": "Lösenord",
     "PasswordPlaceholder": "••••••••",
-    "Button": {
-      "Default": "Logga in",
-      "InProcess": "Loggar in",
-      "Error": "Något gick fel. Kontrollera dina uppgifter och testa igen."
+    "InProcess": "Ett ögonblick",
+    "Error": "Något gick fel. Kontrollera dina uppgifter och testa igen.",
+    "ChangeEmail": "Använd en annan epost",
+    "EmailStep": {
+      "Description": "Ange din epost för att fortsätta.",
+      "Button": "Fortsätt"
+    },
+    "SignIn": {
+      "Description": "Ange ditt lösenord för att logga in.",
+      "Button": "Logga in"
+    },
+    "SignUp": {
+      "Description": "Välj ett lösenord för att skapa ditt konto.",
+      "ConfirmLabel": "Bekräfta lösenord",
+      "Mismatch": "Lösenorden matchar inte.",
+      "Button": "Skapa konto"
     },
     "NotMember": {
       "Title": "Du är inte medlem",
