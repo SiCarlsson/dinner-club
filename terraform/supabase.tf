@@ -22,8 +22,6 @@ resource "supabase_settings" "prod_auth" {
       "${var.app_base_url}/**",
     ])
 
-    # Not available in free tier of Supabase
-    #mailer_subjects_magic_link          = "CaLí Dinner Club - Login link"
-    #mailer_templates_magic_link_content = file("${path.module}/../supabase/templates/magic_link.html")
+    mailer_autoconfirm = true
   })
 }

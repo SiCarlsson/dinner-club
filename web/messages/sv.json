@@ -150,24 +150,15 @@
   },
   "LoginPage": {
     "Title": "Logga in",
-    "Description": "Ange din e-postadress så skickar vi en sexsiffrig kod till dig.",
+    "Description": "Ange din e-postadress och ditt lösenord för att logga in.",
     "Email": "Epost",
     "EmailPlaceholder": "din.epost@exempel.se",
+    "Password": "Lösenord",
+    "PasswordPlaceholder": "••••••••",
     "Button": {
-      "Default": "Skicka kod",
-      "InProcess": "Skickar",
-      "Error": "Något gick fel. Testa igen."
-    },
-    "CodeStep": {
-      "Title": "Ange din kod",
-      "Description1": "Vi har skickat en sexsiffrig kod till",
-      "Description2": "Ange den nedan för att logga in.",
-      "Label": "Kod",
-      "Placeholder": "123456",
-      "Button": "Logga in",
-      "Verifying": "Verifierar",
-      "Error": "Koden stämmer inte. Kontrollera den och försök igen.",
-      "Back": "Använd en annan adress"
+      "Default": "Logga in",
+      "InProcess": "Loggar in",
+      "Error": "Något gick fel. Kontrollera dina uppgifter och testa igen."
     },
     "NotMember": {
       "Title": "Du är inte medlem",

@@ -323,7 +323,10 @@ select
 from generate_series(1, 22) as n
 on conflict (dinner_id, user_id) do nothing;
 
--- Auth wiring for every seeded account
+-- Auth wiring for every seeded account: an email identity plus a password.
+-- The app logs in with email + password (app/[locale]/login/page.tsx), so every
+-- seeded account shares the password `dinnerclub` — sign in with any seeded
+-- email (e.g. astrid@dinnerclub.test) and that password
 insert into auth.identities (id, provider_id, user_id, identity_data, provider, last_sign_in_at, created_at, updated_at)
 select
   gen_random_uuid(),

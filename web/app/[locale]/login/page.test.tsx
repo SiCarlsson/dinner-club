@@ -8,12 +8,12 @@ import userEvent from "@testing-library/user-event";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
 
-const signInWithOtpMock = vi.fn();
-const verifyOtpMock = vi.fn();
+const signInWithPasswordMock = vi.fn();
+const signUpMock = vi.fn();
 
 vi.mock("@/utils/supabase/client", () => ({
   createClient: () => ({
-    auth: { signInWithOtp: signInWithOtpMock, verifyOtp: verifyOtpMock },
+    auth: { signInWithPassword: signInWithPasswordMock, signUp: signUpMock },
   }),
 }));
 
@@ -31,9 +31,13 @@ function renderLogin() {
   );
 }
 
-async function requestCode(user: ReturnType<typeof userEvent.setup>, email = "test@example.com") {
-  await user.type(screen.getByRole("textbox"), email);
-  await user.click(screen.getByRole("button", { name: /send code/i }));
+async function submitLogin(
+  user: ReturnType<typeof userEvent.setup>,
+  { email = "test@example.com", password = "password123" } = {},
+) {
+  await user.type(screen.getByLabelText(/email/i), email);
+  await user.type(screen.getByLabelText(/password/i), password);
+  await user.click(screen.getByRole("button", { name: /sign in/i }));
 }
 
 describe("Login page", () => {
@@ -42,87 +46,77 @@ describe("Login page", () => {
     vi.mocked(checkInvitation).mockResolvedValue({ invited: true });
   });
 
-  it("requests a code with signInWithOtp for the entered email", async () => {
-    signInWithOtpMock.mockResolvedValue({ error: null });
+  it("signs an existing invited user in with email and password", async () => {
+    signInWithPasswordMock.mockResolvedValue({ data: { session: {} }, error: null });
     const user = userEvent.setup();
 
     renderLogin();
-    await requestCode(user);
+    await submitLogin(user);
 
     await waitFor(() => {
-      expect(signInWithOtpMock).toHaveBeenCalledWith({ email: "test@example.com" });
-    });
-  });
-
-  it("advances to the code-entry step after a successful request", async () => {
-    signInWithOtpMock.mockResolvedValue({ error: null });
-    const user = userEvent.setup();
-
-    renderLogin();
-    await requestCode(user);
-
-    expect(await screen.findByText(/enter your code/i)).toBeInTheDocument();
-    expect(verifyOtpMock).not.toHaveBeenCalled();
-  });
-
-  it("verifies the entered code with verifyOtp", async () => {
-    signInWithOtpMock.mockResolvedValue({ error: null });
-    verifyOtpMock.mockResolvedValue({ error: null });
-    const user = userEvent.setup();
-
-    renderLogin();
-    await requestCode(user);
-    await screen.findByText(/enter your code/i);
-
-    await user.type(screen.getByLabelText(/code/i), "123456");
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
-
-    await waitFor(() => {
-      expect(verifyOtpMock).toHaveBeenCalledWith({
+      expect(signInWithPasswordMock).toHaveBeenCalledWith({
         email: "test@example.com",
-        token: "123456",
-        type: "email",
+        password: "password123",
+      });
+    });
+    expect(signUpMock).not.toHaveBeenCalled();
+  });
+
+  it("creates an account when the invited user has no password yet", async () => {
+    signInWithPasswordMock.mockResolvedValue({
+      data: { session: null },
+      error: new Error("invalid login credentials"),
+    });
+    signUpMock.mockResolvedValue({ data: { session: {} }, error: null });
+    const user = userEvent.setup();
+
+    renderLogin();
+    await submitLogin(user);
+
+    await waitFor(() => {
+      expect(signUpMock).toHaveBeenCalledWith({
+        email: "test@example.com",
+        password: "password123",
       });
     });
   });
 
-  it("shows an error and stays on the code step when verification fails", async () => {
-    signInWithOtpMock.mockResolvedValue({ error: null });
-    verifyOtpMock.mockResolvedValue({ error: new Error("invalid otp") });
+  it("shows an error when the password is wrong (sign-up returns no session)", async () => {
+    signInWithPasswordMock.mockResolvedValue({
+      data: { session: null },
+      error: new Error("invalid login credentials"),
+    });
+    // Existing email: Supabase returns no session and no error to avoid leaking
+    // which addresses are registered.
+    signUpMock.mockResolvedValue({ data: { session: null }, error: null });
     const user = userEvent.setup();
 
     renderLogin();
-    await requestCode(user);
-    await screen.findByText(/enter your code/i);
+    await submitLogin(user);
 
-    await user.type(screen.getByLabelText(/code/i), "000000");
-    await user.click(screen.getByRole("button", { name: /sign in/i }));
-
-    expect(await screen.findByText(/that code isn't right/i)).toBeInTheDocument();
-    expect(screen.getByText(/enter your code/i)).toBeInTheDocument();
+    expect(await screen.findByText(/something went wrong/i)).toBeInTheDocument();
   });
 
-  it("tells uninvited users they are not a member and does not request a code", async () => {
+  it("tells uninvited users they are not a member and does not attempt sign in", async () => {
     vi.mocked(checkInvitation).mockResolvedValue({ invited: false });
     const user = userEvent.setup();
 
     renderLogin();
-    await requestCode(user, "stranger@example.com");
+    await submitLogin(user, { email: "stranger@example.com" });
 
     expect(await screen.findByText(/not a member/i)).toBeInTheDocument();
-    expect(signInWithOtpMock).not.toHaveBeenCalled();
+    expect(signInWithPasswordMock).not.toHaveBeenCalled();
+    expect(signUpMock).not.toHaveBeenCalled();
   });
 
-  it("does NOT advance to the code step if Supabase returns an error", async () => {
-    signInWithOtpMock.mockResolvedValue({ error: new Error("rate limited") });
+  it("shows an error and does not attempt sign in when the invitation check fails", async () => {
+    vi.mocked(checkInvitation).mockResolvedValue({ error: true });
     const user = userEvent.setup();
 
     renderLogin();
-    await requestCode(user);
+    await submitLogin(user);
 
-    await waitFor(() => {
-      expect(screen.queryByText(/enter your code/i)).not.toBeInTheDocument();
-    });
-    expect(screen.getByText(/something went wrong/i)).toBeInTheDocument();
+    expect(await screen.findByText(/something went wrong/i)).toBeInTheDocument();
+    expect(signInWithPasswordMock).not.toHaveBeenCalled();
   });
 });

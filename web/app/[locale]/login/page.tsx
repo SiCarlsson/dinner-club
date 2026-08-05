@@ -10,17 +10,15 @@ import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { checkInvitation } from "./actions";
 
-type Step = "email" | "code";
 type Status = "idle" | "loading" | "error" | "not-invited";
 
 export default function Login() {
   const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [step, setStep] = useState<Step>("email");
+  const [password, setPassword] = useState("");
   const [status, setStatus] = useState<Status>("idle");
   const supabase = useMemo(() => createClient(), []);
 
-  const requestCode = async () => {
+  const login = async () => {
     setStatus("loading");
 
     const invitation = await checkInvitation(email);
@@ -33,48 +31,30 @@ export default function Login() {
       return;
     }
 
-    const { error } = await supabase.auth.signInWithOtp({ email });
-    if (error) {
+    const signIn = await supabase.auth.signInWithPassword({ email, password });
+    if (!signIn.error && signIn.data.session) {
+      redirectAfterLogin();
+      return;
+    }
+
+    const signUp = await supabase.auth.signUp({ email, password });
+    if (signUp.error || !signUp.data.session) {
       setStatus("error");
       return;
     }
 
-    setCode("");
-    setStep("code");
-    setStatus("idle");
+    redirectAfterLogin();
   };
 
-  const verifyCode = async () => {
-    setStatus("loading");
-
-    const { error } = await supabase.auth.verifyOtp({
-      email,
-      token: code,
-      type: "email",
-    });
-    if (error) {
-      setStatus("error");
-      return;
-    }
-
+  const redirectAfterLogin = () => {
     const next = new URLSearchParams(window.location.search).get("next") ?? "/";
     window.location.assign(next);
-  };
-
-  const resetToEmail = () => {
-    setStep("email");
-    setStatus("idle");
-    setCode("");
   };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (status === "loading") return;
-    if (step === "email") {
-      if (email) requestCode();
-    } else {
-      if (code) verifyCode();
-    }
+    if (email && password) login();
   };
 
   const t = useTranslations("LoginPage");
@@ -102,59 +82,6 @@ export default function Login() {
               className="text-muted-foreground hover:text-foreground text-[12px] tracking-[.08em] uppercase transition-colors"
             >
               {t("NotMember.TryAgain")}
-            </button>
-          </>
-        ) : step === "code" ? (
-          <>
-            <div className="flex flex-col gap-3">
-              <h1 className={"font-serif text-[34px] font-light"}>{t("CodeStep.Title")}</h1>
-              <p className="text-foreground/80 max-w-[38ch] text-[13px] leading-[1.6]">
-                {t("CodeStep.Description1")} <span className="text-foreground">{email}</span>.{" "}
-                {t("CodeStep.Description2")}
-              </p>
-            </div>
-
-            <form onSubmit={handleSubmit} className="flex w-full max-w-[340px] flex-col gap-6">
-              <div className="flex flex-col gap-2 text-left">
-                <Label
-                  htmlFor="code"
-                  className="text-muted-foreground text-[10px] tracking-[.14em] uppercase"
-                >
-                  {t("CodeStep.Label")}
-                </Label>
-                <Input
-                  id="code"
-                  type="text"
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  required
-                  maxLength={6}
-                  value={code}
-                  onChange={(e) => setCode(e.target.value.replace(/\D/g, ""))}
-                  placeholder={t("CodeStep.Placeholder")}
-                  className="border-input focus-visible:border-accent h-auto rounded-none border-0 border-b bg-transparent px-0 pb-[9px] text-center text-[24px] tracking-[.5em] focus-visible:ring-0 dark:bg-transparent"
-                />
-              </div>
-
-              <Button
-                type="submit"
-                disabled={status === "loading" || code.length < 6}
-                className="h-auto w-full rounded-none px-[30px] py-[12px] text-[12px] tracking-[.08em] uppercase"
-              >
-                {status === "loading" ? t("CodeStep.Verifying") + "..." : t("CodeStep.Button")}
-              </Button>
-
-              {status === "error" && (
-                <p className="text-destructive text-[13px]">{t("CodeStep.Error")}</p>
-              )}
-            </form>
-
-            <button
-              type="button"
-              onClick={resetToEmail}
-              className="text-muted-foreground hover:text-foreground text-[12px] tracking-[.08em] uppercase transition-colors"
-            >
-              {t("CodeStep.Back")}
             </button>
           </>
         ) : (
@@ -193,9 +120,29 @@ export default function Login() {
                 />
               </div>
 
+              <div className="flex flex-col gap-2 text-left">
+                <Label
+                  htmlFor="password"
+                  className="text-muted-foreground text-[10px] tracking-[.14em] uppercase"
+                >
+                  {t("Password")}
+                </Label>
+                <Input
+                  id="password"
+                  type="password"
+                  required
+                  minLength={8}
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder={t("PasswordPlaceholder")}
+                  className="border-input focus-visible:border-accent h-auto rounded-none border-0 border-b bg-transparent px-0 pb-[9px] text-[15px] focus-visible:ring-0 dark:bg-transparent"
+                />
+              </div>
+
               <Button
                 type="submit"
-                disabled={status === "loading"}
+                disabled={status === "loading" || !email || password.length < 8}
                 className="h-auto w-full rounded-none px-[30px] py-[12px] text-[12px] tracking-[.08em] uppercase"
               >
                 {status === "loading" ? t("Button.InProcess") + "..." : t("Button.Default")}

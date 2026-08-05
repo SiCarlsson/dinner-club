@@ -4,7 +4,7 @@
 
 import { createAdminClient } from "@/utils/supabase/admin";
 
-// Checks the invitations whitelist before we request a magic link, purely so the
+// Checks the invitations whitelist before we attempt sign-in, purely so the
 // login page can tell an uninvited person they're not a member. The real
 // boundary is the enforce_invitation trigger on auth.users — this can be
 // bypassed without any security impact.

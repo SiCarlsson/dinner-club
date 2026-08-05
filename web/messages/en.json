@@ -150,24 +150,15 @@
   },
   "LoginPage": {
     "Title": "Log in",
-    "Description": "Enter your email and we'll send you a 6-digit code.",
+    "Description": "Enter your email and password to sign in.",
     "Email": "Email",
     "EmailPlaceholder": "your.email@example.com",
+    "Password": "Password",
+    "PasswordPlaceholder": "••••••••",
     "Button": {
-      "Default": "Send code",
-      "InProcess": "Sending",
-      "Error": "Something went wrong. Try again."
-    },
-    "CodeStep": {
-      "Title": "Enter your code",
-      "Description1": "We sent a 6-digit code to",
-      "Description2": "Enter it below to sign in.",
-      "Label": "Code",
-      "Placeholder": "123456",
-      "Button": "Sign in",
-      "Verifying": "Verifying",
-      "Error": "That code isn't right. Check it and try again.",
-      "Back": "Use a different email"
+      "Default": "Sign in",
+      "InProcess": "Signing in",
+      "Error": "Something went wrong. Check your details and try again."
     },
     "NotMember": {
       "Title": "You're not a member",
