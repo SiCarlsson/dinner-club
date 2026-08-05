@@ -4,6 +4,7 @@ import { execSync } from "node:child_process";
 import path from "node:path";
 import { Pool } from "pg";
 import { createClient } from "@supabase/supabase-js";
+import { E2E_PASSWORD } from "./auth";
 
 // Playwright runs with web/ as the cwd
 const REPO_ROOT = path.resolve(process.cwd(), "..");
@@ -83,11 +84,15 @@ export async function ensureUser(email: string, role: "member" | "admin"): Promi
 
   let id: string;
   if (existing.length > 0) {
+    // Reuse the existing account as-is. Do NOT reset the password here: changing
+    // it revokes the session the setup project already saved, logging the member
+    // out mid-suite. The password is set once, at creation below.
     id = existing[0].id;
   } else {
     await seedInvitation(normalized);
     const { data, error } = await adminAuth().createUser({
       email: normalized,
+      password: E2E_PASSWORD,
       email_confirm: true,
     });
     if (error || !data.user) throw new Error(`createUser failed: ${error?.message}`);
