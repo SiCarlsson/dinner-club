@@ -82,6 +82,24 @@ resource "github_actions_variable" "deployer_sa" {
   value         = google_service_account.deployer.email
 }
 
+resource "github_actions_variable" "gcp_project_id" {
+  repository    = local.github_repo
+  variable_name = "GCP_PROJECT_ID"
+  value         = var.gcp_project_id
+}
+
+resource "github_actions_variable" "gcp_region" {
+  repository    = local.github_repo
+  variable_name = "GCP_REGION"
+  value         = var.gcp_region
+}
+
+resource "github_actions_variable" "service_name" {
+  repository    = local.github_repo
+  variable_name = "SERVICE_NAME"
+  value         = var.service_name
+}
+
 resource "github_actions_variable" "supabase_project_url" {
   repository    = local.github_repo
   variable_name = "NEXT_PUBLIC_SUPABASE_PROJECT_URL"

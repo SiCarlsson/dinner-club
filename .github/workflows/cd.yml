@@ -10,10 +10,12 @@ concurrency:
   cancel-in-progress: false
 
 env:
-  GCP_PROJECT_ID: dinner-club-501314
-  GCP_REGION: europe-north2
-  SERVICE_NAME: dinner-club
-  REGISTRY: europe-north2-docker.pkg.dev
+  # All of these are managed by Terraform (see terraform/cicd.tf) — don't
+  # hardcode them here, or a region/rename in Terraform silently drifts.
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GCP_REGION: ${{ vars.GCP_REGION }}
+  SERVICE_NAME: ${{ vars.SERVICE_NAME }}
+  REGISTRY: ${{ vars.GCP_REGION }}-docker.pkg.dev
   NEXT_PUBLIC_SUPABASE_PROJECT_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_PROJECT_URL }}
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 

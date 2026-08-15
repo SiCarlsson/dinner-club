@@ -17,6 +17,11 @@ output "container_image" {
   value       = local.container_image
 }
 
+output "domain_dns_records" {
+  description = "Records to create in Cloudflare, DNS only until the certificate is provisioned"
+  value       = try(google_cloud_run_domain_mapping.app.status[0].resource_records, [])
+}
+
 output "github_actions_wif_provider" {
   description = "Value for the WIF_PROVIDER GitHub Actions variable"
   value       = google_iam_workload_identity_pool_provider.github.name

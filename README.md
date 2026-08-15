@@ -48,14 +48,44 @@ terraform apply
 
 After apply the service is live on the placeholder "hello" page. Now ship the real image:
 
-1. **(Optional) set the real URL.** Read the assigned URL with `terraform output cloud_run_url`. If you're not using a custom domain, set `app_base_url` in `terraform.tfvars` to that URL and re-run `terraform apply` (this updates the Supabase auth allow-list and the runtime env). `NEXT_PUBLIC_BASE_URL` is baked into the client bundle at build time, so the value must be correct **before** the image is built in the next step.
-2. **Trigger CI/CD** to build and deploy the real image. Terraform already populated the Actions variables it needs (`WIF_PROVIDER`, `DEPLOYER_SA`, `NEXT_PUBLIC_SUPABASE_*`):
+1. **(Optional) set the real URL.** Read the assigned URL with `terraform output cloud_run_url`. If you're not using a custom domain, set `app_base_url` in `terraform.tfvars` to that URL and re-run `terraform apply`. This updates Supabase's `site_url` / redirect allow-list and the `NEXT_PUBLIC_BASE_URL` runtime env var on Cloud Run — it is *not* a Docker build arg, so no image rebuild is needed and it can be changed at any point.
+2. **Trigger CI/CD** to build and deploy the real image. Terraform already populated the Actions variables it needs (`WIF_PROVIDER`, `DEPLOYER_SA`, `GCP_PROJECT_ID`, `GCP_REGION`, `SERVICE_NAME`, `NEXT_PUBLIC_SUPABASE_*`), so `cd.yml` hardcodes nothing — run `terraform apply` before the first deploy or the workflow builds a malformed image path:
 
    ```bash
    gh workflow run cd.yml     # or use the Actions tab → CD → Run workflow
    ```
 
 The workflow builds the image, pushes it to Artifact Registry, and deploys it to Cloud Run. The app is now live on the real image.
+
+### Custom domain (optional)
+
+Cloud Run domain mappings are only offered in a subset of regions, and `europe-north2` (Stockholm) is **not** one of them. That's why `gcp_region` defaults to `europe-north1` (Finland). If you don't want a custom domain, delete `terraform/domains.tf` and any region works.
+
+The mapping itself lives in `terraform/domains.tf`; change the `name` to your domain.
+
+1. **Verify ownership.** This must be the *same* Google account Terraform authenticates as, or the apply fails with `Caller is not authorized to administer the domain`:
+
+   ```bash
+   gcloud domains verify example.com
+   ```
+
+2. **Point `app_base_url` at it** in `terraform.tfvars` — this drives Supabase's `site_url` and redirect allow-list, so auth emails link to the right host:
+
+   ```hcl
+   app_base_url = "https://example.com"
+   ```
+
+3. **`terraform apply`.** Expect it to sit and wait: the mapping isn't `Ready` until DNS resolves to Google *and* the certificate issues, so the first apply usually ends in `Resource readiness deadline exceeded`. That's normal, not a misconfiguration.
+
+4. **Add the DNS records while it waits.** They're available as soon as the mapping object exists:
+
+   ```bash
+   terraform output domain_dns_records
+   ```
+
+   An apex domain gets **4 A + 4 AAAA** records (apex domains can't take a CNAME); a subdomain gets a single CNAME to `ghs.googlehosted.com`. Re-run `terraform apply` once they're in place and it converges.
+
+Add every record **unproxied**. Behind Cloudflare that means the **grey cloud**. Once the mapping reports `CertificateProvisioned` you can switch to proxied with SSL/TLS mode **Full (strict)**.
 
 ### Ongoing deployments
 

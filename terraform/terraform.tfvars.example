@@ -19,8 +19,9 @@ supabase_database_password = "your_database_password_here"
 # ID of the existing GCP project to deploy into
 gcp_project_id = "your-gcp-project-id"
 
-# Region for Cloud Run, Artifact Registry, and Secret Manager (default: europe-north2 / Stockholm)
-# gcp_region = "europe-north2"
+# Region for Cloud Run, Artifact Registry, and Secret Manager (default: europe-north1 / Finland).
+# Must be a region that supports Cloud Run domain mappings.
+# gcp_region = "europe-north1"
 
 # Image tag to deploy (must already be pushed to Artifact Registry). Defaults to "latest"
 # image_tag = "latest"

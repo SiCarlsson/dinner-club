@@ -31,7 +31,7 @@ variable "gcp_project_id" {
 variable "gcp_region" {
   description = "GCP region for Cloud Run, Artifact Registry, and Secret Manager"
   type        = string
-  default     = "europe-north2" # Stockholm
+  default     = "europe-north1"
 }
 
 variable "service_name" {
