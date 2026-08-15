@@ -11,9 +11,9 @@ concurrency:
 
 env:
   GCP_PROJECT_ID: dinner-club-501314
-  GCP_REGION: europe-north2
+  GCP_REGION: europe-north1
   SERVICE_NAME: dinner-club
-  REGISTRY: europe-north2-docker.pkg.dev
+  REGISTRY: europe-north1-docker.pkg.dev
   NEXT_PUBLIC_SUPABASE_PROJECT_URL: ${{ vars.NEXT_PUBLIC_SUPABASE_PROJECT_URL }}
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ vars.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY }}
 
