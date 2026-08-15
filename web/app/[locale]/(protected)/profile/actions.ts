@@ -18,12 +18,18 @@ export async function updateProfile(update: ProfileUpdate) {
     return { success: false, message: "Not authenticated" };
   }
 
+  const fullName = update.fullName.trim();
+
+  if (!fullName) {
+    return { success: false, message: "Name is required" };
+  }
+
   const dietaryRestrictions = [...new Set(update.dietaryRestrictions.filter(isDietaryOption))];
 
   const { error } = await supabase
     .from("profiles")
     .update({
-      full_name: update.fullName,
+      full_name: fullName,
       dietary_restrictions: dietaryRestrictions,
       updated_at: new Date().toISOString(),
     })

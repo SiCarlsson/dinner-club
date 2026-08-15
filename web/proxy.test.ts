@@ -1,15 +1,25 @@
 // app/proxy.test.ts
 
-import { describe, it, expect, vi } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest, NextResponse } from "next/server";
 import { proxy } from "./proxy";
 
 const getUserMock = vi.fn();
+const singleMock = vi.fn();
 vi.mock("@supabase/ssr", () => ({
   createServerClient: vi.fn(() => ({
     auth: { getUser: getUserMock },
+    from: () => ({
+      select: () => ({
+        eq: () => ({ single: singleMock }),
+      }),
+    }),
   })),
 }));
+
+function mockProfileName(fullName: string | null) {
+  singleMock.mockResolvedValue({ data: { full_name: fullName } });
+}
 
 vi.mock("next-intl/middleware", () => ({
   default: vi.fn(() => (req: NextRequest) => {
@@ -26,6 +36,10 @@ vi.mock("next-intl/middleware", () => ({
 }));
 
 describe("proxy", () => {
+  beforeEach(() => {
+    mockProfileName("Test Member");
+  });
+
   describe("supabase auth", () => {
     it("calls getUser() to trigger a possible token refresh", async () => {
       getUserMock.mockResolvedValue({ data: { user: null } });
@@ -96,6 +110,60 @@ describe("proxy", () => {
 
       expect(res.status).toBe(307);
       expect(res.headers.get("location")).toContain("/login");
+    });
+  });
+
+  describe("members without a full name", () => {
+    const user = { data: { user: { id: "user-123" } } };
+
+    it("redirects to /profile when the name is missing", async () => {
+      getUserMock.mockResolvedValue(user);
+      mockProfileName(null);
+      const res = await proxy(new NextRequest("http://localhost:3000/sv/dinners"));
+
+      expect(res.status).toBe(307);
+      expect(res.headers.get("location")).toBe("http://localhost:3000/sv/profile");
+    });
+
+    it("redirects to /profile when the name is only whitespace", async () => {
+      getUserMock.mockResolvedValue(user);
+      mockProfileName("   ");
+      const res = await proxy(new NextRequest("http://localhost:3000/sv/dinners"));
+
+      expect(res.status).toBe(307);
+      expect(res.headers.get("location")).toBe("http://localhost:3000/sv/profile");
+    });
+
+    it("keeps the current locale when redirecting", async () => {
+      getUserMock.mockResolvedValue(user);
+      mockProfileName(null);
+      const res = await proxy(new NextRequest("http://localhost:3000/en/admin"));
+
+      expect(res.headers.get("location")).toBe("http://localhost:3000/en/profile");
+    });
+
+    it("lets them reach /profile itself, so the redirect cannot loop", async () => {
+      getUserMock.mockResolvedValue(user);
+      mockProfileName(null);
+      const res = await proxy(new NextRequest("http://localhost:3000/sv/profile"));
+
+      expect(res.status).toBe(200);
+    });
+
+    it("leaves public paths alone", async () => {
+      getUserMock.mockResolvedValue(user);
+      mockProfileName(null);
+      const res = await proxy(new NextRequest("http://localhost:3000/sv/guide"));
+
+      expect(res.status).toBe(200);
+    });
+
+    it("allows a protected path once a name is set", async () => {
+      getUserMock.mockResolvedValue(user);
+      mockProfileName("Astrid Lindqvist");
+      const res = await proxy(new NextRequest("http://localhost:3000/sv/dinners"));
+
+      expect(res.status).toBe(200);
     });
   });
 

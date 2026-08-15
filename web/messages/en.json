@@ -130,7 +130,8 @@
       "Role": "Role",
       "Email": "Email",
       "Name": "Name",
-      "NamePlaceholder": "First and last name"
+      "NamePlaceholder": "First and last name",
+      "NameRequired": "Add your first and last name before you continue."
     },
     "SaveButton": {
       "Default": "Save",

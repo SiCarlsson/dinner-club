@@ -71,6 +71,32 @@ describe("ProfileForm Component", () => {
     expect(screen.getByRole("button", { name: "Save" })).not.toBeDisabled();
   });
 
+  it("explains why the name is needed when the member has not set one", () => {
+    renderProfileForm({ initialName: "" });
+
+    expect(
+      screen.getByText(/Add your first and last name before you continue/),
+    ).toBeInTheDocument();
+  });
+
+  it("does not nag a member who already has a name", () => {
+    renderProfileForm();
+
+    expect(screen.queryByText(/Add your first and last name before you continue/)).toBeNull();
+  });
+
+  it("keeps save disabled until a blank name is filled in", () => {
+    renderProfileForm({ initialName: "" });
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+
+    // Whitespace alone would pass the dirty check but not the gate in proxy.ts.
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "  " } });
+    expect(screen.getByRole("button", { name: "Save" })).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText("Name"), { target: { value: "Jane Doe" } });
+    expect(screen.getByRole("button", { name: "Save" })).not.toBeDisabled();
+  });
+
   it("toggles diet options on and off", async () => {
     const user = userEvent.setup();
     renderProfileForm();

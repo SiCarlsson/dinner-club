@@ -98,10 +98,14 @@ export function ProfileForm({
     }
   };
 
+  const needsName = initialName.trim() === "";
+
   const isDirty =
     name !== initialName ||
     diet.length !== baselineDiet.length ||
     diet.some((item) => !baselineDiet.includes(item));
+
+  const canSave = isDirty && name.trim() !== "";
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -144,6 +148,12 @@ export function ProfileForm({
           {t("Sections.Account")}
         </h2>
 
+        {needsName && (
+          <p className="border-accent text-body border-l-2 pl-4 text-[13px] leading-[1.6]">
+            {t("Information.NameRequired")}
+          </p>
+        )}
+
         <div className="flex flex-col gap-2">
           <Label
             htmlFor="full_name"
@@ -153,6 +163,7 @@ export function ProfileForm({
           </Label>
           <Input
             id="full_name"
+            required
             value={name}
             onChange={(e) => {
               setName(e.target.value);
@@ -227,7 +238,7 @@ export function ProfileForm({
       <div className="flex flex-wrap items-center gap-4">
         <Button
           type="submit"
-          disabled={status === "saving" || !isDirty}
+          disabled={status === "saving" || !canSave}
           className="h-auto w-full rounded-none px-[30px] py-[12px] text-[12px] tracking-[.08em] uppercase sm:w-fit"
         >
           {getSaveButtonText()}

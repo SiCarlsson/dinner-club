@@ -99,8 +99,16 @@ export async function ensureUser(email: string, role: "member" | "admin"): Promi
     id = data.user.id;
   }
 
-  await sql("UPDATE public.profiles SET role = $2 WHERE id = $1", [id, role]);
+  await sql(
+    `UPDATE public.profiles SET role = $2, full_name = coalesce(nullif(btrim(full_name), ''), $3)
+     WHERE id = $1`,
+    [id, role, role === "admin" ? "E2E Admin" : "E2E Member"],
+  );
   return id;
+}
+
+export async function clearFullName(userId: string): Promise<void> {
+  await sql("UPDATE public.profiles SET full_name = NULL WHERE id = $1", [userId]);
 }
 
 export async function seedVenue(name: string): Promise<string> {
