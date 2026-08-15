@@ -48,6 +48,25 @@ describe("updateProfile Server Action", () => {
     expect(revalidatePath).not.toHaveBeenCalled();
   });
 
+  it("should reject a blank name rather than persisting one", async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: "user-123" } } });
+
+    const result = await updateProfile({ ...validUpdate, fullName: "   " });
+
+    expect(result).toEqual({ success: false, message: "Name is required" });
+    expect(mockFrom).not.toHaveBeenCalled();
+    expect(revalidatePath).not.toHaveBeenCalled();
+  });
+
+  it("should trim the name before persisting it", async () => {
+    mockGetUser.mockResolvedValue({ data: { user: { id: "user-123" } } });
+    mockEq.mockResolvedValue({ error: null });
+
+    await updateProfile({ ...validUpdate, fullName: "  John Doe  " });
+
+    expect(mockUpdate).toHaveBeenCalledWith(expect.objectContaining({ full_name: "John Doe" }));
+  });
+
   it("should return the database error message if the update fails", async () => {
     mockGetUser.mockResolvedValue({ data: { user: { id: "user-123" } } });
     mockEq.mockResolvedValue({ error: { message: "Database connection timeout" } });

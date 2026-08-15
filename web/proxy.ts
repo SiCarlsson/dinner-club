@@ -8,6 +8,9 @@ import { getPublicOrigin } from "@/lib/request-origin";
 
 const PROTECTED_PATHS = ["/dinners", "/profile", "/admin"];
 const GUEST_ONLY_PATHS = ["/login"];
+// Where a member who has not set a name is still allowed to go, so the name gate
+// below cannot bounce them in a loop.
+const NAME_EXEMPT_PATHS = ["/profile"];
 
 const handleI18nRouting = createIntlMiddleware(routing);
 
@@ -34,12 +37,12 @@ export async function proxy(request: NextRequest) {
     },
   );
 
-  const pathWithoutLocale = request.nextUrl.pathname.replace(
-    new RegExp(`^/(${routing.locales.join("|")})`),
-    "",
-  );
+  const localePrefix =
+    request.nextUrl.pathname.match(new RegExp(`^/(${routing.locales.join("|")})`))?.[0] ?? "";
+  const pathWithoutLocale = request.nextUrl.pathname.slice(localePrefix.length);
   const isProtected = PROTECTED_PATHS.some((path) => pathWithoutLocale.startsWith(path));
   const isGuestOnly = GUEST_ONLY_PATHS.some((path) => pathWithoutLocale.startsWith(path));
+  const isNameExempt = NAME_EXEMPT_PATHS.some((path) => pathWithoutLocale.startsWith(path));
 
   const {
     data: { user },
@@ -55,6 +58,19 @@ export async function proxy(request: NextRequest) {
 
   if (isGuestOnly && user) {
     return NextResponse.redirect(new URL("/", origin));
+  }
+
+  // Force full name entry
+  if (isProtected && user && !isNameExempt) {
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("full_name")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile?.full_name?.trim()) {
+      return NextResponse.redirect(new URL(`${localePrefix}/profile`, origin));
+    }
   }
 
   return response;

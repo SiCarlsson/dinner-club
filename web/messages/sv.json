@@ -130,7 +130,8 @@
       "Role": "Roll",
       "Email": "Epost",
       "Name": "Namn",
-      "NamePlaceholder": "För- och efternamn"
+      "NamePlaceholder": "För- och efternamn",
+      "NameRequired": "Lägg till ditt för- och efternamn innan du fortsätter."
     },
     "SaveButton": {
       "Default": "Spara",
