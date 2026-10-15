@@ -153,7 +153,7 @@ describe("Landing page", () => {
     );
     expect(screen.getByRole("link", { name: mockSv.LandingPage.Apply })).toHaveAttribute(
       "href",
-      "mailto:hej@calidinner.se",
+      "mailto:simonalexcarlsson@gmail.com",
     );
   });
 });
