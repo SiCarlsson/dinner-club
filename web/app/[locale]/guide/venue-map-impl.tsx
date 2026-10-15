@@ -68,7 +68,7 @@ export default function VenueMapImpl({ venues }: { venues: MappableVenue[] }) {
             )}
             <dl className="mt-1.5 flex flex-col gap-1 text-[11px] leading-none">
               {[
-                { label: t("Drinks"), value: venue.avg_drinks },
+                { label: t("Service"), value: venue.avg_service },
                 { label: t("Food"), value: venue.avg_food },
                 { label: t("Venue"), value: venue.avg_venue },
               ].map(({ label, value }) => (

@@ -14,10 +14,10 @@
   "GuidePage": {
     "Title": "Guide",
     "Eyebrow": "Där vi ätit",
-    "Intro": "Varje restaurang klubben besökt rankas individuellt mellan 1-5 på mat, dryck och lokal. Endast de som deltagit på middagarna får vara med och sätta betyg och nedan syns de aggregerade resultaten.",
+    "Intro": "Varje restaurang klubben besökt rankas individuellt mellan 1-5 på mat, service och lokal. Endast de som deltagit på middagarna får vara med och sätta betyg och nedan syns de aggregerade resultaten.",
     "Empty": "Inga betygsatta restauranger än.",
     "Restaurant": "Restaurang",
-    "Drinks": "Dryck",
+    "Service": "Service",
     "Food": "Mat",
     "Venue": "Lokal",
     "Overall": "Helhet",
@@ -41,12 +41,12 @@
       },
       "Three": {
         "Title": "Gemensamma betyg",
-        "Body": "Efter varje besök betygsätter vi mat och dryck tillsammans. Resultaten bidrar till vår egen matguide."
+        "Body": "Efter varje besök betygsätter vi mat, service och lokal tillsammans. Resultaten bidrar till vår egen matguide."
       }
     },
     "Ratings": {
       "Label": "Topp 3 ställen vi besökt",
-      "Drinks": "Dryck",
+      "Service": "Service",
       "Food": "Mat",
       "Venue": "Lokal"
     },
@@ -86,7 +86,7 @@
     "AttendeesDietaryHeading": "Kosthänsyn",
     "AttendeesDietaryNone": "Inga kosthänsyn angivna.",
     "RateSubtitle": "Betygsätt kvällen",
-    "RateDrinks": "Dryck",
+    "RateService": "Service",
     "RateFood": "Mat",
     "RateVenue": "Lokal",
     "RateSave": "Spara betyg",

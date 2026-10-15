@@ -31,7 +31,7 @@ const venues: VenueRating[] = [
     venue_id: "v1",
     venue_name: "Rolfs Kök",
     avg_overall: 4.3,
-    avg_drinks: 4.5,
+    avg_service: 4.5,
     avg_food: 4.2,
     avg_venue: 4.1,
     rating_count: 3,
@@ -45,7 +45,7 @@ const venues: VenueRating[] = [
     venue_id: "v2",
     venue_name: "Pelikan",
     avg_overall: 3,
-    avg_drinks: 3,
+    avg_service: 3,
     avg_food: 3,
     avg_venue: 3,
     rating_count: 1,
@@ -78,7 +78,7 @@ describe("GuideLeaderboard", () => {
     render(await GuideLeaderboard({ venues }));
 
     expect(screen.getByText(mockSv.GuidePage.Restaurant)).toBeInTheDocument();
-    expect(screen.getByText(mockSv.GuidePage.Drinks)).toBeInTheDocument();
+    expect(screen.getByText(mockSv.GuidePage.Service)).toBeInTheDocument();
     expect(screen.getByText(mockSv.GuidePage.Food)).toBeInTheDocument();
     expect(screen.getByText(mockSv.GuidePage.Venue)).toBeInTheDocument();
     expect(screen.getByText(mockSv.GuidePage.Overall)).toBeInTheDocument();

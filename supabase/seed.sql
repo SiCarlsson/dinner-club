@@ -240,7 +240,7 @@ values
 on conflict (dinner_id, user_id) do nothing;
 
 -- Ratings for the four past dinners
-insert into public.ratings (dinner_id, user_id, drinks_rating, food_rating, venue_rating)
+insert into public.ratings (dinner_id, user_id, service_rating, food_rating, venue_rating)
 values
   -- Midwinter Supper → Pelikan
   ('b0000000-0000-0000-0000-000000000007', 'c0000000-0000-0000-0000-000000000001', 4, 4, 4),

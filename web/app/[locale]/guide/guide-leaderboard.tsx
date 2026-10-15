@@ -30,7 +30,7 @@ export async function GuideLeaderboard({ venues }: { venues: VenueRating[] }) {
       <TableHeader>
         <TableRow className="hover:bg-transparent">
           <TableHead className={HEAD}>{t("Restaurant")}</TableHead>
-          <TableHead className={HEADNUM}>{t("Drinks")}</TableHead>
+          <TableHead className={HEADNUM}>{t("Service")}</TableHead>
           <TableHead className={HEADNUM}>{t("Food")}</TableHead>
           <TableHead className={HEADNUM}>{t("Venue")}</TableHead>
           <TableHead className={HEADNUM}>{t("Overall")}</TableHead>
@@ -54,7 +54,7 @@ export async function GuideLeaderboard({ venues }: { venues: VenueRating[] }) {
                 </span>
               </TableCell>
               <TableCell className={cn(NUM, "text-muted-foreground")}>
-                {formatScore(venue.avg_drinks)}
+                {formatScore(venue.avg_service)}
               </TableCell>
               <TableCell className={cn(NUM, "text-muted-foreground")}>
                 {formatScore(venue.avg_food)}

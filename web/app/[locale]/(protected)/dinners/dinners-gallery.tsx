@@ -255,7 +255,7 @@ function StarRow({
 
 function RatingControls({ dinnerId, rating }: { dinnerId: string; rating: DinnerRating | null }) {
   const t = useTranslations("DinnersPage");
-  const [drinks, setDrinks] = useState(rating?.drinks ?? 0);
+  const [service, setService] = useState(rating?.service ?? 0);
   const [food, setFood] = useState(rating?.food ?? 0);
   const [venue, setVenue] = useState(rating?.venue ?? 0);
   // The last persisted rating
@@ -263,10 +263,10 @@ function RatingControls({ dinnerId, rating }: { dinnerId: string; rating: Dinner
   const [justSaved, setJustSaved] = useState(false);
   const [isPending, startTransition] = useTransition();
 
-  const complete = drinks > 0 && food > 0 && venue > 0;
+  const complete = service > 0 && food > 0 && venue > 0;
   const changed =
     !committed ||
-    committed.drinks !== drinks ||
+    committed.service !== service ||
     committed.food !== food ||
     committed.venue !== venue;
 
@@ -278,9 +278,9 @@ function RatingControls({ dinnerId, rating }: { dinnerId: string; rating: Dinner
   const submit = () => {
     if (!complete || isPending || !changed) return;
     startTransition(async () => {
-      const result = await rateDinner(dinnerId, { drinks, food, venue });
+      const result = await rateDinner(dinnerId, { service, food, venue });
       if (result.success) {
-        setCommitted({ drinks, food, venue });
+        setCommitted({ service, food, venue });
         setJustSaved(true);
       }
     });
@@ -296,7 +296,7 @@ function RatingControls({ dinnerId, rating }: { dinnerId: string; rating: Dinner
 
   return (
     <div className="flex w-full flex-col gap-3">
-      <StarRow label={t("RateDrinks")} value={drinks} onChange={change(setDrinks)} />
+      <StarRow label={t("RateService")} value={service} onChange={change(setService)} />
       <StarRow label={t("RateFood")} value={food} onChange={change(setFood)} />
       <StarRow label={t("RateVenue")} value={venue} onChange={change(setVenue)} />
       <Button

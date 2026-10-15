@@ -440,15 +440,15 @@ describe("DinnersGallery Component", () => {
       dialog.getAllByRole("button", {
         name: messages.DinnersPage.RateStarAria.replace("{value}", String(value)),
       });
-    // Three rows share each aria-label, one per category (drinks, food, venue).
-    await user.click(stars("drinks", 4)[0]);
+    // Three rows share each aria-label, one per category (service, food, venue).
+    await user.click(stars("service", 4)[0]);
     await user.click(stars("food", 5)[1]);
     await user.click(stars("venue", 3)[2]);
 
     expect(save).toBeEnabled();
     await user.click(save);
 
-    expect(rateDinner).toHaveBeenCalledWith("p1", { drinks: 4, food: 5, venue: 3 });
+    expect(rateDinner).toHaveBeenCalledWith("p1", { service: 4, food: 5, venue: 3 });
   });
 
   it("prefills stars and disables the update button until a score actually changes", async () => {
@@ -459,7 +459,7 @@ describe("DinnersGallery Component", () => {
           id: "p1",
           name: "Spring Dinner",
           myRsvpStatus: "attending",
-          myRating: { drinks: 2, food: 2, venue: 2 },
+          myRating: { service: 2, food: 2, venue: 2 },
         }),
       ],
     });

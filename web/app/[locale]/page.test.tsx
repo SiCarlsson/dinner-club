@@ -14,7 +14,7 @@ function makeVenue(overrides: Partial<VenueRating> = {}): VenueRating {
     venue_id: "v1",
     venue_name: "Venue",
     avg_overall: 4.5,
-    avg_drinks: 4.5,
+    avg_service: 4.5,
     avg_food: 4.5,
     avg_venue: 4.5,
     rating_count: 3,
@@ -107,7 +107,7 @@ describe("Landing page", () => {
           venue_id: "v1",
           venue_name: "Ekstedt",
           avg_overall: 4.9,
-          avg_drinks: 4.7,
+          avg_service: 4.7,
           avg_food: 4.8,
           avg_venue: 4.3,
         }),
@@ -125,8 +125,8 @@ describe("Landing page", () => {
     expect(screen.getByText("4.90")).toBeInTheDocument();
     expect(screen.getByText("Punkt")).toBeInTheDocument();
     expect(screen.getByText("Lilla Ego")).toBeInTheDocument();
-    // Each venue also breaks down into drinks / food / venue sub-scores.
-    expect(screen.getAllByText(mockSv.LandingPage.Ratings.Drinks).length).toBe(3);
+    // Each venue also breaks down into service / food / venue sub-scores.
+    expect(screen.getAllByText(mockSv.LandingPage.Ratings.Service).length).toBe(3);
     expect(screen.getByText("4.70")).toBeInTheDocument();
     expect(screen.getByText("4.80")).toBeInTheDocument();
     expect(screen.getByText("4.30")).toBeInTheDocument();

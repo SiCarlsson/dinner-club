@@ -9,7 +9,7 @@
 * **Exclusive Access:** Invitation-only membership enforced at the database with passwordless login via one-time email codes (Supabase Auth).
 * **Installable PWA:** Mobile-first progressive web app you can add to your home screen with web push notifications.
 * **Dinner Management:** Calendar of upcoming dinners with RSVPs, plus-ones (+1), and per-dinner dietary notes.
-* **Curated Ratings:** Independent 1–5 scoring for Food, Drinks and Venue.
+* **Curated Ratings:** Independent 1–5 scoring for Food, Service and Venue.
 * **The Guide:** A public leaderboard ranking Stockholm venues by aggregate club scores, plotted on an interactive map.
 * **Admin Dashboard:** Role-based tools to send invitations, manage dinners, and curate venues.
 

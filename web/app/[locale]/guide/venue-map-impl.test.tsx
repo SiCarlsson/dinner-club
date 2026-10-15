@@ -55,7 +55,7 @@ function makeVenue(overrides: Partial<MappableVenue> = {}): MappableVenue {
     venue_id: "v1",
     venue_name: "Rolfs Kök",
     avg_overall: 4.3,
-    avg_drinks: 4.5,
+    avg_service: 4.5,
     avg_food: 4.2,
     avg_venue: 4.1,
     rating_count: 3,
@@ -110,12 +110,12 @@ describe("VenueMapImpl", () => {
   it("shows every rating and the total, each formatted to two decimals", () => {
     renderMap([makeVenue()]);
 
-    expect(screen.getByText(messages.GuidePage.Drinks)).toBeInTheDocument();
+    expect(screen.getByText(messages.GuidePage.Service)).toBeInTheDocument();
     expect(screen.getByText(messages.GuidePage.Food)).toBeInTheDocument();
     expect(screen.getByText(messages.GuidePage.Venue)).toBeInTheDocument();
     expect(screen.getByText(messages.GuidePage.Overall)).toBeInTheDocument();
 
-    expect(screen.getByText("4.50")).toBeInTheDocument(); // drinks
+    expect(screen.getByText("4.50")).toBeInTheDocument(); // service
     expect(screen.getByText("4.20")).toBeInTheDocument(); // food
     expect(screen.getByText("4.10")).toBeInTheDocument(); // venue
     expect(screen.getByText("4.30")).toBeInTheDocument(); // overall / total

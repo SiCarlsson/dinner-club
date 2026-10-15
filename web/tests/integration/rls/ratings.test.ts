@@ -13,7 +13,7 @@ async function pastDinnerAttendedBy(userId: string): Promise<string> {
   return dinnerId;
 }
 
-const VALID_SCORES = { drinks_rating: 5, food_rating: 4, venue_rating: 3 };
+const VALID_SCORES = { service_rating: 5, food_rating: 4, venue_rating: 3 };
 
 describe("ratings RLS", () => {
   beforeEach(async () => {

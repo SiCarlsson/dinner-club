@@ -36,7 +36,7 @@ function mockSupabase({
   }[];
   ratings?: {
     dinner_id: string;
-    drinks_rating: number;
+    service_rating: number;
     food_rating: number;
     venue_rating: number;
   }[];
@@ -571,7 +571,7 @@ describe("dinners gallery actions", () => {
       const supabase = mockSupabase({
         dinners,
         rsvps: [{ dinner_id: "p1", status: "attending" }],
-        ratings: [{ dinner_id: "p1", drinks_rating: 4, food_rating: 5, venue_rating: 3 }],
+        ratings: [{ dinner_id: "p1", service_rating: 4, food_rating: 5, venue_rating: 3 }],
       });
       vi.mocked(getCurrentUser).mockResolvedValue({
         supabase: supabase as never,
@@ -585,7 +585,7 @@ describe("dinners gallery actions", () => {
       expect(supabase.ratingsEq).toHaveBeenCalledWith("user_id", "user-1");
       expect(result.success && result.dinners[0].myRsvpStatus).toBe("attending");
       expect(result.success && result.dinners[0].myRating).toEqual({
-        drinks: 4,
+        service: 4,
         food: 5,
         venue: 3,
       });
@@ -600,7 +600,7 @@ describe("dinners gallery actions", () => {
       });
 
       const { rateDinner } = await import("./actions");
-      const result = await rateDinner("e1", { drinks: 4, food: 5, venue: 3 });
+      const result = await rateDinner("e1", { service: 4, food: 5, venue: 3 });
 
       expect(result).toEqual({ success: false, message: "Not authenticated" });
     });
@@ -613,14 +613,14 @@ describe("dinners gallery actions", () => {
       });
 
       const { rateDinner } = await import("./actions");
-      const result = await rateDinner("e1", { drinks: 4, food: 5, venue: 3 });
+      const result = await rateDinner("e1", { service: 4, food: 5, venue: 3 });
 
       expect(supabase.from).toHaveBeenCalledWith("ratings");
       expect(supabase.upsert).toHaveBeenCalledWith(
         expect.objectContaining({
           dinner_id: "e1",
           user_id: "user-1",
-          drinks_rating: 4,
+          service_rating: 4,
           food_rating: 5,
           venue_rating: 3,
         }),
@@ -637,7 +637,7 @@ describe("dinners gallery actions", () => {
       });
 
       const { rateDinner } = await import("./actions");
-      const result = await rateDinner("e1", { drinks: 1, food: 1, venue: 1 });
+      const result = await rateDinner("e1", { service: 1, food: 1, venue: 1 });
 
       expect(result).toEqual({ success: false, message: "denied" });
     });

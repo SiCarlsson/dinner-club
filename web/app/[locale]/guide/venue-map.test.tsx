@@ -23,7 +23,7 @@ function makeVenue(overrides: Partial<VenueRating> = {}): VenueRating {
     venue_id: "v1",
     venue_name: "Rolfs Kök",
     avg_overall: 4.3,
-    avg_drinks: 4.5,
+    avg_service: 4.5,
     avg_food: 4.2,
     avg_venue: 4.1,
     rating_count: 3,

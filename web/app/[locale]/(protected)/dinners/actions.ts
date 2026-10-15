@@ -9,7 +9,7 @@ import type { DinnerRecord, ProfileRecord, VenueRecord } from "../admin/actions"
 
 export type RsvpStatus = "attending" | "declined";
 
-export type DinnerRating = { drinks: number; food: number; venue: number };
+export type DinnerRating = { service: number; food: number; venue: number };
 
 export type GalleryDinner = {
   id: string;
@@ -132,7 +132,7 @@ export async function getPastDinners() {
       .in("dinner_id", dinnerIds),
     supabase
       .from("ratings")
-      .select("dinner_id, drinks_rating, food_rating, venue_rating")
+      .select("dinner_id, service_rating, food_rating, venue_rating")
       .eq("user_id", user.id)
       .in("dinner_id", dinnerIds),
   ]);
@@ -148,7 +148,7 @@ export async function getPastDinners() {
       myHasPlusOne: false,
       myPlusOneName: null,
       myRating: rating
-        ? { drinks: rating.drinks_rating, food: rating.food_rating, venue: rating.venue_rating }
+        ? { service: rating.service_rating, food: rating.food_rating, venue: rating.venue_rating }
         : null,
       canNotify: false, // past dinners aren't announced
       canManage: false, // and aren't edited from the gallery
@@ -357,7 +357,7 @@ export async function rateDinner(dinnerId: string, rating: DinnerRating) {
     {
       dinner_id: dinnerId,
       user_id: user.id,
-      drinks_rating: rating.drinks,
+      service_rating: rating.service,
       food_rating: rating.food,
       venue_rating: rating.venue,
       updated_at: new Date().toISOString(),

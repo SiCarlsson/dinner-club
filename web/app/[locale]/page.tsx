@@ -80,7 +80,7 @@ export default async function Home() {
             <ul>
               {topVenues.map((venue) => {
                 const subScores = [
-                  { label: t("Ratings.Drinks"), value: venue.avg_drinks },
+                  { label: t("Ratings.Service"), value: venue.avg_service },
                   { label: t("Ratings.Food"), value: venue.avg_food },
                   { label: t("Ratings.Venue"), value: venue.avg_venue },
                 ];
