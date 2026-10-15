@@ -1,17 +1,17 @@
 name: CD
 
 on:
-  push:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
     branches: [main]
   workflow_dispatch: # allow manual deploys from the Actions tab
 
 concurrency:
-  group: cd-${{ github.ref }}
+  group: cd-deploy
   cancel-in-progress: false
 
 env:
-  # All of these are managed by Terraform (see terraform/cicd.tf) — don't
-  # hardcode them here, or a region/rename in Terraform silently drifts.
   GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
   GCP_REGION: ${{ vars.GCP_REGION }}
   SERVICE_NAME: ${{ vars.SERVICE_NAME }}
@@ -24,12 +24,16 @@ jobs:
     name: Build, push & deploy to Cloud Run
     runs-on: ubuntu-latest
 
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      github.event.workflow_run.conclusion == 'success'
+
     permissions:
       contents: read
       id-token: write # required to mint the OIDC token for Workload Identity Federation
 
     env:
-      DEPLOY_SHA: ${{ github.sha }}
+      DEPLOY_SHA: ${{ github.event.workflow_run.head_sha || github.sha }}
 
     steps:
       - uses: actions/checkout@v4
