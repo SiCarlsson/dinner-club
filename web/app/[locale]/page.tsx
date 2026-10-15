@@ -8,7 +8,7 @@ import { cn } from "@/lib/utils";
 import { buttonVariants } from "@/components/ui/button";
 import { getVenueRatings } from "./guide/actions";
 
-const CONTACT_EMAIL = "hej@calidinner.se";
+const CONTACT_EMAIL = "simonalexcarlsson@gmail.com";
 
 const tenets = [
   { number: "01", key: "One" },
