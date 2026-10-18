@@ -8,7 +8,7 @@ import type { MappableVenue } from "./venue-map-impl";
 
 const VenueMapImpl = dynamic(() => import("./venue-map-impl"), {
   ssr: false,
-  loading: () => <div className="bg-muted h-[360px] w-full animate-pulse" />,
+  loading: () => <div className="bg-muted h-90 w-full animate-pulse" />,
 });
 
 export function VenueMap({ venues }: { venues: VenueRating[] }) {

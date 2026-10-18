@@ -10,15 +10,10 @@ import { useState } from "react";
 import { Map, Marker, NavigationControl, Popup, type MapRef } from "react-map-gl/maplibre";
 import type { VenueRating } from "./actions";
 
-// Venues without coordinates can't be placed on the map.
 export type MappableVenue = VenueRating & { latitude: number; longitude: number };
 
-// MapLibre finds its worker relative to its own module URL, which doesn't survive
-// bundling, so have the bundler emit the worker file and point MapLibre at it.
 setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString());
 
-// OpenFreeMap's dark style references images (e.g. "wood-pattern") its sprite doesn't
-// ship. Fill any gap with a transparent pixel instead of logging a warning per image.
 function blankMissingImages(ref: MapRef | null) {
   const map = ref?.getMap();
   map?.setMissingStyleImageResolver((id) => {
@@ -35,14 +30,11 @@ export default function VenueMapImpl({ venues }: { venues: MappableVenue[] }) {
   const { resolvedTheme } = useTheme();
   const [selected, setSelected] = useState<MappableVenue | null>(null);
 
-  // OpenFreeMap needs no API key or account and ships a matching dark variant.
-  // Its tiles carry their own OSM/OpenMapTiles attribution, which MapLibre displays.
   const mapStyle =
     resolvedTheme === "dark"
       ? "https://tiles.openfreemap.org/styles/dark"
       : "https://tiles.openfreemap.org/styles/positron";
 
-  // Fit all pins; a single venue has no extent, so fall back to a fixed zoom.
   const lngs = venues.map((v) => v.longitude);
   const lats = venues.map((v) => v.latitude);
   const initialViewState =

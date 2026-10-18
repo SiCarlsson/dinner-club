@@ -46,10 +46,10 @@ export async function GuideLeaderboard({ venues }: { venues: VenueRating[] }) {
                 <span className="font-serif text-[18px] leading-tight sm:text-[20px]">
                   {venue.venue_name}
                 </span>
-                <span className="text-muted-foreground mt-0.5 block text-[9px] tracking-[.08em] uppercase sm:text-[10px] sm:tracking-[.1em]">
+                <span className="text-muted-foreground mt-0.5 block text-[9px] tracking-[.08em] uppercase sm:text-[10px] sm:tracking-widest">
                   {location}
                 </span>
-                <span className="text-muted-foreground block text-[9px] tracking-[.08em] uppercase sm:text-[10px] sm:tracking-[.1em]">
+                <span className="text-muted-foreground block text-[9px] tracking-[.08em] uppercase sm:text-[10px] sm:tracking-widest">
                   {ratingsLabel}
                 </span>
               </TableCell>

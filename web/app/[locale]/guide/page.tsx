@@ -12,8 +12,8 @@ export default async function Guide() {
   const venues = result.success ? result.venues : [];
 
   return (
-    <main className="font-ui mx-auto w-full max-w-[760px] flex-1 px-6 py-8 md:px-10 md:py-[52px]">
-      <header className="border-border flex flex-col items-center gap-4 border-b pb-10 text-center md:pb-[52px]">
+    <main className="font-ui mx-auto w-full max-w-190 flex-1 px-6 py-8 md:px-10 md:py-13">
+      <header className="border-border flex flex-col items-center gap-4 border-b pb-10 text-center md:pb-13">
         <p className="text-accent text-[9px] tracking-[.36em] uppercase sm:text-[10px] sm:tracking-[.42em]">
           {t("Eyebrow")}
         </p>
@@ -23,11 +23,11 @@ export default async function Guide() {
         <p className="text-body max-w-[46ch] text-[13.5px] leading-[1.7]">{t("Intro")}</p>
       </header>
 
-      <section className="pt-10 md:pt-[52px]">
+      <section className="pt-10 md:pt-13">
         {venues.length === 0 ? (
           <p className="text-muted-foreground text-center text-[13px]">{t("Empty")}</p>
         ) : (
-          <div className="flex flex-col gap-10 md:gap-[52px]">
+          <div className="flex flex-col gap-10 md:gap-13">
             <VenueMap venues={venues} />
             <GuideLeaderboard venues={venues} />
           </div>
