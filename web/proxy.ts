@@ -1,7 +1,7 @@
 // proxy.ts
 
 import { routing } from "./i18n/routing";
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import createIntlMiddleware from "next-intl/middleware";
 import { NextResponse, type NextRequest } from "next/server";
 import { getPublicOrigin } from "@/lib/request-origin";
@@ -14,10 +14,10 @@ const NAME_EXEMPT_PATHS = ["/profile"];
 
 const handleI18nRouting = createIntlMiddleware(routing);
 
-export async function proxy(request: NextRequest) {
-  const intlResponse = handleI18nRouting(request);
+type CookieToSet = { name: string; value: string; options: CookieOptions };
 
-  let response = intlResponse;
+export async function proxy(request: NextRequest) {
+  let refreshedCookies: CookieToSet[] = [];
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_PROJECT_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!,
@@ -28,14 +28,18 @@ export async function proxy(request: NextRequest) {
         },
         setAll(cookiesToSet) {
           cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
-          response = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) =>
-            response.cookies.set(name, value, options),
-          );
+          refreshedCookies = cookiesToSet;
         },
       },
     },
   );
+
+  const withRefreshedCookies = (response: NextResponse) => {
+    refreshedCookies.forEach(({ name, value, options }) =>
+      response.cookies.set(name, value, options),
+    );
+    return response;
+  };
 
   const localePrefix =
     request.nextUrl.pathname.match(new RegExp(`^/(${routing.locales.join("|")})`))?.[0] ?? "";
@@ -48,16 +52,18 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const intlResponse = handleI18nRouting(request);
+
   const origin = getPublicOrigin(request);
 
   if (isProtected && !user) {
     const redirectUrl = new URL("/login", origin);
     redirectUrl.searchParams.set("next", request.nextUrl.pathname);
-    return NextResponse.redirect(redirectUrl);
+    return withRefreshedCookies(NextResponse.redirect(redirectUrl));
   }
 
   if (isGuestOnly && user) {
-    return NextResponse.redirect(new URL("/", origin));
+    return withRefreshedCookies(NextResponse.redirect(new URL("/", origin)));
   }
 
   // Force full name entry
@@ -69,11 +75,13 @@ export async function proxy(request: NextRequest) {
       .single();
 
     if (!profile?.full_name?.trim()) {
-      return NextResponse.redirect(new URL(`${localePrefix}/profile`, origin));
+      return withRefreshedCookies(
+        NextResponse.redirect(new URL(`${localePrefix}/profile`, origin)),
+      );
     }
   }
 
-  return response;
+  return withRefreshedCookies(intlResponse);
 }
 
 export const config = {

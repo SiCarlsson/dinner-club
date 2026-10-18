@@ -4,18 +4,31 @@ import { describe, it, expect, vi, beforeEach } from "vitest";
 import { NextRequest, NextResponse } from "next/server";
 import { proxy } from "./proxy";
 
+type SetAll = (cookies: { name: string; value: string; options: object }[]) => void;
+
 const getUserMock = vi.fn();
 const singleMock = vi.fn();
+let setAllCookies: SetAll;
 vi.mock("@supabase/ssr", () => ({
-  createServerClient: vi.fn(() => ({
-    auth: { getUser: getUserMock },
-    from: () => ({
-      select: () => ({
-        eq: () => ({ single: singleMock }),
+  createServerClient: vi.fn((_url, _key, options: { cookies: { setAll: SetAll } }) => {
+    setAllCookies = options.cookies.setAll;
+    return {
+      auth: { getUser: getUserMock },
+      from: () => ({
+        select: () => ({
+          eq: () => ({ single: singleMock }),
+        }),
       }),
-    }),
-  })),
+    };
+  }),
 }));
+
+function mockRefreshedSession(user: { id: string } | null) {
+  getUserMock.mockImplementation(async () => {
+    setAllCookies([{ name: "sb-auth-token", value: "refreshed", options: { path: "/" } }]);
+    return { data: { user } };
+  });
+}
 
 function mockProfileName(fullName: string | null) {
   singleMock.mockResolvedValue({ data: { full_name: fullName } });
@@ -73,6 +86,34 @@ describe("proxy", () => {
       const res = await proxy(req);
 
       expect(res.status).toBe(200);
+    });
+  });
+
+  describe("session refresh", () => {
+    it("still redirects to the default locale when the token is refreshed", async () => {
+      mockRefreshedSession({ id: "user-123" });
+      const res = await proxy(new NextRequest("http://localhost:3000/"));
+
+      expect(res.status).toBe(307);
+      expect(res.headers.get("location")).toContain("/sv");
+      expect(res.cookies.get("sb-auth-token")?.value).toBe("refreshed");
+    });
+
+    it("keeps the refreshed cookies on a pass-through response", async () => {
+      mockRefreshedSession({ id: "user-123" });
+      const res = await proxy(new NextRequest("http://localhost:3000/sv/dinners"));
+
+      expect(res.status).toBe(200);
+      expect(res.cookies.get("sb-auth-token")?.value).toBe("refreshed");
+      expect(res.cookies.get("NEXT_LOCALE")?.value).toBe("sv");
+    });
+
+    it("keeps the refreshed cookies on a redirect to /login", async () => {
+      mockRefreshedSession(null);
+      const res = await proxy(new NextRequest("http://localhost:3000/sv/admin"));
+
+      expect(res.status).toBe(307);
+      expect(res.cookies.get("sb-auth-token")?.value).toBe("refreshed");
     });
   });
 
