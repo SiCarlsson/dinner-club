@@ -31,7 +31,7 @@ function StatusBadge({ visibility }: { visibility: DinnerRecord["visibility"] })
   return (
     <span
       className={cn(
-        "inline-block rounded-full border px-[9px] py-[3px] text-[10px] tracking-[.08em] uppercase",
+        "inline-block rounded-full border px-2.25 py-0.75 text-[10px] tracking-[.08em] uppercase",
         isPublished
           ? "border-[rgba(91,122,78,.4)] text-[#5B7A4E]"
           : "text-muted-foreground dark:border-input border-[rgba(27,26,23,.2)]",
@@ -144,8 +144,13 @@ export function DinnersAdmin({
   const t = useTranslations("AdminPage.Dinners");
 
   const [now] = useState(() => Date.now());
-  const upcoming = dinners.filter((dinner) => new Date(dinner.dinner_date).getTime() >= now);
-  const past = dinners.filter((dinner) => new Date(dinner.dinner_date).getTime() < now);
+  const timeOf = (dinner: DinnerRecord) => new Date(dinner.dinner_date).getTime();
+  const upcoming = dinners
+    .filter((dinner) => timeOf(dinner) >= now)
+    .sort((a, b) => timeOf(a) - timeOf(b));
+  const past = dinners
+    .filter((dinner) => timeOf(dinner) < now)
+    .sort((a, b) => timeOf(b) - timeOf(a));
 
   return (
     <section>

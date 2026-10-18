@@ -93,8 +93,6 @@ describe("DinnersAdmin Component", () => {
 
     expect(screen.queryByText(messages.AdminPage.Dinners.Empty)).not.toBeInTheDocument();
 
-    // The desktop table is the semantic source of truth; a duplicate stacked
-    // list (hidden on desktop via CSS) renders the same data for mobile.
     const table = within(screen.getByRole("table"));
 
     expect(table.getByText("Summer Dinner")).toBeInTheDocument();
@@ -144,6 +142,45 @@ describe("DinnersAdmin Component", () => {
 
     expect(within(pastTable).getByText("Past Dinner")).toBeInTheDocument();
     expect(within(pastTable).queryByText("Future Dinner")).not.toBeInTheDocument();
+  });
+
+  it("orders upcoming dinners soonest first and past dinners most recent first", () => {
+    const makeDinner = (id: string, dinner_date: string): DinnerRecord => ({
+      id,
+      name: `Dinner ${id}`,
+      dinner_date,
+      rsvp_deadline: null,
+      description: null,
+      visibility: "published",
+      host_id: null,
+      venue: null,
+    });
+
+    renderDinnersAdmin([
+      makeDinner("past-old", "2026-03-01T18:00:00.000Z"),
+      makeDinner("future-far", "2026-12-01T18:00:00.000Z"),
+      makeDinner("past-recent", "2026-07-01T18:00:00.000Z"),
+      makeDinner("future-soon", "2026-08-01T18:00:00.000Z"),
+      makeDinner("past-mid", "2026-05-01T18:00:00.000Z"),
+      makeDinner("future-mid", "2026-10-01T18:00:00.000Z"),
+    ]);
+
+    const [upcomingTable, pastTable] = screen.getAllByRole("table");
+    const namesIn = (table: HTMLElement) =>
+      within(table)
+        .getAllByText(/^Dinner /)
+        .map((el) => el.textContent);
+
+    expect(namesIn(upcomingTable)).toEqual([
+      "Dinner future-soon",
+      "Dinner future-mid",
+      "Dinner future-far",
+    ]);
+    expect(namesIn(pastTable)).toEqual([
+      "Dinner past-recent",
+      "Dinner past-mid",
+      "Dinner past-old",
+    ]);
   });
 
   it("shows only the upcoming heading when there are no past dinners", () => {
