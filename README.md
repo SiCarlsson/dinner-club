@@ -18,7 +18,7 @@
 * **Framework:** Next.js 16 (React 19) with TypeScript
 * **Styling & UI:** Tailwind CSS, shadcn/ui, Base UI, and `next-themes` (Dark/Light Mode)
 * **Localization:** `next-intl` (Swedish default / English)
-* **Maps:** Leaflet via `react-leaflet`
+* **Maps:** MapLibre via `react-map-gl`, with keyless OpenFreeMap tiles
 * **PWA & Notifications:** Web app manifest, service worker, and `web-push`
 * **Backend & Database:** Supabase (PostgreSQL, Auth, Row Level Security)
 * **Testing:** Vitest, Playwright, and Testing Library

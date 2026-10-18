@@ -2,27 +2,29 @@
 
 "use client";
 
-import "leaflet/dist/leaflet.css";
-import L from "leaflet";
+import "maplibre-gl/dist/maplibre-gl.css";
+import { setWorkerUrl } from "maplibre-gl";
 import { useTheme } from "next-themes";
 import { useTranslations } from "next-intl";
-import { AttributionControl, MapContainer, Marker, Popup, TileLayer } from "react-leaflet";
+import { useState } from "react";
+import { Map, Marker, NavigationControl, Popup, type MapRef } from "react-map-gl/maplibre";
 import type { VenueRating } from "./actions";
 
 // Venues without coordinates can't be placed on the map.
 export type MappableVenue = VenueRating & { latitude: number; longitude: number };
 
-const pinIcon = L.divIcon({
-  className: "venue-pin",
-  html: `<svg viewBox="0 0 24 24" width="28" height="28" style="color: var(--accent); filter: drop-shadow(0 1px 2px rgb(0 0 0 / 0.35));">
-    <path fill="currentColor" stroke="var(--background)" stroke-width="1.5"
-      d="M12 2c-3.87 0-7 3.13-7 7 0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
-    <circle cx="12" cy="9" r="2.5" fill="var(--background)"/>
-  </svg>`,
-  iconSize: [28, 28],
-  iconAnchor: [14, 28],
-  popupAnchor: [0, -26],
-});
+// MapLibre finds its worker relative to its own module URL, which doesn't survive
+// bundling, so have the bundler emit the worker file and point MapLibre at it.
+setWorkerUrl(new URL("maplibre-gl/dist/maplibre-gl-worker.mjs", import.meta.url).toString());
+
+// OpenFreeMap's dark style references images (e.g. "wood-pattern") its sprite doesn't
+// ship. Fill any gap with a transparent pixel instead of logging a warning per image.
+function blankMissingImages(ref: MapRef | null) {
+  const map = ref?.getMap();
+  map?.setMissingStyleImageResolver((id) => {
+    map.addImage(id, { width: 1, height: 1, data: new Uint8Array(4) });
+  });
+}
 
 function formatScore(value: number) {
   return Number(value).toFixed(2);
@@ -31,64 +33,103 @@ function formatScore(value: number) {
 export default function VenueMapImpl({ venues }: { venues: MappableVenue[] }) {
   const t = useTranslations("GuidePage");
   const { resolvedTheme } = useTheme();
-  const points = venues.map((v) => [v.latitude, v.longitude] as [number, number]);
+  const [selected, setSelected] = useState<MappableVenue | null>(null);
 
-  // CARTO basemaps are free for low-volume use and ship a matching dark variant.
-  const tileUrl =
+  // OpenFreeMap needs no API key or account and ships a matching dark variant.
+  // Its tiles carry their own OSM/OpenMapTiles attribution, which MapLibre displays.
+  const mapStyle =
     resolvedTheme === "dark"
-      ? "https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-      : "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+      ? "https://tiles.openfreemap.org/styles/dark"
+      : "https://tiles.openfreemap.org/styles/positron";
 
   // Fit all pins; a single venue has no extent, so fall back to a fixed zoom.
-  const bounds = L.latLngBounds(points);
-  const single = points.length === 1;
+  const lngs = venues.map((v) => v.longitude);
+  const lats = venues.map((v) => v.latitude);
+  const initialViewState =
+    venues.length === 1
+      ? { longitude: lngs[0], latitude: lats[0], zoom: 14 }
+      : {
+          bounds: [
+            [Math.min(...lngs), Math.min(...lats)],
+            [Math.max(...lngs), Math.max(...lats)],
+          ] as [[number, number], [number, number]],
+          fitBoundsOptions: { padding: 40 },
+        };
 
   return (
-    <MapContainer
-      {...(single
-        ? { center: points[0], zoom: 14 }
-        : { bounds, boundsOptions: { padding: [40, 40] } })}
-      scrollWheelZoom={false}
-      className="h-[360px] w-full"
-      style={{ background: "var(--muted)" }}
-      attributionControl={false}
+    <Map
+      ref={blankMissingImages}
+      initialViewState={initialViewState}
+      mapStyle={mapStyle}
+      scrollZoom={false}
+      style={{ height: 360, width: "100%", background: "var(--muted)" }}
     >
-      <AttributionControl prefix={false} />
-      <TileLayer
-        // Attribution is required by both OSM and CARTO.
-        attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions">CARTO</a>'
-        url={tileUrl}
-      />
+      <NavigationControl showCompass={false} />
       {venues.map((venue) => (
-        <Marker key={venue.venue_id} position={[venue.latitude, venue.longitude]} icon={pinIcon}>
-          <Popup>
-            <p className="font-serif text-[16px] leading-tight">{venue.venue_name}</p>
-            {venue.address && (
-              <p className="text-muted-foreground mt-0.5 text-[11px]">{venue.address}</p>
-            )}
-            <dl className="mt-1.5 flex flex-col gap-1 text-[11px] leading-none">
-              {[
-                { label: t("Service"), value: venue.avg_service },
-                { label: t("Food"), value: venue.avg_food },
-                { label: t("Venue"), value: venue.avg_venue },
-              ].map(({ label, value }) => (
-                <div key={label} className="flex items-baseline justify-between gap-6">
-                  <dt className="text-muted-foreground tracking-[.08em] uppercase">{label}</dt>
-                  <dd className="text-muted-foreground font-serif text-[14px] tabular-nums">
-                    {formatScore(value)}
-                  </dd>
-                </div>
-              ))}
-              <div className="border-border mt-1 flex items-baseline justify-between gap-6 border-t pt-1">
-                <dt className="tracking-[.08em] uppercase">{t("Overall")}</dt>
-                <dd className="font-serif text-[16px] font-medium tabular-nums">
-                  {formatScore(venue.avg_overall)}
-                </dd>
-              </div>
-            </dl>
-          </Popup>
+        <Marker
+          key={venue.venue_id}
+          longitude={venue.longitude}
+          latitude={venue.latitude}
+          anchor="bottom"
+          onClick={(e) => {
+            // Keep the map's own click handler from closing the popup straight away.
+            e.originalEvent.stopPropagation();
+            setSelected(venue);
+          }}
+        >
+          <svg
+            viewBox="0 0 24 24"
+            width="28"
+            height="28"
+            role="img"
+            aria-label={venue.venue_name}
+            className="cursor-pointer"
+            style={{ color: "var(--accent)", filter: "drop-shadow(0 1px 2px rgb(0 0 0 / 0.35))" }}
+          >
+            <path
+              fill="currentColor"
+              stroke="var(--background)"
+              strokeWidth="1.5"
+              d="M12 2c-3.87 0-7 3.13-7 7 0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"
+            />
+            <circle cx="12" cy="9" r="2.5" fill="var(--background)" />
+          </svg>
         </Marker>
       ))}
-    </MapContainer>
+      {selected && (
+        <Popup
+          longitude={selected.longitude}
+          latitude={selected.latitude}
+          anchor="bottom"
+          offset={30}
+          onClose={() => setSelected(null)}
+        >
+          <p className="font-serif text-[16px] leading-tight">{selected.venue_name}</p>
+          {selected.address && (
+            <p className="text-muted-foreground mt-0.5 text-[11px]">{selected.address}</p>
+          )}
+          <dl className="mt-1.5 flex flex-col gap-1 text-[11px] leading-none">
+            {[
+              { label: t("Service"), value: selected.avg_service },
+              { label: t("Food"), value: selected.avg_food },
+              { label: t("Venue"), value: selected.avg_venue },
+            ].map(({ label, value }) => (
+              <div key={label} className="flex items-baseline justify-between gap-6">
+                <dt className="text-muted-foreground tracking-[.08em] uppercase">{label}</dt>
+                <dd className="text-muted-foreground font-serif text-[14px] tabular-nums">
+                  {formatScore(value)}
+                </dd>
+              </div>
+            ))}
+            <div className="border-border mt-1 flex items-baseline justify-between gap-6 border-t pt-1">
+              <dt className="tracking-[.08em] uppercase">{t("Overall")}</dt>
+              <dd className="font-serif text-[16px] font-medium tabular-nums">
+                {formatScore(selected.avg_overall)}
+              </dd>
+            </div>
+          </dl>
+        </Popup>
+      )}
+    </Map>
   );
 }

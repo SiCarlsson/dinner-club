@@ -1,46 +1,50 @@
 // app/[locale]/guide/venue-map-impl.test.tsx
 
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, within } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
 import { useTheme } from "next-themes";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import messages from "@/messages/sv.json";
 import VenueMapImpl, { type MappableVenue } from "./venue-map-impl";
 
-vi.mock("react-leaflet", () => ({
-  MapContainer: ({
+vi.mock("react-map-gl/maplibre", () => ({
+  Map: ({
     children,
-    center,
-    zoom,
+    initialViewState,
+    mapStyle,
   }: {
     children: React.ReactNode;
-    center?: [number, number];
-    zoom?: number;
+    initialViewState: Record<string, unknown>;
+    mapStyle: string;
   }) => (
-    <div data-testid="map-container" data-center={center?.join(",") ?? ""} data-zoom={zoom ?? ""}>
+    <div data-testid="map" data-view={JSON.stringify(initialViewState)} data-style={mapStyle}>
       {children}
     </div>
   ),
-  TileLayer: ({ url, attribution }: { url: string; attribution: string }) => (
-    <div data-testid="tile-layer" data-url={url} data-attribution={attribution} />
-  ),
-  Marker: ({ children, position }: { children: React.ReactNode; position: [number, number] }) => (
-    <div data-testid="marker" data-position={position.join(",")}>
+  Marker: ({
+    children,
+    longitude,
+    latitude,
+    onClick,
+  }: {
+    children: React.ReactNode;
+    longitude: number;
+    latitude: number;
+    onClick: (e: { originalEvent: { stopPropagation: () => void } }) => void;
+  }) => (
+    <div
+      data-testid="marker"
+      data-position={`${latitude},${longitude}`}
+      onClick={() => onClick({ originalEvent: { stopPropagation: () => {} } })}
+    >
       {children}
     </div>
   ),
   Popup: ({ children }: { children: React.ReactNode }) => <div data-testid="popup">{children}</div>,
-  AttributionControl: ({ prefix }: { prefix: boolean }) => (
-    <div data-testid="attribution-control" data-prefix={String(prefix)} />
-  ),
+  NavigationControl: () => null,
 }));
 
-vi.mock("leaflet", () => ({
-  default: {
-    divIcon: vi.fn(() => ({ isMockIcon: true })),
-    latLngBounds: vi.fn((points: [number, number][]) => ({ points })),
-  },
-}));
+vi.mock("maplibre-gl", () => ({ setWorkerUrl: vi.fn() }));
 
 vi.mock("next-themes", () => ({ useTheme: vi.fn() }));
 
@@ -94,21 +98,33 @@ describe("VenueMapImpl", () => {
     expect(markers[1]).toHaveAttribute("data-position", "59.31,18.07");
   });
 
+  it("opens the popup only when a pin is clicked", () => {
+    renderMap([makeVenue()]);
+    expect(screen.queryByTestId("popup")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByTestId("marker"));
+    expect(screen.getByTestId("popup")).toBeInTheDocument();
+  });
+
   it("shows the venue name and address in the popup", () => {
     renderMap([makeVenue()]);
+    fireEvent.click(screen.getByTestId("marker"));
 
-    expect(screen.getByText("Rolfs Kök")).toBeInTheDocument();
-    expect(screen.getByText("Tegnérgatan 41")).toBeInTheDocument();
+    const popup = within(screen.getByTestId("popup"));
+    expect(popup.getByText("Rolfs Kök")).toBeInTheDocument();
+    expect(popup.getByText("Tegnérgatan 41")).toBeInTheDocument();
   });
 
   it("omits the address when the venue has none", () => {
     renderMap([makeVenue({ address: null })]);
+    fireEvent.click(screen.getByTestId("marker"));
 
     expect(screen.queryByText("Tegnérgatan 41")).not.toBeInTheDocument();
   });
 
   it("shows every rating and the total, each formatted to two decimals", () => {
     renderMap([makeVenue()]);
+    fireEvent.click(screen.getByTestId("marker"));
 
     expect(screen.getByText(messages.GuidePage.Service)).toBeInTheDocument();
     expect(screen.getByText(messages.GuidePage.Food)).toBeInTheDocument();
@@ -123,36 +139,32 @@ describe("VenueMapImpl", () => {
 
   it("uses the light basemap by default and the dark one in dark mode", () => {
     const { unmount } = renderMap([makeVenue()]);
-    expect(screen.getByTestId("tile-layer").getAttribute("data-url")).toContain("light_all");
+    expect(screen.getByTestId("map").getAttribute("data-style")).toMatch(/\/positron$/);
     unmount();
 
     setTheme("dark");
     renderMap([makeVenue()]);
-    expect(screen.getByTestId("tile-layer").getAttribute("data-url")).toContain("dark_all");
-  });
-
-  it("keeps the OSM/CARTO tile attribution but drops Leaflet's prefix", () => {
-    renderMap([makeVenue()]);
-
-    const attribution = screen.getByTestId("tile-layer").getAttribute("data-attribution") ?? "";
-    expect(attribution).toContain("OpenStreetMap");
-    expect(attribution).toContain("CARTO");
-    expect(screen.getByTestId("attribution-control")).toHaveAttribute("data-prefix", "false");
+    expect(screen.getByTestId("map").getAttribute("data-style")).toMatch(/\/dark$/);
   });
 
   it("centres on a single venue but fits bounds for several", () => {
     const { unmount } = renderMap([makeVenue({ latitude: 59.34, longitude: 18.05 })]);
-    const single = screen.getByTestId("map-container");
-    expect(single).toHaveAttribute("data-center", "59.34,18.05");
-    expect(single).toHaveAttribute("data-zoom", "14");
+    expect(JSON.parse(screen.getByTestId("map").getAttribute("data-view")!)).toEqual({
+      longitude: 18.05,
+      latitude: 59.34,
+      zoom: 14,
+    });
     unmount();
 
     renderMap([
       makeVenue({ venue_id: "a", latitude: 59.34, longitude: 18.05 }),
       makeVenue({ venue_id: "b", latitude: 59.31, longitude: 18.07 }),
     ]);
-    const many = screen.getByTestId("map-container");
-    expect(many).toHaveAttribute("data-center", "");
-    expect(many).toHaveAttribute("data-zoom", "");
+    const view = JSON.parse(screen.getByTestId("map").getAttribute("data-view")!);
+    expect(view.bounds).toEqual([
+      [18.05, 59.31],
+      [18.07, 59.34],
+    ]);
+    expect(view.zoom).toBeUndefined();
   });
 });
