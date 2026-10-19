@@ -271,7 +271,8 @@ export async function getInvitations() {
   const { data, error } = await supabase
     .from("invitations")
     .select("id, email, created_at")
-    .order("created_at", { ascending: false });
+    .order("created_at", { ascending: false })
+    .order("email");
 
   if (error) {
     return { success: false as const, message: error.message };

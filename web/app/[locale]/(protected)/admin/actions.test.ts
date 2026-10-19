@@ -568,13 +568,15 @@ describe("admin actions", () => {
       expect(result).toEqual({ success: false, message: "Not authorized" });
     });
 
-    it("returns invitations ordered by created_at descending for an admin", async () => {
+    it("returns invitations ordered by created_at descending, then email, for an admin", async () => {
       const supabase = mockSupabase();
       const rows = [
         { id: "2", email: "b@example.com", created_at: "2026-07-05T00:00:00.000Z" },
         { id: "1", email: "a@example.com", created_at: "2026-07-01T00:00:00.000Z" },
       ];
-      supabase.order.mockResolvedValue({ data: rows, error: null });
+      supabase.order
+        .mockReturnValueOnce({ order: supabase.order } as never)
+        .mockResolvedValueOnce({ data: rows, error: null });
       vi.mocked(getUserWithRole).mockResolvedValue({
         supabase: supabase as never,
         user: { id: "admin-1" } as never,
@@ -585,13 +587,16 @@ describe("admin actions", () => {
       const result = await getInvitations();
 
       expect(supabase.from).toHaveBeenCalledWith("invitations");
-      expect(supabase.order).toHaveBeenCalledWith("created_at", { ascending: false });
+      expect(supabase.order).toHaveBeenNthCalledWith(1, "created_at", { ascending: false });
+      expect(supabase.order).toHaveBeenNthCalledWith(2, "email");
       expect(result).toEqual({ success: true, invitations: rows });
     });
 
     it("returns an error message when the query fails", async () => {
       const supabase = mockSupabase();
-      supabase.order.mockResolvedValue({ data: null, error: { message: "db down" } });
+      supabase.order
+        .mockReturnValueOnce({ order: supabase.order } as never)
+        .mockResolvedValueOnce({ data: null, error: { message: "db down" } });
       vi.mocked(getUserWithRole).mockResolvedValue({
         supabase: supabase as never,
         user: { id: "admin-1" } as never,
